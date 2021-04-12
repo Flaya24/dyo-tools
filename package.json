@@ -1,0 +1,23 @@
+{
+  "name": "dyo-tools",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/dyo-system/dyo-tools.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/dyo-system/dyo-tools/issues"
+  },
+  "homepage": "https://gitlab.com/dyo-system/dyo-tools#readme",
+  "devDependencies": {
+    "typescript": "^4.2.4"
+  }
+}
