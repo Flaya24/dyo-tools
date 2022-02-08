@@ -1,5 +1,6 @@
 # compiled output
 /dist
+/dist_test
 /node_modules
 .env*
 
