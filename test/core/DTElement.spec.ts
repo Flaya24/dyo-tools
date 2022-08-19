@@ -2,7 +2,7 @@ import { describe, test, beforeEach } from '@jest/globals';
 import {
   DTPlayerStub, IDTest as IDPlayerTest, toStringTest as toStringPlayerTest, KeyTest as KeyPlayerTest,
 } from './DTPlayer.double';
-import { DTElementMock, IDTest, KeyTest } from './DTElement.double';
+import {DTElementMock, IDTest, inheritance, KeyTest} from './DTElement.double';
 import { MeldrineMetaData } from './DTComponentWithMeta.double';
 
 describe('class DYOToolsElement', () => {
@@ -14,6 +14,12 @@ describe('class DYOToolsElement', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('inheritance', () => {
+    test('check inheritance from DYOToolsComponentPhysical', () => {
+      expect(inheritance()).toBeTruthy();
+    });
   });
 
   describe('_componentType', () => {

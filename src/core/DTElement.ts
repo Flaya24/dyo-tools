@@ -1,10 +1,11 @@
 import DYOToolsComponentWithMeta from './DTComponentWithMeta';
 import DYOToolsPlayer from './DTPlayer';
 import { DTAcceptedMetaData, DTElementToObject } from '../types';
+import DYOToolsComponentPhysical from "./DTComponentPhysical";
 
 export default class DYOToolsElement<
   IComponentMeta extends DTAcceptedMetaData,
-  > extends DYOToolsComponentWithMeta<IComponentMeta> {
+  > extends DYOToolsComponentPhysical<IComponentMeta> {
   /**
    * Defining component type to "element".
    */
@@ -92,5 +93,8 @@ export default class DYOToolsElement<
     }
 
     return `Component ${this._key} - Type: Element${ownerKey}`;
+  }
+
+  do(): void {
   }
 }

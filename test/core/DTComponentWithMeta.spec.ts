@@ -5,7 +5,7 @@ import {
   DTComponentWithMetaTestMock, HaileiMetaData, MeldrineMetaData, IMetaDataTest, YssaliaMetaData,
 } from './DTComponentWithMeta.double';
 
-describe('class DYOToolsComponentWithMeta', () => {
+describe('class DYOToolsComponent', () => {
   let componentMock: DTComponentWithMetaTestMock;
 
   beforeEach(() => {

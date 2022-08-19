@@ -1,4 +1,4 @@
-import { DTElement } from '../../src';
+import { DTElement, DTComponentPhysical } from '../../src';
 import { IMetaDataTest, MeldrineMetaData } from './DTComponentWithMeta.double';
 
 // Global Variables
@@ -24,4 +24,9 @@ export class DTElementMock extends DTElement<IMetaDataTest> {
   getManyMeta(metaKeys: Array<keyof IMetaDataTest> = []): Partial<IMetaDataTest> {
     return this._meta;
   }
+}
+
+// Inheritance
+export const inheritance = () => {
+  return DTElement.prototype instanceof DTComponentPhysical;
 }

@@ -119,11 +119,6 @@ export default abstract class DYOToolsComponent {
   }
 
   /**
-   * Abstract method for copying the Component and returning it.
-   */
-  abstract copy(): DYOToolsComponent;
-
-  /**
    * Abstract method for JSON Object representation of the component and returning it.
    */
   abstract toObject(): unknown;

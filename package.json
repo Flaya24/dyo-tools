@@ -1,7 +1,7 @@
 {
   "name": "dyo-tools",
-  "version": "0.1.0",
-  "description": "Provide component classes to manage any board game instance.",
+  "version": "1.0.0",
+  "description": "",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -14,12 +14,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Flaya24/dyo-tools.git"
+    "url": "git+https://gitlab.com/dyo-system/dyo-tools.git"
   },
-  "author": "Flaya for DYO System",
-  "license": "MIT",
-  "keywords": ["game", "DYO", "board game"],
-  "files": ["dist/*"],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/dyo-system/dyo-tools/issues"
+  },
+  "homepage": "https://gitlab.com/dyo-system/dyo-tools#readme",
   "devDependencies": {
     "@babel/preset-env": "^7.14.7",
     "@types/jest": "^27.4.0",
