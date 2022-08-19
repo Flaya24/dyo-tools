@@ -12,32 +12,6 @@ export default class DYOToolsElement<
   protected _componentType = 'element';
 
   /**
-   * DTPlayer instance who owns the current element
-   */
-  private _owner?: DYOToolsPlayer<DTAcceptedMetaData>;
-
-  /**
-   * Getter for _owner property.
-   */
-  getOwner(): DYOToolsPlayer<DTAcceptedMetaData> {
-    return this._owner;
-  }
-
-  /**
-   * Setter for _owner property.
-   */
-  setOwner(value: DYOToolsPlayer<DTAcceptedMetaData>): void {
-    this._owner = value;
-  }
-
-  /**
-   * Remove the current owner of element.
-   */
-  removeOwner(): void {
-    this._owner = undefined;
-  }
-
-  /**
    * Create and return a new DTElement instance by applying from current instance :
    * - Copy _key property
    * - Copy _meta property

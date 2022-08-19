@@ -17,7 +17,7 @@ describe('class DYOToolsElement', () => {
   });
 
   describe('inheritance', () => {
-    test('check inheritance from DYOToolsComponentPhysical', () => {
+    test('check good inheritance for class', () => {
       expect(inheritance()).toBeTruthy();
     });
   });
@@ -25,50 +25,6 @@ describe('class DYOToolsElement', () => {
   describe('_componentType', () => {
     test('componentType must be "element"', () => {
       expect(elementMock.getComponentType()).toBe('element');
-    });
-  });
-
-  describe('getOwner()', () => {
-    test('return empty owner by default', () => {
-      expect(elementMock.getOwner()).toBeUndefined();
-    });
-
-    test('return owner when set', () => {
-      const owner = new DTPlayerStub();
-      jest.spyOn(elementMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-      elementMock.setOwner(owner);
-
-      expect(elementMock.getOwner().getId()).toBe(IDPlayerTest);
-    });
-  });
-
-  describe('setOwner()', () => {
-    test('add a new owner', () => {
-      const owner = new DTPlayerStub();
-      jest.spyOn(elementMock, 'getOwner').mockImplementation(function () {
-        return this._owner;
-      });
-      elementMock.setOwner(owner);
-
-      expect(elementMock.getOwner().getId()).toBe(IDPlayerTest);
-    });
-  });
-
-  describe('removeOwner()', () => {
-    test('remove the current Owner', () => {
-      const owner = new DTPlayerStub();
-      jest.spyOn(elementMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-      jest.spyOn(elementMock, 'getOwner').mockImplementation(function () {
-        return this._owner;
-      });
-      elementMock.setOwner(owner);
-
-      elementMock.removeOwner();
-      expect(elementMock.getOwner()).toBeUndefined();
     });
   });
 

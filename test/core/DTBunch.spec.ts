@@ -22,6 +22,7 @@ import {
   YssaliaIdTest,
   YssaliaKeyTest,
   YssaliaToObjectTest,
+  inheritance
 } from './DTBunch.double';
 import { DTBunch, DTError } from '../../src';
 import DYOToolsElement from '../../src/core/DTElement';
@@ -48,6 +49,12 @@ describe('class DYOToolsBunch', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('inheritance', () => {
+    test('check good inheritance for class', () => {
+      expect(inheritance()).toBeTruthy();
+    });
   });
 
   describe('constructor()', () => {
@@ -147,114 +154,6 @@ describe('class DYOToolsBunch', () => {
   describe('_componentType', () => {
     test('componentType must be "bunch"', () => {
       expect(bunchMock.getComponentType()).toBe('bunch');
-    });
-  });
-
-  describe('getOwner()', () => {
-    test('return empty owner by default', () => {
-      expect(bunchMock.getOwner()).toBeUndefined();
-    });
-
-    test('return owner when set', () => {
-      const owner = new DTPlayerStub();
-      jest.spyOn(bunchMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-      bunchMock.setOwner(owner);
-
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
-    });
-  });
-
-  describe('setOwner()', () => {
-    beforeEach(() => {
-      jest.spyOn(bunchMock, 'getOwner').mockImplementation(function () {
-        return this._owner;
-      });
-    });
-
-    test('add a new owner', () => {
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
-    });
-
-    test('add a new owner - not updating elements owner when inheritOwner = false', () => {
-      bunchMock.mockDefineOptions({ inheritOwner: false });
-      bunchMock.mockDefineItems(3);
-
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
-      expect(bunchMock.mockItemGetter(0).setOwner.mock.calls.length).toBe(0);
-      expect(bunchMock.mockItemGetter(1).setOwner.mock.calls.length).toBe(0);
-      expect(bunchMock.mockItemGetter(2).setOwner.mock.calls.length).toBe(0);
-    });
-
-    test('add a new owner - updating elements owner when inheritOwner = true', () => {
-      bunchMock.mockDefineOptions({ inheritOwner: true });
-      bunchMock.mockDefineItems(3);
-
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
-      expect(bunchMock.mockItemGetter(0).setOwner.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(0).setOwner.mock.calls[0][0].getId()).toBe(IDPlayerTest);
-      expect(bunchMock.mockItemGetter(1).setOwner.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(1).setOwner.mock.calls[0][0].getId()).toBe(IDPlayerTest);
-      expect(bunchMock.mockItemGetter(2).setOwner.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(2).setOwner.mock.calls[0][0].getId()).toBe(IDPlayerTest);
-    });
-  });
-
-  describe('removeOwner()', () => {
-    beforeEach(() => {
-      jest.spyOn(bunchMock, 'getOwner').mockImplementation(function () {
-        return this._owner;
-      });
-      jest.spyOn(bunchMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-    });
-
-    test('remove current Owner', () => {
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-      bunchMock.removeOwner();
-
-      expect(bunchMock.getOwner()).toBeUndefined();
-    });
-
-    test('remove current Owner - not updating elements owner when inheritOwner = false', () => {
-      bunchMock.mockDefineOptions({ inheritOwner: true });
-      bunchMock.mockDefineItems(2);
-
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-
-      bunchMock.mockDefineOptions({ inheritOwner: false });
-      bunchMock.removeOwner();
-
-      expect(bunchMock.getOwner()).toBeUndefined();
-      expect(bunchMock.mockItemGetter(0).removeOwner.mock.calls.length).toBe(0);
-      expect(bunchMock.mockItemGetter(1).removeOwner.mock.calls.length).toBe(0);
-    });
-
-    test('remove current Owner - updating elements owner when inheritOwner = true', () => {
-      bunchMock.mockDefineOptions({ inheritOwner: true });
-      bunchMock.mockDefineItems(2);
-
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-
-      bunchMock.removeOwner();
-
-      expect(bunchMock.getOwner()).toBeUndefined();
-      expect(bunchMock.mockItemGetter(0).removeOwner.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(1).removeOwner.mock.calls.length).toBe(1);
     });
   });
 

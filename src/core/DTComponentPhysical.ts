@@ -6,7 +6,7 @@ export default abstract class DYOToolsComponentPhysical<
   IComponentMeta extends DTAcceptedMetaData,
   > extends DYOToolsComponentWithMeta<IComponentMeta> {
 
-  private _owner?: DYOToolsPlayer<DTAcceptedMetaData>;
+  protected _owner?: DYOToolsPlayer<DTAcceptedMetaData>;
 
   private _events?: any;
 

@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { DTBunch } from '../../src';
+import {DTBunch, DTComponentPhysical, DTElement} from '../../src';
 import {
   BunchMetaData,
   HaileiMetaData,
@@ -148,3 +148,8 @@ export const generateMockedElements = (numberElements: number): Array<Mocked<DYO
 
   return mockedElements;
 };
+
+// Inheritance
+export const inheritance = () => {
+  return DTElement.prototype instanceof DTComponentPhysical;
+}
