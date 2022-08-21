@@ -164,7 +164,7 @@ describe('class DYOToolsComponent', () => {
     });
   });
 
-  describe('removeOwner()', () => {
+  describe('removeContext()', () => {
     test('remove the current Context', () => {
       const componentRankSup = new DTComponentTestMock();
       jest.spyOn(componentMock, 'setContext').mockImplementation(function (context) {

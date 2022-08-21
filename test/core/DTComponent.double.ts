@@ -1,4 +1,5 @@
-import {DTComponent} from "../../src";
+import {DTComponent, DTComponentWithMeta} from "../../src";
+import {jest} from "@jest/globals";
 
 // Global test variables
 export const IDTest = "DTComponent-id-1234567";
@@ -66,4 +67,13 @@ export class DTComponentStub extends DTComponentTest {
     getId() {
         return this.stubId;
     }
+}
+
+// Mocked implementations for overridden methods (for children tests)
+export function mockOverriddenMethods(mock: any) {
+    // Constructor
+    mock.prototype.constructor.mockImplementation(function (key?: string) {
+        this._id = IDTest;
+        this._key = key || this._id;
+    })
 }

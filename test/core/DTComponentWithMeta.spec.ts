@@ -2,10 +2,10 @@ import {
   jest, describe, expect, test, beforeEach, afterEach,
 } from '@jest/globals';
 import {
-  DTComponentWithMetaTestMock, HaileiMetaData, MeldrineMetaData, IMetaDataTest, YssaliaMetaData,
+  DTComponentWithMetaTestMock, HaileiMetaData, MeldrineMetaData, IMetaDataTest, YssaliaMetaData, inheritance
 } from './DTComponentWithMeta.double';
 
-describe('class DYOToolsComponent', () => {
+describe('class DYOToolsComponentWithMeta', () => {
   let componentMock: DTComponentWithMetaTestMock;
 
   beforeEach(() => {
@@ -14,6 +14,12 @@ describe('class DYOToolsComponent', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('inheritance', () => {
+    test('check good inheritance for class', () => {
+      expect(inheritance()).toBeTruthy();
+    });
   });
 
   describe('getMeta()', () => {

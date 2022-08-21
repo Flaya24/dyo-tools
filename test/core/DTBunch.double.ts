@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import {DTBunch, DTComponentPhysical, DTElement} from '../../src';
+import {DTBunch, DTComponentPhysical} from '../../src';
 import {
   BunchMetaData,
   HaileiMetaData,
@@ -13,11 +13,22 @@ import DYOToolsElement from '../../src/core/DTElement';
 import { DTBunchOptionsConstructor, DTElementToObject } from '../../src/types';
 import { DTErrorStub } from './DTError.double';
 import Mocked = jest.Mocked;
+import {mockOverriddenMethods} from "./DTComponentPhysical.double";
 
 // Mocking extra Components for using with Bunch
 jest.mock('../../src/core/DTElement');
 jest.mock('../../src/core/DTError');
 jest.mock('../../src/utils/filters');
+
+// Mock Inheritance
+jest.mock('../../src/core/DTComponent');
+jest.mock('../../src/core/DTComponentWithMeta');
+jest.mock('../../src/core/DTComponentPhysical');
+mockOverriddenMethods(DTComponentPhysical);
+
+export const inheritance = () => {
+  return DTBunch.prototype instanceof DTComponentPhysical;
+}
 
 // Global Variables
 export const IDTest = 'DTBunch-id-1234567';
@@ -149,7 +160,4 @@ export const generateMockedElements = (numberElements: number): Array<Mocked<DYO
   return mockedElements;
 };
 
-// Inheritance
-export const inheritance = () => {
-  return DTElement.prototype instanceof DTComponentPhysical;
-}
+

@@ -1,5 +1,7 @@
-import { DTComponentWithMeta } from '../../src';
+import {DTComponent, DTComponentWithMeta} from '../../src';
 import {DTAcceptedMetaData} from "../../src/types";
+import {jest} from "@jest/globals";
+import {IDTest, mockOverriddenMethods as parentMockMethods} from "./DTComponent.double";
 
 // Global test variables
 export const ComponentTypeTest = 'DTComponentWithMeta-componentType-test';
@@ -60,6 +62,14 @@ export const BunchMetaData: IMetaDataTest = {
   kd: [117, 3],
 };
 
+// Mock Inheritance
+jest.mock('../../src/core/DTComponent');
+parentMockMethods(DTComponent);
+
+export const inheritance = () => {
+  return DTComponentWithMeta.prototype instanceof DTComponent;
+}
+
 // Test Child for DTComponentWithMeta class (mocked abstract methods)
 export class DTComponentWithMetaTest extends DTComponentWithMeta<IMetaDataTest> {
     protected _componentType: string = ComponentTypeTest;
@@ -85,4 +95,8 @@ export class DTComponentWithMetaTestMock extends DTComponentWithMetaTest {
       this._meta = { ...defaultMeta };
     }
   }
+}
+
+// Mocked implementations for overridden methods (for children tests)
+export function mockOverriddenMethods(mock: any) {
 }

@@ -1,10 +1,21 @@
-import { DTPlayer } from '../../src';
-import { IMetaDataTest, PlayerMetaData } from './DTComponentWithMeta.double';
+import {DTBunch, DTComponentPhysical, DTComponentWithMeta, DTPlayer} from '../../src';
+import {IMetaDataTest, PlayerMetaData} from './DTComponentWithMeta.double';
+import {jest} from "@jest/globals";
+import {mockOverriddenMethods} from "./DTComponentWithMeta.double";
 
 // Global Variables
 export const IDTest = 'DTPlayer-id-1234567';
 export const KeyTest = 'DTPlayer-key-1234567';
 export const toStringTest = 'DTPlayer Stub toString';
+
+// Mock Inheritance
+jest.mock('../../src/core/DTComponent');
+jest.mock('../../src/core/DTComponentWithMeta');
+mockOverriddenMethods(DTComponentWithMeta);
+
+export const inheritance = () => {
+  return DTPlayer.prototype instanceof DTComponentWithMeta;
+}
 
 // Stub for Player (used for other tests)
 export class DTPlayerStub extends DTPlayer<{}> {

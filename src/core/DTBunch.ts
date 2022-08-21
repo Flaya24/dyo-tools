@@ -11,20 +11,16 @@ import {
 import DYOToolsPlayer from './DTPlayer';
 import DYOToolsError from './DTError';
 import { validFiltersForItem } from '../utils/filters';
+import DYOToolsComponentPhysical from "./DTComponentPhysical";
 
 export default class DYOToolsBunch<
     IBunchItem extends DYOToolsElement<DTAcceptedMetaData>,
     IComponentMeta extends DTAcceptedMetaData,
-  > extends DYOToolsComponentWithMeta<IComponentMeta> {
+  > extends DYOToolsComponentPhysical<IComponentMeta> {
   /**
    * Defining component type to "bunch".
    */
   protected _componentType = 'bunch';
-
-  /**
-   * DTPlayer instance who owns the current bunch.
-   */
-  protected _owner?: DYOToolsPlayer<DTAcceptedMetaData>;
 
   /**
    * Ordered Array of DTElement instance managed by the bunch.
@@ -87,17 +83,11 @@ export default class DYOToolsBunch<
   }
 
   /**
-   * Getter for _owner property.
-   */
-  getOwner(): DYOToolsPlayer<DTAcceptedMetaData> {
-    return this._owner;
-  }
-
-  /**
    * Setter for _owner property.
+   * TODO : TSDOC Must be updated
    */
   setOwner(value: DYOToolsPlayer<DTAcceptedMetaData>): void {
-    this._owner = value;
+    super.setOwner(value);
 
     // Update owner elements
     const { inheritOwner } = this._globalOptions;
@@ -108,9 +98,10 @@ export default class DYOToolsBunch<
 
   /**
    * Remove the current owner of bunch.
+   * TODO : TSDOC Must be updated
    */
   removeOwner(): void {
-    this._owner = undefined;
+    super.removeOwner();
 
     // Update owner elements
     const { inheritOwner } = this._globalOptions;
@@ -596,5 +587,8 @@ export default class DYOToolsBunch<
     }
 
     return `Component ${this._key} - Type: Bunch${ownerKey} - Items: ${this._items.length}`;
+  }
+
+  do(): void {
   }
 }

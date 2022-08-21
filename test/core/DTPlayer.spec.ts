@@ -1,5 +1,5 @@
-import { beforeEach, describe, test } from '@jest/globals';
-import { DTPlayerMock, IDTest, KeyTest } from './DTPlayer.double';
+import {beforeEach, describe, expect, test} from '@jest/globals';
+import { DTPlayerMock, IDTest, KeyTest, inheritance } from './DTPlayer.double';
 import { DTComponentTestMock } from './DTComponent.double';
 import { PlayerMetaData } from './DTComponentWithMeta.double';
 
@@ -12,6 +12,12 @@ describe('class DYOToolsPlayer', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('inheritance', () => {
+    test('check good inheritance for class', () => {
+      expect(inheritance()).toBeTruthy();
+    });
   });
 
   describe('_componentType', () => {
