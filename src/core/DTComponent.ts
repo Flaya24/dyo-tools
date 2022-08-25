@@ -1,4 +1,5 @@
 import * as uuid from 'uuid';
+import DYOToolsError from "./DTError";
 
 export default abstract class DYOToolsComponent {
   /**
@@ -41,6 +42,11 @@ export default abstract class DYOToolsComponent {
   protected _subKind?: string;
 
   /**
+   * TODO : Update JSDOC
+   */
+  protected _errors: DYOToolsError[];
+
+  /**
    * Set automatic unique _id and _key.
    *
    * @param key Optional Key to set. If not provided, set the _key with the _id value.
@@ -48,6 +54,7 @@ export default abstract class DYOToolsComponent {
   constructor(key?: string) {
     this._id = uuid.v4();
     this._key = key || this._id;
+    this._errors = [];
   }
 
   /**
@@ -116,6 +123,17 @@ export default abstract class DYOToolsComponent {
    */
   getSubKind(): string {
     return this._subKind;
+  }
+
+  /**
+   * Getter for _errors property.
+   */
+  getErrors(): DYOToolsError[] {
+    if (this.getContext()) {
+      return this.getContext().getErrors();
+    } else {
+      return this._errors;
+    }
   }
 
   /**

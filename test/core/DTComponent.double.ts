@@ -1,4 +1,5 @@
-import {DTComponent, DTComponentWithMeta} from "../../src";
+import {DTComponent} from "../../src";
+import {DTErrorStub} from "./DTError.double";
 import {jest} from "@jest/globals";
 
 // Global test variables
@@ -51,7 +52,10 @@ export class DTComponentTestMock extends DTComponentTest {
             this._subKind = undefined;
             this._context = undefined;
         }
+    }
 
+    mockDefineErrors(errors: Array<DTErrorStub>): void {
+        this._errors = errors;
     }
 }
 
@@ -76,4 +80,26 @@ export function mockOverriddenMethods(mock: any) {
         this._id = IDTest;
         this._key = key || this._id;
     })
+}
+
+// Hierarchy Simulation
+export function simulateHierarchy(ranks: number = 3): DTComponentTestMock[] {
+    const hierarchyComponents = [];
+    let lastRankComponent: DTComponentTestMock;
+
+    for (let i = 1; i <= ranks; i++) {
+        const data: IDTComponentTestMockProps = { componentType: `rank${i}`};
+        if (lastRankComponent) {
+            data.context = lastRankComponent;
+        }
+
+        const componentRank = new DTComponentTestMock(data);
+        jest.spyOn(componentRank, 'getComponentType').mockImplementation(function () {
+            return this._componentType;
+        });
+        hierarchyComponents.push(componentRank);
+        lastRankComponent = componentRank;
+    }
+
+    return hierarchyComponents;
 }

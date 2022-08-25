@@ -1,6 +1,4 @@
-import {
-  jest, describe, expect, test, beforeEach, afterEach,
-} from '@jest/globals';
+import {afterEach, beforeEach, describe, expect, jest, test,} from '@jest/globals';
 import {
   ComponentTypeTest,
   DomainTest,
@@ -8,8 +6,10 @@ import {
   DTComponentTestMock,
   IDTest,
   KeyTest,
+  simulateHierarchy,
   SubKindTest,
 } from './DTComponent.double';
+import {DTErrorStub} from "./DTError.double";
 
 describe('class DYOToolsComponent', () => {
   let componentMock: DTComponentTestMock;
@@ -111,18 +111,7 @@ describe('class DYOToolsComponent', () => {
     });
 
     test('return context with Hierarchy - simple case', () => {
-      const componentRank1 = new DTComponentTestMock({ componentType: 'rank1' });
-      const componentRank2 = new DTComponentTestMock({ componentType: 'rank2', context: componentRank1 });
-      const componentRank3 = new DTComponentTestMock({ componentType: 'rank3', context: componentRank2 });
-      jest.spyOn(componentRank1, 'getComponentType').mockImplementation(function () {
-        return this._componentType;
-      });
-      jest.spyOn(componentRank2, 'getComponentType').mockImplementation(function () {
-        return this._componentType;
-      });
-      jest.spyOn(componentRank3, 'getComponentType').mockImplementation(function () {
-        return this._componentType;
-      });
+      const [componentRank1, componentRank2, componentRank3] = simulateHierarchy();
 
       expect(componentRank3.getContext()).toStrictEqual(componentRank2);
       expect(componentRank3.getContext('rank2')).toStrictEqual(componentRank2);
@@ -131,23 +120,17 @@ describe('class DYOToolsComponent', () => {
     });
 
     test('return context with Hierarchy - same type case so return first one', () => {
-      const componentRank0 = new DTComponentTestMock({ componentType: 'rank1' });
+      const [componentRank0, componentRank2, componentRank3] = simulateHierarchy();
       const componentRank1 = new DTComponentTestMock({ componentType: 'rank1', context: componentRank0 });
-      const componentRank2 = new DTComponentTestMock({ componentType: 'rank2', context: componentRank1 });
-      const componentRank3 = new DTComponentTestMock({ componentType: 'rank3', context: componentRank2 });
-      jest.spyOn(componentRank0, 'getComponentType').mockImplementation(function () {
-        return this._componentType;
-      });
+
       jest.spyOn(componentRank1, 'getComponentType').mockImplementation(function () {
         return this._componentType;
       });
-      jest.spyOn(componentRank2, 'getComponentType').mockImplementation(function () {
-        return this._componentType;
-      });
-      jest.spyOn(componentRank3, 'getComponentType').mockImplementation(function () {
-        return this._componentType;
+      jest.spyOn(componentRank2, 'setContext').mockImplementation(function () {
+        this._context = componentRank1;
       });
 
+      componentRank2.setContext(componentRank1);
       expect(componentRank3.getContext('rank1')).toStrictEqual(componentRank1);
     });
   });
@@ -178,5 +161,29 @@ describe('class DYOToolsComponent', () => {
       componentMock.removeContext();
       expect(componentMock.getContext()).toBeUndefined();
     });
+  });
+
+  describe('getErrors()', () => {
+    test('return empty errors by default', () => {
+      expect(componentMock.getErrors()).toStrictEqual([]);
+    });
+
+    test('return array of errors if defined', () => {
+      const errors = [new DTErrorStub(), new DTErrorStub()];
+      componentMock.mockDefineErrors(errors);
+
+      expect(componentMock.getErrors()).toStrictEqual(errors);
+    });
+
+    test('return errors from last parent', () => {
+      const [componentRank1, componentRank2, componentRank3] = simulateHierarchy();
+      componentRank1.mockDefineErrors([new DTErrorStub(), new DTErrorStub(), new DTErrorStub()]);
+      componentRank2.mockDefineErrors([new DTErrorStub(), new DTErrorStub()]);
+      componentRank3.mockDefineErrors([new DTErrorStub()]);
+
+      expect(componentRank1.getErrors().length).toEqual(3);
+      expect(componentRank2.getErrors().length).toEqual(3);
+      expect(componentRank3.getErrors().length).toEqual(3);
+    })
   });
 });

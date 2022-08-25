@@ -74,7 +74,6 @@ export default class DYOToolsBunch<
       virtualContext: false,
     };
     this._globalOptions = { ...defaultOptions, ...options };
-    this._errors = [];
 
     this._items = [];
     if (items && items.length > 0) {
@@ -108,13 +107,6 @@ export default class DYOToolsBunch<
     if (inheritOwner) {
       this._items.forEach((item) => { item.removeOwner(); });
     }
-  }
-
-  /**
-   * Getter for _errors property.
-   */
-  getErrors(): DYOToolsError[] {
-    return this._errors;
   }
 
   /**

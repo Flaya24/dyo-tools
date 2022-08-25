@@ -66,10 +66,6 @@ export class DTBunchMock extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>,
     this._globalOptions = { ...this._globalOptions, ...options };
   }
 
-  mockDefineErrors(errors: Array<DTErrorStub>): void {
-    this._errors = errors;
-  }
-
   mockItemGetter(index = 0): Mocked<DYOToolsElement<IMetaDataTest>> | undefined {
     return this._items[index];
   }
