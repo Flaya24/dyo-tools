@@ -1,5 +1,3 @@
-import DYOToolsComponentWithMeta from './DTComponentWithMeta';
-import DYOToolsPlayer from './DTPlayer';
 import { DTAcceptedMetaData, DTElementToObject } from '../types';
 import DYOToolsComponentPhysical from "./DTComponentPhysical";
 

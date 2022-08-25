@@ -63,5 +63,9 @@ export class DTComponentPhysicalStub extends DTComponentPhysicalTest {
 
 // Mocked implementations for overridden methods (for children tests)
 export function mockOverriddenMethods(mock: any) {
-
+    // Constructor (mocked for copy)
+    mock.prototype.constructor.mockImplementation(function (key?: string) {
+        this._id = IDTest;
+        this._key = key || this._id;
+    })
 }

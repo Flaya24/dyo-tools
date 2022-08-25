@@ -1,7 +1,9 @@
-import {beforeEach, describe, expect, test} from '@jest/globals';
-import { DTPlayerMock, IDTest, KeyTest, inheritance } from './DTPlayer.double';
-import { DTComponentTestMock } from './DTComponent.double';
-import { PlayerMetaData } from './DTComponentWithMeta.double';
+import {beforeEach, describe, expect, jest, test} from '@jest/globals';
+import {DTPlayerMock, IDTest, inheritance, KeyTest} from './DTPlayer.double';
+import {DTComponentTestMock} from './DTComponent.double';
+import {PlayerMetaData} from './DTComponentWithMeta.double';
+import {DTPlayer} from "../../src";
+import {MockedFunction} from "ts-jest";
 
 describe('class DYOToolsPlayer', () => {
   let playerMock: DTPlayerMock;
@@ -68,14 +70,15 @@ describe('class DYOToolsPlayer', () => {
     test('copy a player - copy meta-data', () => {
       // This test doesn't mock the DOC (Depended-on Component) correctly
       // Need to change implementation to implement correct testing
-      playerMock.setManyMeta({});
-
-      const playerMockCopy = playerMock.copy();
-      jest.spyOn(playerMockCopy, 'getManyMeta').mockImplementation(function () {
-        return this._meta;
+      const mockedSetManyMeta = DTPlayer.prototype.setManyMeta as MockedFunction<(metaValues : Partial<{}>) => void>;
+      jest.spyOn(playerMock, 'getManyMeta').mockImplementation(function () {
+        return PlayerMetaData;
       });
 
-      expect(playerMockCopy.getManyMeta()).toStrictEqual(PlayerMetaData);
+      const playerMockCopy = playerMock.copy();
+
+      // Weird behavior of Jest which doesn't clean the mock Calls, so it's the call index 2 to check
+      expect(mockedSetManyMeta.mock.calls[2][0]).toStrictEqual(PlayerMetaData);
     });
   });
 
@@ -90,6 +93,13 @@ describe('class DYOToolsPlayer', () => {
     });
 
     test('toObject output standard with meta', () => {
+      jest.spyOn(playerMock, 'setManyMeta').mockImplementation(function () {
+        this._meta = PlayerMetaData as any;
+      });
+      jest.spyOn(playerMock, 'getManyMeta').mockImplementation(function () {
+        return this._meta;
+      });
+
       playerMock.setManyMeta({});
 
       const toObjectPlayer = playerMock.toObject();

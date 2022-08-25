@@ -1,9 +1,9 @@
-import { describe, test, beforeEach } from '@jest/globals';
-import {
-  DTPlayerStub, IDTest as IDPlayerTest, toStringTest as toStringPlayerTest, KeyTest as KeyPlayerTest,
-} from './DTPlayer.double';
+import {beforeEach, describe, expect, jest, test} from '@jest/globals';
+import {DTPlayerStub, KeyTest as KeyPlayerTest, toStringTest as toStringPlayerTest,} from './DTPlayer.double';
 import {DTElementMock, IDTest, inheritance, KeyTest} from './DTElement.double';
-import { MeldrineMetaData } from './DTComponentWithMeta.double';
+import {MeldrineMetaData} from './DTComponentWithMeta.double';
+import {DTElement} from "../../src";
+import {MockedFunction} from "ts-jest";
 
 describe('class DYOToolsElement', () => {
   let elementMock: DTElementMock;
@@ -78,14 +78,15 @@ describe('class DYOToolsElement', () => {
     test('copy an element - copy meta-data', () => {
       // This test doesn't mock the DOC (Depended-on Component) correctly
       // Need to change implementation to implement correct testing
-      elementMock.setManyMeta({});
-
-      const elementMockCopy = elementMock.copy();
-      jest.spyOn(elementMockCopy, 'getManyMeta').mockImplementation(function () {
-        return this._meta;
+      const mockedSetManyMeta = DTElement.prototype.setManyMeta as MockedFunction<(metaValues : Partial<{}>) => void>;
+      jest.spyOn(elementMock, 'getManyMeta').mockImplementation(function () {
+        return MeldrineMetaData;
       });
 
-      expect(elementMockCopy.getManyMeta()).toStrictEqual(MeldrineMetaData);
+      const elementMockCopy = elementMock.copy();
+
+      // Weird behavior of Jest which doesn't clean the mock Calls, so it's the call index 2 to check
+      expect(mockedSetManyMeta.mock.calls[2][0]).toStrictEqual(MeldrineMetaData);
     });
   });
 
@@ -112,8 +113,15 @@ describe('class DYOToolsElement', () => {
 
     test('toObject output standard with owner and meta', () => {
       jest.spyOn(elementMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
+        this._owner = new DTPlayerStub();
       });
+      jest.spyOn(elementMock, 'setManyMeta').mockImplementation(function () {
+        this._meta = MeldrineMetaData as any;
+      });
+      jest.spyOn(elementMock, 'getManyMeta').mockImplementation(function () {
+        return this._meta;
+      });
+
       elementMock.setOwner(new DTPlayerStub());
       elementMock.setManyMeta({});
 

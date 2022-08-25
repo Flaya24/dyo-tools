@@ -49,12 +49,4 @@ export class DTPlayerMock extends DTPlayer<IMetaDataTest> {
   getComponentType(): string {
     return this._componentType;
   }
-
-  setManyMeta(metaValues: Partial<IMetaDataTest>) {
-    this._meta = PlayerMetaData;
-  }
-
-  getManyMeta(metaKeys: Array<keyof IMetaDataTest> = []): Partial<IMetaDataTest> {
-    return this._meta;
-  }
 }

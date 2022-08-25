@@ -24,7 +24,7 @@ import {
   YssaliaToObjectTest,
   inheritance
 } from './DTBunch.double';
-import {DTBunch, DTComponent, DTError} from '../../src';
+import {DTBunch, DTError} from '../../src';
 import DYOToolsElement from '../../src/core/DTElement';
 import { BunchMetaData, IMetaDataTest } from './DTComponentWithMeta.double';
 import { DTAcceptedMetaDataValue, DTBunchOptionsConstructor } from '../../src/types';
@@ -147,15 +147,8 @@ describe('class DYOToolsBunch', () => {
   describe('setOwner()', () => {
     beforeEach(() => {
       jest.spyOn(bunchMock, 'getOwner').mockImplementation(function () {
-        return this._owner;
+        return new DTPlayerStub();
       });
-    });
-
-    test('add a new owner', () => {
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
     });
 
     test('add a new owner - not updating elements owner when inheritOwner = false', () => {
@@ -165,7 +158,6 @@ describe('class DYOToolsBunch', () => {
       const owner = new DTPlayerStub();
       bunchMock.setOwner(owner);
 
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
       expect(bunchMock.mockItemGetter(0).setOwner.mock.calls.length).toBe(0);
       expect(bunchMock.mockItemGetter(1).setOwner.mock.calls.length).toBe(0);
       expect(bunchMock.mockItemGetter(2).setOwner.mock.calls.length).toBe(0);
@@ -178,7 +170,6 @@ describe('class DYOToolsBunch', () => {
       const owner = new DTPlayerStub();
       bunchMock.setOwner(owner);
 
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
       expect(bunchMock.mockItemGetter(0).setOwner.mock.calls.length).toBe(1);
       expect(bunchMock.mockItemGetter(0).setOwner.mock.calls[0][0].getId()).toBe(IDPlayerTest);
       expect(bunchMock.mockItemGetter(1).setOwner.mock.calls.length).toBe(1);
@@ -189,34 +180,14 @@ describe('class DYOToolsBunch', () => {
   });
 
   describe('removeOwner()', () => {
-    beforeEach(() => {
-      jest.spyOn(bunchMock, 'getOwner').mockImplementation(function () {
-        return this._owner;
-      });
-      jest.spyOn(bunchMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-    });
-
-    test('remove current Owner', () => {
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-      bunchMock.removeOwner();
-
-      expect(bunchMock.getOwner()).toBeUndefined();
-    });
 
     test('remove current Owner - not updating elements owner when inheritOwner = false', () => {
       bunchMock.mockDefineOptions({ inheritOwner: true });
       bunchMock.mockDefineItems(2);
 
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-
       bunchMock.mockDefineOptions({ inheritOwner: false });
       bunchMock.removeOwner();
 
-      expect(bunchMock.getOwner()).toBeUndefined();
       expect(bunchMock.mockItemGetter(0).removeOwner.mock.calls.length).toBe(0);
       expect(bunchMock.mockItemGetter(1).removeOwner.mock.calls.length).toBe(0);
     });
@@ -225,12 +196,8 @@ describe('class DYOToolsBunch', () => {
       bunchMock.mockDefineOptions({ inheritOwner: true });
       bunchMock.mockDefineItems(2);
 
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-
       bunchMock.removeOwner();
 
-      expect(bunchMock.getOwner()).toBeUndefined();
       expect(bunchMock.mockItemGetter(0).removeOwner.mock.calls.length).toBe(1);
       expect(bunchMock.mockItemGetter(1).removeOwner.mock.calls.length).toBe(1);
     });
@@ -1193,7 +1160,11 @@ describe('class DYOToolsBunch', () => {
     test('copy a bunch - copy meta-data and globalOptions', () => {
       // This test doesn't mock the DOC (Depended-on Component) correctly
       // Need to change implementation to implement correct testing
-      bunchMock.setManyMeta({});
+      const mockedSetManyMeta = DTBunch.prototype.setManyMeta as MockedFunction<(metaValues : Partial<{}>) => void>;
+      jest.spyOn(bunchMock, 'getManyMeta').mockImplementation(function () {
+        return BunchMetaData;
+      });
+
       const copiedOptions: Partial<DTBunchOptionsConstructor> = {
         inheritOwner: true,
         replaceIndex: true,
@@ -1202,14 +1173,12 @@ describe('class DYOToolsBunch', () => {
       bunchMock.mockDefineOptions(copiedOptions);
 
       const bunchMockCopy = bunchMock.copy();
-      jest.spyOn(bunchMockCopy, 'getManyMeta').mockImplementation(function () {
-        return this._meta;
-      });
       jest.spyOn(bunchMockCopy, 'get').mockImplementation(function (key) {
         return key === 'options' ? this._globalOptions : undefined;
       });
 
-      expect(bunchMockCopy.getManyMeta()).toStrictEqual(BunchMetaData);
+      // Weird behavior of Jest which doesn't clean the mock Calls, so it's the call index 2 to check
+      expect(mockedSetManyMeta.mock.calls[2][0]).toStrictEqual(BunchMetaData);
       expect(bunchMockCopy.get('options')).toStrictEqual({
         ...defaultOptions,
         ...copiedOptions,
@@ -1296,7 +1265,10 @@ describe('class DYOToolsBunch', () => {
 
     test('toObject output standard with owner and meta', () => {
       jest.spyOn(bunchMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
+        this._owner = new DTPlayerStub();
+      });
+      jest.spyOn(bunchMock, 'setManyMeta').mockImplementation(function () {
+        this._meta = BunchMetaData as any;
       });
       jest.spyOn(bunchMock, 'getManyMeta').mockImplementation(function () {
         return this._meta;

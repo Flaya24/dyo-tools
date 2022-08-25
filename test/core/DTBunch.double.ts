@@ -73,10 +73,6 @@ export class DTBunchMock extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>,
   mockItemGetter(index = 0): Mocked<DYOToolsElement<IMetaDataTest>> | undefined {
     return this._items[index];
   }
-
-  setManyMeta(metaValues: Partial<IMetaDataTest>) {
-    this._meta = BunchMetaData;
-  }
 }
 
 // Global constants for Mocked DTElements
