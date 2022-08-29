@@ -110,13 +110,6 @@ export default class DYOToolsBunch<
   }
 
   /**
-   * Return the last error (most recent) of the current bunch. Undefined if _errors is empty.
-   */
-  getLastError(): DYOToolsError | undefined {
-    return this._errors.length > 0 ? this._errors[this._errors.length - 1] : undefined;
-  }
-
-  /**
    * Add an element **item** as the last element into _items property array.
    *
    * @see [addAtIndex](#addAtIndex) method for adding specifications.

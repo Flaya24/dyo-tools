@@ -175,8 +175,8 @@ describe('class DYOToolsComponent', () => {
       expect(componentMock.getErrors()).toStrictEqual(errors);
     });
 
-    test('return errors from last parent', () => {
-      const [componentRank1, componentRank2, componentRank3] = simulateHierarchy();
+    test('return errors from higher level component', () => {
+      const [componentRank1, componentRank2, componentRank3] = simulateHierarchy(3, { mockGetContext: true });
       componentRank1.mockDefineErrors([new DTErrorStub(), new DTErrorStub(), new DTErrorStub()]);
       componentRank2.mockDefineErrors([new DTErrorStub(), new DTErrorStub()]);
       componentRank3.mockDefineErrors([new DTErrorStub()]);
@@ -185,5 +185,31 @@ describe('class DYOToolsComponent', () => {
       expect(componentRank2.getErrors().length).toEqual(3);
       expect(componentRank3.getErrors().length).toEqual(3);
     })
+  });
+
+  describe('getLastError()', () => {
+    test('return undefined if no errors', () => {
+      expect(componentMock.getLastError()).toBeUndefined();
+    });
+
+    test('return the last error', () => {
+      const lastError = new DTErrorStub();
+      const errors = [new DTErrorStub(), new DTErrorStub(), lastError];
+      componentMock.mockDefineErrors(errors);
+
+      expect(componentMock.getLastError().getTimestamp().toString()).toStrictEqual(lastError.getTimestamp().toString());
+    });
+
+    test('return the last error from higher level component', () => {
+      const [componentRank1, componentRank2, componentRank3] = simulateHierarchy(3, { mockGetContext: true });
+      const lastError = new DTErrorStub();
+      componentRank1.mockDefineErrors([new DTErrorStub(), new DTErrorStub(), lastError]);
+      componentRank2.mockDefineErrors([new DTErrorStub(), new DTErrorStub()]);
+      componentRank3.mockDefineErrors([new DTErrorStub()]);
+
+      expect(componentRank1.getLastError().getTimestamp().toString()).toStrictEqual(lastError.getTimestamp().toString());
+      expect(componentRank2.getLastError().getTimestamp().toString()).toStrictEqual(lastError.getTimestamp().toString());
+      expect(componentRank3.getLastError().getTimestamp().toString()).toStrictEqual(lastError.getTimestamp().toString());
+    });
   });
 });
