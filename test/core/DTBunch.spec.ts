@@ -199,20 +199,6 @@ describe('class DYOToolsBunch', () => {
     });
   });
 
-  describe('getLastError()', () => {
-    test('return undefined if the bunch has no errors', () => {
-      expect(bunchMock.getLastError()).toBeUndefined();
-    });
-
-    test('return the last error', () => {
-      const lastError = new DTErrorStub();
-      const errors = [new DTErrorStub(), new DTErrorStub(), lastError];
-      bunchMock.mockDefineErrors(errors);
-
-      expect(bunchMock.getLastError().getTimestamp().toString()).toStrictEqual(lastError.getTimestamp().toString());
-    });
-  });
-
   describe('get()', () => {
     beforeEach(() => {
       bunchMock.mockDefineItems(5);

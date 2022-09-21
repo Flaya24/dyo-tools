@@ -83,12 +83,17 @@ export function mockOverriddenMethods(mock: any) {
 }
 
 // Hierarchy Simulation
-export function simulateHierarchy(ranks: number = 3): DTComponentTestMock[] {
+type simulateHierarchyOptions = {
+    mockGetContext: boolean
+}
+export function simulateHierarchy(
+  ranks: number = 3,
+  options: simulateHierarchyOptions = { mockGetContext: false }): DTComponentTestMock[] {
     const hierarchyComponents = [];
     let lastRankComponent: DTComponentTestMock;
 
     for (let i = 1; i <= ranks; i++) {
-        const data: IDTComponentTestMockProps = { componentType: `rank${i}`};
+        const data: IDTComponentTestMockProps = {componentType: `rank${i}`};
         if (lastRankComponent) {
             data.context = lastRankComponent;
         }
@@ -97,6 +102,19 @@ export function simulateHierarchy(ranks: number = 3): DTComponentTestMock[] {
         jest.spyOn(componentRank, 'getComponentType').mockImplementation(function () {
             return this._componentType;
         });
+        if (options.mockGetContext) {
+            if (lastRankComponent) {
+                const lastComponentRankScoped = lastRankComponent;
+                jest.spyOn(componentRank, 'getContext').mockImplementation(function () {
+                    return lastComponentRankScoped;
+                });
+            } else {
+                jest.spyOn(componentRank, 'getContext').mockImplementation(function () {
+                    return undefined;
+                });
+            }
+        }
+
         hierarchyComponents.push(componentRank);
         lastRankComponent = componentRank;
     }

@@ -137,6 +137,17 @@ export default abstract class DYOToolsComponent {
   }
 
   /**
+   * Return the last error (most recent) of the current component. Undefined if _errors is empty.
+   */
+  getLastError(): DYOToolsError | undefined {
+    if (this.getContext()) {
+      return this.getContext().getLastError();
+    } else {
+      return this._errors.length > 0 ? this._errors[this._errors.length - 1] : undefined;
+    }
+  }
+
+  /**
    * Abstract method for JSON Object representation of the component and returning it.
    */
   abstract toObject(): unknown;
