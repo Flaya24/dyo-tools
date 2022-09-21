@@ -13,7 +13,7 @@ describe('class DYOToolsElement', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('inheritance', () => {

@@ -48,7 +48,7 @@ describe('class DYOToolsBunch', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('inheritance', () => {
@@ -74,9 +74,6 @@ describe('class DYOToolsBunch', () => {
     test('creation simple with key', () => {
       const newBunch = new DTBunch(KeyTest);
 
-      jest.spyOn(newBunch, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
       jest.spyOn(newBunch, 'get').mockImplementation(function (key) {
         return key === 'options' ? this._globalOptions : undefined;
       });
@@ -84,7 +81,6 @@ describe('class DYOToolsBunch', () => {
         return this._items;
       });
 
-      expect(newBunch.getErrors()).toStrictEqual([]);
       expect(newBunch.get('options')).toStrictEqual(defaultOptions);
       expect(newBunch.getAll()).toStrictEqual([]);
     });

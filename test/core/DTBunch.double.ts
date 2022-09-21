@@ -43,7 +43,7 @@ export const defaultOptions: DTBunchOptionsConstructor = {
   virtualContext: false,
 };
 
-// Mock Constructor and parent methods for DTElement
+// Mock Constructor and parent methods for DTBunch
 export class DTBunchMock extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>, IMetaDataTest> {
   constructor(options: Partial<DTBunchOptionsConstructor> = {}) {
     super();

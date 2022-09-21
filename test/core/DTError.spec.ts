@@ -15,7 +15,7 @@ describe('class DYOToolsError', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('constructor()', () => {

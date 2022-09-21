@@ -10,7 +10,7 @@ describe('class DYOToolsComponentPhysical', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('inheritance', () => {
