@@ -71,6 +71,30 @@ export class DTBunchMock extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>,
   }
 }
 
+// Stub for Bunch (used for other tests)
+export class DTBunchStub extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>, IMetaDataTest> {
+  constructor(items: Array<Mocked<DYOToolsElement<IMetaDataTest>>> = []) {
+    super();
+    this._id = IDTest;
+    this._key = KeyTest;
+    this._errors = [];
+    this._globalOptions = { ...defaultOptions };
+    this._items = items;
+  }
+
+  getId(): string {
+    return IDTest;
+  }
+
+  getKey(): string {
+    return KeyTest;
+  }
+
+  getAll(): Mocked<DYOToolsElement<IMetaDataTest>>[] {
+    return this._items;
+  }
+}
+
 // Global constants for Mocked DTElements
 export const HaileiIdTest = 'DTElement-id-Hailei';
 export const HaileiKeyTest = 'DTElement-key-Hailei';

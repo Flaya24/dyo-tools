@@ -20,8 +20,31 @@ export const KeyTest = 'DTManager-key-1234567';
 export const DomainTest = 'DTManager-domain-test';
 export const ScopesTest = ['DTManager-scope-test1', 'DTManager-scope-test2']
 
-// Specific DTManager class with mocked domain
-export class DTManagerWithDomain extends DTManager {
+// DTManager with test helper methods
+export class DTManagerTest extends DTManager {
+  th_prop_items(): any {
+    return this._items;
+  }
+
+  th_prop_item(id: string): any {
+    return this._items[id];
+  }
+
+  th_prop_scopes(): any {
+    return this._scopes;
+  }
+
+  th_prop_actions(): any {
+    return this._actions;
+  }
+
+  th_prop_library(): any {
+    return this._library;
+  }
+}
+
+// DTManager Stub class with domain
+export class DTManagerStubDomain extends DTManagerTest {
   protected _domain = DomainTest;
 
   getDomain(): string {
