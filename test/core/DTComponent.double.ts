@@ -2,7 +2,9 @@ import {DTComponent} from "../../src";
 import {DTErrorStub} from "./DTError.double";
 import {jest} from "@jest/globals";
 
-// Global test variables
+/******************** STUB PROPERTIES CONSTANTS
+ * Fixed properties to use with double classes, avoid auto generated and easy checking on test
+ * *****/
 export const IDTest = "DTComponent-id-1234567";
 export const KeyTest = "DTComponent-key-1234567";
 export const ComponentTypeTest = "DTComponent-componentType-test";
@@ -11,8 +13,10 @@ export const ToStringTest = "DTComponent-test-toString";
 export const DomainTest = "DTComponent-domain-test";
 export const SubKindTest = "DTComponent-subkind-test";
 
-// Test Child for DTComponent class (mocked abstract methods)
-export class DTComponentTest extends DTComponent {
+/******************** STUB ABSTRACT IMPLEMENTATION
+ * Implementation of abstract component class for tests
+ * *****/
+export class DTComponentImpl extends DTComponent {
     protected _componentType: string = ComponentTypeTest;
 
     copy(): DTComponent {
@@ -28,38 +32,43 @@ export class DTComponentTest extends DTComponent {
     }
 }
 
-// Mock constructor for DTComponentTest class (getter tests)
-interface IDTComponentTestMockProps {
-    componentType?: string
-    domain?: string
-    subKind?: string
-    context?: DTComponent
-}
-
-export class DTComponentTestMock extends DTComponentTest {
-    constructor(props?: IDTComponentTestMockProps) {
-        super();
-        this._id = IDTest;
-        this._key = KeyTest;
-        if (props) {
-            this._componentType = props.componentType || ComponentTypeTest;
-            this._domain = props.domain || DomainTest;
-            this._subKind = props.subKind || SubKindTest;
-            this._context = props.context || undefined;
-        } else {
-            this._componentType = this._componentType || undefined;
-            this._domain = undefined;
-            this._subKind = undefined;
-            this._context = undefined;
-        }
+/******************** HELPER TEST CLASS
+ * Helper test class, inherits the main component
+ * Providing methods to property access and other facilities, in order to avoid using class methods
+ * *****/
+export class DTComponentTest extends DTComponentImpl {
+    th_set_id(id: string): void {
+        this._id = id;
     }
 
-    mockDefineErrors(errors: Array<DTErrorStub>): void {
+    th_set_key(key: string): void {
+        this._key = key;
+    }
+
+    th_set_componentType(componentType: string): void {
+        this._componentType = componentType;
+    }
+
+    th_set_domain(domain: string): void {
+        this._domain = domain;
+    }
+
+    th_set_subKind(subKind: string): void {
+        this._subKind = subKind;
+    }
+
+    th_set_context(context: DTComponentTest): void {
+        this._context = context;
+    }
+
+    th_set_errors(errors: Array<DTErrorStub>): void {
         this._errors = errors;
     }
 }
 
-// Stub for Component (used for other tests)
+/******************** STUB CLASS
+ * Stub class, for using in other component
+ * *****/
 export class DTComponentStub extends DTComponentTest {
     private readonly stubId: string;
 
@@ -73,6 +82,9 @@ export class DTComponentStub extends DTComponentTest {
     }
 }
 
+/******************** HELPER METHODS
+ * Additional helper methods to use with testing
+ * *****/
 // Mocked implementations for overridden methods (for children tests)
 export function mockOverriddenMethods(mock: any) {
     // Constructor
@@ -88,17 +100,17 @@ type simulateHierarchyOptions = {
 }
 export function simulateHierarchy(
   ranks: number = 3,
-  options: simulateHierarchyOptions = { mockGetContext: false }): DTComponentTestMock[] {
+  options: simulateHierarchyOptions = { mockGetContext: false }): DTComponentTest[] {
     const hierarchyComponents = [];
-    let lastRankComponent: DTComponentTestMock;
+    let lastRankComponent: DTComponentTest;
 
     for (let i = 1; i <= ranks; i++) {
-        const data: IDTComponentTestMockProps = {componentType: `rank${i}`};
+        const componentRank = new DTComponentTest();
+        componentRank.th_set_componentType(`rank${i}`);
         if (lastRankComponent) {
-            data.context = lastRankComponent;
+            componentRank.th_set_context(lastRankComponent);
         }
 
-        const componentRank = new DTComponentTestMock(data);
         jest.spyOn(componentRank, 'getComponentType').mockImplementation(function () {
             return this._componentType;
         });

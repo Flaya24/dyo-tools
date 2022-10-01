@@ -2,12 +2,14 @@ import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals
 import {DomainTest, DTManagerStubDomain, DTManagerTest, inheritance, ScopesTest} from "./DTManager.double";
 import DTManager from "../../src/core/DTManager";
 import {DTBunchStub, generateMockedElements, IDTest as IDTestBunch} from "./DTBunch.double";
+import DYOToolsElement from "../../src/core/DTElement";
+import {IMetaDataTest} from "./DTComponentWithMeta.double";
 
 describe('class DYOToolsManager', () => {
-  let managerMock: any;
+  let managerTest: any;
 
   beforeEach(() => {
-    managerMock = new DTManagerTest();
+    managerTest = new DTManagerTest();
   });
 
   afterEach(() => {
@@ -96,12 +98,39 @@ describe('class DYOToolsManager', () => {
   describe('add', () => {
     test('add a new item - empty bunch', () => {
       const bunch = new DTBunchStub();
-      managerMock.add(bunch);
+      jest.spyOn(bunch, 'getAll').mockImplementation(function() {
+        return this._items;
+      })
+      managerTest.add(bunch);
 
-      expect(managerMock.th_prop_item(IDTestBunch)).toBeDefined();
-      expect(Object.keys(managerMock.th_prop_item(IDTestBunch))).toStrictEqual(['scope', 'item']);
-      expect(managerMock.th_prop_item(IDTestBunch).scope).toBe('default');
-      expect(managerMock.th_prop_item(IDTestBunch).item.getId()).toBe(IDTestBunch);
+      expect(Object.keys(managerTest.th_prop_items()).length).toBe(1);
+      expect(managerTest.th_prop_item(IDTestBunch)).toBeDefined();
+      expect(Object.keys(managerTest.th_prop_item(IDTestBunch))).toStrictEqual(['scope', 'item']);
+      expect(managerTest.th_prop_item(IDTestBunch).scope).toBe('default');
+      expect(managerTest.th_prop_item(IDTestBunch).item.getId()).toBe(IDTestBunch);
+    });
+
+    test('add a new item - full bunch and add in library', () => {
+      const bunchElements = generateMockedElements(5);
+      const bunchElementsKeys = bunchElements.map((item: DYOToolsElement<IMetaDataTest>) => item.getKey())
+      const bunch = new DTBunchStub(generateMockedElements(5));
+      jest.spyOn(bunch, 'getAll').mockImplementation(function() {
+        return this._items;
+      })
+
+      managerTest.add(bunch);
+
+      expect(Object.keys(managerTest.th_prop_items()).length).toBe(1);
+      expect(managerTest.th_prop_item(IDTestBunch)).toBeDefined();
+      expect(Object.keys(managerTest.th_prop_item(IDTestBunch))).toStrictEqual(['scope', 'item']);
+      expect(managerTest.th_prop_item(IDTestBunch).scope).toBe('default');
+      expect(managerTest.th_prop_item(IDTestBunch).item.getId()).toBe(IDTestBunch);
+      expect(managerTest.th_prop_item(IDTestBunch).item.getAllKeys()).toStrictEqual(bunchElementsKeys);
+
+      // Check if library is updated
+      expect(managerTest.th_prop_library().addMany.mock.calls.length).toBe(1);
+      expect(managerTest.th_prop_library().addMany.mock.calls[0][0].map((item) => item.getKey())).toStrictEqual(bunchElementsKeys);
+      expect(managerTest.th_prop_library().addMany.mock.calls[0][1]).toBeUndefined();
     });
   });
 });
