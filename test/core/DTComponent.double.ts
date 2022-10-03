@@ -37,8 +37,16 @@ export class DTComponentImpl extends DTComponent {
  * Providing methods to property access and other facilities, in order to avoid using class methods
  * *****/
 export class DTComponentTest extends DTComponentImpl {
+    th_get_id(): string {
+        return this._id;
+    }
+
     th_set_id(id: string): void {
         this._id = id;
+    }
+
+    th_get_key(): string {
+        return this._key;
     }
 
     th_set_key(key: string): void {
@@ -55,6 +63,10 @@ export class DTComponentTest extends DTComponentImpl {
 
     th_set_subKind(subKind: string): void {
         this._subKind = subKind;
+    }
+
+    th_get_context(): DTComponent | undefined {
+        return this._context;
     }
 
     th_set_context(context: DTComponentTest): void {

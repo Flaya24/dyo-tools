@@ -24,41 +24,23 @@ describe('class DYOToolsComponent', () => {
 
   describe('constructor()', () => {
     test('creation without key', () => {
-      const component = new DTComponentImpl();
-      jest.spyOn(component, 'getId').mockImplementation(function () {
-        return this._id;
-      });
-      jest.spyOn(component, 'getKey').mockImplementation(function () {
-        return this._key;
-      });
+      const component = new DTComponentTest();
 
-      expect(component.getKey()).toBe(component.getId());
+      expect(component.th_get_key()).toBe(component.th_get_id());
     });
 
     test('creation with key', () => {
-      const component = new DTComponentImpl(KeyTest);
-      jest.spyOn(component, 'getId').mockImplementation(function () {
-        return this._id;
-      });
-      jest.spyOn(component, 'getKey').mockImplementation(function () {
-        return this._key;
-      });
+      const component = new DTComponentTest(KeyTest);
 
-      expect(component.getKey()).toBe(KeyTest);
-      expect(component.getId() !== component.getKey()).toBeTruthy();
+      expect(component.th_get_key()).toBe(KeyTest);
+      expect(component.th_get_id() !== component.th_get_key()).toBeTruthy();
     });
 
     test('creations have unique ids', () => {
-      const component = new DTComponentImpl(KeyTest);
-      const component2 = new DTComponentImpl(KeyTest);
-      jest.spyOn(component, 'getId').mockImplementation(function () {
-        return this._id;
-      });
-      jest.spyOn(component2, 'getId').mockImplementation(function () {
-        return this._key;
-      });
+      const component = new DTComponentTest(KeyTest);
+      const component2 = new DTComponentTest(KeyTest);
 
-      expect(component.getId() !== component2.getId()).toBeTruthy();
+      expect(component.th_get_id() !== component2.th_get_id()).toBeTruthy();
     });
   });
 
@@ -107,10 +89,20 @@ describe('class DYOToolsComponent', () => {
   });
 
   describe('getContext()', () => {
+    beforeEach(() => {
+      componentTest = new DTComponentTest();
+    });
+
     test('return context', () => {
       const component = new DTComponentTest();
       const componentTestSet = new DTComponentTest();
       componentTestSet.th_set_context(component);
+      jest.spyOn(component, 'getComponentType').mockImplementation(function () {
+        return this._componentType;
+      });
+      jest.spyOn(componentTestSet, 'getComponentType').mockImplementation(function () {
+        return this._componentType;
+      });
 
       expect(componentTest.getContext()).toBeUndefined();
       expect(componentTestSet.getContext()).toStrictEqual(component);
@@ -118,6 +110,9 @@ describe('class DYOToolsComponent', () => {
 
     test('return context with Hierarchy - simple case', () => {
       const [componentRank1, componentRank2, componentRank3] = simulateHierarchy();
+      jest.spyOn(componentRank3, 'getComponentType').mockImplementation(function () {
+        return this._componentType;
+      });
 
       expect(componentRank3.getContext()).toStrictEqual(componentRank2);
       expect(componentRank3.getContext('rank2')).toStrictEqual(componentRank2);
@@ -130,15 +125,11 @@ describe('class DYOToolsComponent', () => {
       const componentRank1 = new DTComponentTest();
       componentRank1.th_set_componentType('rank1');
       componentRank1.th_set_context(componentRank0);
-
+      componentRank2.th_set_context(componentRank1);
       jest.spyOn(componentRank1, 'getComponentType').mockImplementation(function () {
         return this._componentType;
       });
-      jest.spyOn(componentRank2, 'setContext').mockImplementation(function () {
-        this._context = componentRank1;
-      });
 
-      componentRank2.setContext(componentRank1);
       expect(componentRank3.getContext('rank1')).toStrictEqual(componentRank1);
     });
   });
@@ -147,28 +138,19 @@ describe('class DYOToolsComponent', () => {
     test('change context', () => {
       const componentRank1 = new DTComponentTest();
       componentRank1.th_set_componentType('rank1');
-      jest.spyOn(componentTest, 'getContext').mockImplementation(function () {
-        return this._context;
-      });
-      componentTest.setContext(componentRank1);
 
-      expect(componentTest.getContext()).toBe(componentRank1);
+      componentTest.setContext(componentRank1);
+      expect(componentTest.th_get_context()).toBe(componentRank1);
     });
   });
 
   describe('removeContext()', () => {
     test('remove the current Context', () => {
       const componentRankSup = new DTComponentTest();
-      jest.spyOn(componentTest, 'setContext').mockImplementation(function (context) {
-        this._context = context;
-      });
-      jest.spyOn(componentTest, 'getContext').mockImplementation(function () {
-        return this._context;
-      });
-      componentTest.setContext(componentRankSup);
+      componentTest.th_set_context(componentRankSup);
 
       componentTest.removeContext();
-      expect(componentTest.getContext()).toBeUndefined();
+      expect(componentTest.th_get_context()).toBeUndefined();
     });
   });
 
