@@ -25,8 +25,10 @@ describe('class DYOToolsComponent', () => {
   describe('constructor()', () => {
     test('creation without key', () => {
       const component = new DTComponentTest();
+      const component2 = new DTComponentTest(null);
 
       expect(component.th_get_key()).toBe(component.th_get_id());
+      expect(component2.th_get_key()).toBe(component2.th_get_id());
     });
 
     test('creation with key', () => {
@@ -41,6 +43,22 @@ describe('class DYOToolsComponent', () => {
       const component2 = new DTComponentTest(KeyTest);
 
       expect(component.th_get_id() !== component2.th_get_id()).toBeTruthy();
+    });
+
+    test('creations without options - default', () => {
+      const component = new DTComponentTest();
+
+      expect(component.th_get_options()).toStrictEqual({
+        errors: false
+      });
+    });
+
+    test('creations with options', () => {
+      const component = new DTComponentTest(KeyTest, { errors: true });
+
+      expect(component.th_get_options()).toStrictEqual({
+        errors: true
+      });
     });
   });
 
@@ -201,6 +219,26 @@ describe('class DYOToolsComponent', () => {
       expect(componentRank1.getLastError().getTimestamp().toString()).toStrictEqual(lastError.getTimestamp().toString());
       expect(componentRank2.getLastError().getTimestamp().toString()).toStrictEqual(lastError.getTimestamp().toString());
       expect(componentRank3.getLastError().getTimestamp().toString()).toStrictEqual(lastError.getTimestamp().toString());
+    });
+  });
+
+  describe('triggerError()', () => {
+    test('default throw an exception error - option errors false', () => {
+      const error = new DTErrorStub();
+
+      expect(() => componentTest.triggerError(error)).toThrow(error);
+    });
+
+    test('stack new error - option errors true', () => {
+      componentTest.th_set_options({ errors: true });
+      const error = new DTErrorStub();
+
+      componentTest.triggerError(error);
+      expect(componentTest.th_get_errors().length).toBe(1);
+    });
+
+    test('stack new error in higher level component', () => {
+      // TODO
     });
   });
 });

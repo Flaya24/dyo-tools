@@ -47,14 +47,29 @@ export default abstract class DYOToolsComponent {
   protected _errors: DYOToolsError[];
 
   /**
+   * TODO : Update JSDOC
+   */
+  protected _options: any;
+
+  /**
+   * TODO UPDATE
    * Set automatic unique _id and _key.
    *
    * @param key Optional Key to set. If not provided, set the _key with the _id value.
+   * @param options TODO
    */
-  constructor(key?: string) {
+  constructor(key?: string, options: any = {}) {
     this._id = uuid.v4();
     this._key = key || this._id;
     this._errors = [];
+
+    const defaultOptions = {
+      errors: false
+    };
+    this._options = {
+      ...defaultOptions,
+      ...options
+    }
   }
 
   /**
@@ -144,6 +159,18 @@ export default abstract class DYOToolsComponent {
       return this.getContext().getLastError();
     } else {
       return this._errors.length > 0 ? this._errors[this._errors.length - 1] : undefined;
+    }
+  }
+
+  /*
+  * TODO
+   */
+  triggerError(error: DYOToolsError): void {
+    const { errors = false } = this._options;
+    if (!errors) {
+      throw error;
+    } else {
+      this._errors.push(error);
     }
   }
 

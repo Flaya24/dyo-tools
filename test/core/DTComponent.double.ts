@@ -73,8 +73,20 @@ export class DTComponentTest extends DTComponentImpl {
         this._context = context;
     }
 
+    th_get_errors(): Array<DTErrorStub> {
+       return this._errors;
+    }
+
     th_set_errors(errors: Array<DTErrorStub>): void {
         this._errors = errors;
+    }
+
+    th_get_options(): any {
+        return this._options;
+    }
+
+    th_set_options(options: any): void {
+        this._options = options;
     }
 }
 
