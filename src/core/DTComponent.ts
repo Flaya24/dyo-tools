@@ -167,11 +167,25 @@ export default abstract class DYOToolsComponent {
    */
   triggerError(error: DYOToolsError): void {
     const { errors = false } = this._options;
-    if (!errors) {
-      throw error;
+    if (this.getContext()) {
+      this.getContext().triggerError(error);
     } else {
-      this._errors.push(error);
+      if (!errors) {
+        throw error;
+      } else {
+        this._errors.push(error);
+      }
     }
+  }
+
+  /*
+* TODO
+ */
+  clearErrors(): void {
+    if (this.getContext()) {
+      this.getContext().clearErrors();
+    }
+    this._errors = [];
   }
 
   /**

@@ -237,8 +237,49 @@ describe('class DYOToolsComponent', () => {
       expect(componentTest.th_get_errors().length).toBe(1);
     });
 
-    test('stack new error in higher level component', () => {
-      // TODO
+    test('throw new error in higher level component - option errors false', () => {
+      const [componentRank1, componentRank2, componentRank3] = simulateHierarchy(3, { mockGetContext: true });
+      componentRank1.th_set_options({ errors: false });
+      componentRank2.th_set_options({ errors: true });
+      componentRank3.th_set_options({ errors: true });
+      const error = new DTErrorStub();
+
+      expect(() => componentRank3.triggerError(error)).toThrow(error);
+      expect(componentRank2.th_get_errors().length).toBe(0);
+      expect(componentRank1.th_get_errors().length).toBe(0);
+    });
+
+    test('stack new error in higher level component - option errors true', () => {
+      const [componentRank1, componentRank2, componentRank3] = simulateHierarchy(3, { mockGetContext: true });
+      componentRank1.th_set_options({ errors: true });
+      componentRank2.th_set_options({ errors: false });
+      const error = new DTErrorStub();
+
+      componentRank3.triggerError(error);
+      expect(componentRank1.th_get_errors().length).toBe(1);
+      expect(componentRank2.th_get_errors().length).toBe(0);
+      expect(componentRank3.th_get_errors().length).toBe(0);
+    });
+  });
+
+  describe('clearErrors()', () => {
+    test('reset errors array', () => {
+      componentTest.th_set_errors([new DTErrorStub(), new DTErrorStub()]);
+
+      componentTest.clearErrors();
+      expect(componentTest.th_get_errors().length).toBe(0);
+    });
+
+    test('reset errors in higher level components', () => {
+      const [componentRank1, componentRank2, componentRank3] = simulateHierarchy(3, { mockGetContext: true });
+      componentRank1.th_set_errors([new DTErrorStub(), new DTErrorStub(), new DTErrorStub()]);
+      componentRank2.th_set_errors([new DTErrorStub(), new DTErrorStub()]);
+      componentRank3.th_set_errors([new DTErrorStub()]);
+
+      componentRank3.clearErrors();
+      expect(componentRank1.th_get_errors().length).toBe(0);
+      expect(componentRank2.th_get_errors().length).toBe(0);
+      expect(componentRank3.th_get_errors().length).toBe(0);
     });
   });
 });

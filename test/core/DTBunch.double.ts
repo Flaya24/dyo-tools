@@ -1,7 +1,6 @@
 import { jest } from '@jest/globals';
 import {DTBunch, DTComponentPhysical} from '../../src';
 import {
-  BunchMetaData,
   HaileiMetaData,
   IldressMetaData,
   IMetaDataTest,
@@ -11,30 +10,44 @@ import {
 } from './DTComponentWithMeta.double';
 import DYOToolsElement from '../../src/core/DTElement';
 import { DTBunchOptionsConstructor, DTElementToObject } from '../../src/types';
-import { DTErrorStub } from './DTError.double';
 import Mocked = jest.Mocked;
 import {mockOverriddenMethods} from "./DTComponentPhysical.double";
+import {
+  HaileiIdTest,
+  HaileiKeyTest,
+  HaileiToObjectTest,
+  IldressIdTest,
+  IldressKeyTest,
+  IldressToObjectTest,
+  MaydenaIdTest,
+  MaydenaKeyTest,
+  MaydenaToObjectTest,
+  MeldrineIdTest,
+  MeldrineKeyTest,
+  MeldrineToObjectTest, YssaliaIdTest, YssaliaKeyTest, YssaliaToObjectTest
+} from "./DTElement.double";
 
-// Mocking extra Components for using with Bunch
+/******************** MOCK DEPENDENCIES
+ * Dependencies used by the component are mocked with Jest
+ * *****/
 jest.mock('../../src/core/DTElement');
 jest.mock('../../src/core/DTError');
 jest.mock('../../src/utils/filters');
-
-// Mock Inheritance
 jest.mock('../../src/core/DTComponent');
 jest.mock('../../src/core/DTComponentWithMeta');
 jest.mock('../../src/core/DTComponentPhysical');
+// Add specific mock for inherited methods to have a basic implementation
 mockOverriddenMethods(DTComponentPhysical);
-
+// inheritance method : Check the correct inheritance
 export const inheritance = () => {
   return DTBunch.prototype instanceof DTComponentPhysical;
 }
 
-// Global Variables
+/******************** STUB PROPERTIES CONSTANTS
+ * Fixed properties to use with double classes, avoid auto generated and easy checking on test
+ * *****/
 export const IDTest = 'DTBunch-id-1234567';
 export const KeyTest = 'DTBunch-key-1234567';
-
-// Default options
 export const defaultOptions: DTBunchOptionsConstructor = {
   errors: false,
   uniqueKey: false,
@@ -43,35 +56,27 @@ export const defaultOptions: DTBunchOptionsConstructor = {
   virtualContext: false,
 };
 
-// Mock Constructor and parent methods for DTBunch
-export class DTBunchMock extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>, IMetaDataTest> {
-  constructor(options: Partial<DTBunchOptionsConstructor> = {}) {
-    super();
-    this._id = IDTest;
-    this._key = KeyTest;
-    this._errors = [];
-    this._globalOptions = { ...defaultOptions, ...options };
-    this._items = [];
-  }
-
-  getComponentType(): string {
+/******************** HELPER TEST CLASS
+ * Helper test class, inherits the main component
+ * Providing methods to property access and other facilities, in order to avoid using class methods
+ * *****/
+export class DTBunchTest extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>, IMetaDataTest> {
+  th_get_componentType(): string {
     return this._componentType;
   }
 
-  mockDefineItems(numberItems: number): void {
-    this._items = generateMockedElements(numberItems);
+  th_get_items(): Mocked<DYOToolsElement<IMetaDataTest>>[] {
+    return this._items;
   }
 
-  mockDefineOptions(options: Partial<DTBunchOptionsConstructor>): void {
-    this._globalOptions = { ...this._globalOptions, ...options };
-  }
-
-  mockItemGetter(index = 0): Mocked<DYOToolsElement<IMetaDataTest>> | undefined {
-    return this._items[index];
+  th_set_items(items: Mocked<DYOToolsElement<IMetaDataTest>>[]): void {
+    this._items = items;
   }
 }
 
-// Stub for Bunch (used for other tests)
+/******************** STUB CLASS
+ * Stub class, for using in other component
+ * *****/
 export class DTBunchStub extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>, IMetaDataTest> {
   constructor(items: Array<Mocked<DYOToolsElement<IMetaDataTest>>> = [], options: Partial<DTBunchOptionsConstructor> = {}) {
     super();
@@ -95,24 +100,11 @@ export class DTBunchStub extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>,
   }
 }
 
-// Global constants for Mocked DTElements
-export const HaileiIdTest = 'DTElement-id-Hailei';
-export const HaileiKeyTest = 'DTElement-key-Hailei';
-export const HaileiToObjectTest = { id: 'DTElement-id-Hailei', key: 'DTElement-key-Hailei', type: 'element' };
-export const MeldrineIdTest = 'DTElement-id-Meldrine';
-export const MeldrineKeyTest = 'DTElement-key-Meldrine';
-export const MeldrineToObjectTest = { id: 'DTElement-id-Meldrine', key: 'DTElement-key-Meldrine', type: 'element' };
-export const MaydenaIdTest = 'DTElement-id-Maydena';
-export const MaydenaKeyTest = 'DTElement-key-Maydena';
-export const MaydenaToObjectTest = { id: 'DTElement-id-Maydena', key: 'DTElement-key-Maydena', type: 'element' };
-export const IldressIdTest = 'DTElement-id-Ildress';
-export const IldressKeyTest = 'DTElement-key-Ildress';
-export const IldressToObjectTest = { id: 'DTElement-id-Ildress', key: 'DTElement-key-Ildress', type: 'element' };
-export const YssaliaIdTest = 'DTElement-id-Yssalia';
-export const YssaliaKeyTest = 'DTElement-key-Yssalia';
-export const YssaliaToObjectTest = { id: 'DTElement-id-Yssalia', key: 'DTElement-key-Yssalia', type: 'element' };
+/******************** HELPER METHODS
+ * Additional helper methods to use with testing
+ * *****/
 
-// Function to generate Mocked DTElement for use in parent
+// Function to generate Mocked DTElement collection
 export const generateMockedElements = (numberElements: number): Array<Mocked<DYOToolsElement<IMetaDataTest>>> => {
   const mockedElements = [];
   const mockedData: Array<{ id: string, key: string, meta: IMetaDataTest, toObject: DTElementToObject<IMetaDataTest> }> = [

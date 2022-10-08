@@ -135,9 +135,6 @@ export function simulateHierarchy(
             componentRank.th_set_context(lastRankComponent);
         }
 
-        jest.spyOn(componentRank, 'getComponentType').mockImplementation(function () {
-            return this._componentType;
-        });
         if (options.mockGetContext) {
             if (lastRankComponent) {
                 const lastComponentRankScoped = lastRankComponent;
