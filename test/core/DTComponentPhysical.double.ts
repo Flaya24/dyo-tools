@@ -1,6 +1,7 @@
 import {DTComponentPhysical, DTComponentWithMeta} from "../../src";
 import {IMetaDataTest, mockOverriddenMethods as parentMockMethods} from "./DTComponentWithMeta.double";
 import {jest} from "@jest/globals";
+import {DTPlayerStub} from "./DTPlayer.double";
 
 /******************** MOCK DEPENDENCIES
  * Dependencies used by the component are mocked with Jest
@@ -50,7 +51,13 @@ export class DTComponentPhysicalImpl extends DTComponentPhysical<IMetaDataTest> 
  * Providing methods to property access and other facilities, in order to avoid using class methods
  * *****/
 export class DTComponentPhysicalTest extends DTComponentPhysicalImpl {
+    th_get_owner(): DTPlayerStub {
+        return this._owner;
+    }
 
+    th_set_owner(owner: DTPlayerStub): void {
+        this._owner = owner;
+    }
 }
 
 /******************** STUB CLASS

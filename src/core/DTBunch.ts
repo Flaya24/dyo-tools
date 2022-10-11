@@ -2,9 +2,7 @@ import DYOToolsComponentWithMeta from './DTComponentWithMeta';
 import DYOToolsElement from './DTElement';
 import {
   DTAcceptedMetaData,
-  DTBunchFilters, DTBunchFilterWithBaseOperator, DTBunchFilterWithMetaOperator,
-  DTBunchOptionsConstructor,
-  DTBunchOptionsEditable,
+  DTBunchFilters, DTBunchFilterWithBaseOperator, DTBunchFilterWithMetaOperator, DTBunchOptions,
   DTBunchToObject,
   FilterOperatorType, StandardPrimitiveType,
 } from '../types';
@@ -14,7 +12,7 @@ import { validFiltersForItem } from '../utils/filters';
 import DYOToolsComponentPhysical from "./DTComponentPhysical";
 
 // Default Options for class
-const defaultOptions: DTBunchOptionsConstructor = {
+const defaultOptions: DTBunchOptions = {
   errors: false,
   uniqueKey: false,
   inheritOwner: false,
@@ -25,7 +23,7 @@ const defaultOptions: DTBunchOptionsConstructor = {
 export default class DYOToolsBunch<
     IBunchItem extends DYOToolsElement<DTAcceptedMetaData>,
     IComponentMeta extends DTAcceptedMetaData,
-  > extends DYOToolsComponentPhysical<IComponentMeta> {
+  > extends DYOToolsComponentPhysical<IComponentMeta, DTBunchOptions> {
   /**
    * Defining component type to "bunch".
    */
@@ -54,7 +52,7 @@ export default class DYOToolsBunch<
    * index and other existing component are reindexed with the following index.
    *
    */
-  protected _globalOptions: DTBunchOptionsConstructor;
+  // protected _globalOptions: DTBunchOptionsConstructor;
 
   /**
    * Array of DTError occurred during bunch instance execution, ordered by time.
@@ -72,7 +70,7 @@ export default class DYOToolsBunch<
    * @param items Array of DTElement instance to add. Default empty array.
    * @param options Specific options configuration for the instance. Default empty object.
    */
-  constructor(key?: string, items: IBunchItem[] = [], options: Partial<DTBunchOptionsConstructor> = {}) {
+  constructor(key?: string, items: IBunchItem[] = [], options: Partial<DTBunchOptions> = {}) {
     super(key, {...defaultOptions, ...options});
 
     this._items = [];
@@ -89,7 +87,7 @@ export default class DYOToolsBunch<
     super.setOwner(value);
 
     // Update owner elements
-    const { inheritOwner } = this._globalOptions;
+    const { inheritOwner } = this._options;
     if (inheritOwner) {
       this._items.forEach((item) => { item.setOwner(this.getOwner()); });
     }
@@ -103,7 +101,7 @@ export default class DYOToolsBunch<
     super.removeOwner();
 
     // Update owner elements
-    const { inheritOwner } = this._globalOptions;
+    const { inheritOwner } = this._options;
     if (inheritOwner) {
       this._items.forEach((item) => { item.removeOwner(); });
     }
@@ -118,7 +116,7 @@ export default class DYOToolsBunch<
    * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
-  add(item: IBunchItem, options: Partial<DTBunchOptionsEditable> = {}): void {
+  add(item: IBunchItem, options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
     this.addAtIndex(item, this._items.length, options);
   }
 
@@ -143,10 +141,10 @@ export default class DYOToolsBunch<
    * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
-  addAtIndex(item: IBunchItem, index: number, options: Partial<DTBunchOptionsEditable> = {}): void {
+  addAtIndex(item: IBunchItem, index: number, options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
     const {
-      errors, uniqueKey, replaceIndex, inheritOwner,
-    } = { ...this._globalOptions, ...options };
+      errors, uniqueKey, replaceIndex, inheritOwner, virtualContext
+    }: Partial<DTBunchOptions> = { ...this._options, ...options };
     let hasError = false;
     let finalIndex = index;
 
@@ -154,21 +152,12 @@ export default class DYOToolsBunch<
     const existingItem = this.get(item.getId());
     if (existingItem) {
       hasError = true;
-      if (errors) {
-        this._errors.push(new DYOToolsError(
-          'id_conflict',
-          'Element with same id already exists in the bunch',
-          this,
-          item,
-        ));
-      } else {
-        throw new DYOToolsError(
-          'id_conflict',
-          'Element with same id already exists in the bunch',
-          this,
-          item,
-        );
-      }
+      this.triggerError(new DYOToolsError(
+        'id_conflict',
+        'Element with same id already exists in the bunch',
+        this,
+        item,
+      ));
     }
 
     // Handle Key conflicts
@@ -204,7 +193,7 @@ export default class DYOToolsBunch<
       }
 
       // Update Context
-      if (!this._globalOptions.virtualContext) {
+      if (!virtualContext) {
         const oldContext = item.getContext();
         if (oldContext && oldContext.getComponentType() === 'bunch') {
           (oldContext as DYOToolsBunch<IBunchItem, DTAcceptedMetaData>).remove(item.getId());
@@ -238,7 +227,7 @@ export default class DYOToolsBunch<
    * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
-  addMany(items: IBunchItem[], options: Partial<DTBunchOptionsEditable> = {}): void {
+  addMany(items: IBunchItem[], options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
     this.addManyAtIndex(items, this._items.length, options);
   }
 
@@ -255,9 +244,9 @@ export default class DYOToolsBunch<
    * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
-  addManyAtIndex(items: IBunchItem[], index: number, options: Partial<DTBunchOptionsEditable> = {}): void {
+  addManyAtIndex(items: IBunchItem[], index: number, options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
     const previousItems = this._items;
-    const { errors } = { ...this._globalOptions, ...options };
+    const { errors }: Partial<DTBunchOptions> = { ...this._options, ...options };
     let currentIndex = index;
 
     if (index < 0) {
@@ -350,7 +339,7 @@ export default class DYOToolsBunch<
    * @param indexes Number Array index values or String Array _id values.
    */
   removeMany(indexes: string[] | number[]): void {
-    const { virtualContext } = this._globalOptions;
+    const { virtualContext } = this._options;
     const newItems = [];
     for (let i = 0; i < this._items.length; i += 1) {
       if (typeof indexes[0] === 'number') {
@@ -512,13 +501,13 @@ export default class DYOToolsBunch<
    */
   copy(): DYOToolsBunch<IBunchItem, IComponentMeta> {
     let copyItems;
-    if (this._globalOptions.virtualContext) {
+    if (this._options.virtualContext) {
       copyItems = this._items;
     } else {
       copyItems = this._items.length === 0 ? [] : this._items.map((item) => item.copy() as IBunchItem);
     }
 
-    const copyBunch = new DYOToolsBunch<IBunchItem, IComponentMeta>(this._key, copyItems, this._globalOptions);
+    const copyBunch = new DYOToolsBunch<IBunchItem, IComponentMeta>(this._key, copyItems, this._options);
     copyBunch.setManyMeta({ ...this.getManyMeta() });
 
     return copyBunch;

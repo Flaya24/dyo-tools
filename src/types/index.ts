@@ -13,6 +13,10 @@ export enum FilterOperatorType {
 export type StandardPrimitiveType = string | number | boolean | null;
 
 /** DTComponent interfaces * */
+export interface DTComponentOptions {
+  errors: boolean
+}
+
 export interface DTComponentToObject {
   id: string
   key: string
@@ -33,14 +37,10 @@ export interface DTElementToObject<IComponentMeta> extends DTComponentToObject {
 }
 
 /** DTBunch interfaces * */
-export interface DTBunchOptionsEditable {
-  errors: boolean
+export interface DTBunchOptions extends DTComponentOptions {
   uniqueKey: boolean
   replaceIndex: boolean
   inheritOwner: boolean
-}
-
-export interface DTBunchOptionsConstructor extends DTBunchOptionsEditable {
   virtualContext: boolean
 }
 

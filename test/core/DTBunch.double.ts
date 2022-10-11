@@ -9,7 +9,7 @@ import {
   YssaliaMetaData,
 } from './DTComponentWithMeta.double';
 import DYOToolsElement from '../../src/core/DTElement';
-import { DTBunchOptionsConstructor, DTElementToObject } from '../../src/types';
+import {DTBunchOptions, DTElementToObject} from '../../src/types';
 import Mocked = jest.Mocked;
 import {mockOverriddenMethods} from "./DTComponentPhysical.double";
 import {
@@ -27,6 +27,7 @@ import {
   MeldrineToObjectTest, YssaliaIdTest, YssaliaKeyTest, YssaliaToObjectTest
 } from "./DTElement.double";
 import {DTErrorStub} from "./DTError.double";
+import {DTPlayerStub} from "./DTPlayer.double";
 
 /******************** MOCK DEPENDENCIES
  * Dependencies used by the component are mocked with Jest
@@ -49,7 +50,7 @@ export const inheritance = () => {
  * *****/
 export const IDTest = 'DTBunch-id-1234567';
 export const KeyTest = 'DTBunch-key-1234567';
-export const defaultOptions: DTBunchOptionsConstructor = {
+export const defaultOptions: DTBunchOptions = {
   errors: false,
   uniqueKey: false,
   inheritOwner: false,
@@ -88,18 +89,25 @@ export class DTBunchTest extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>,
       ...options
     };
   }
+
+  th_get_owner(): DTPlayerStub {
+    return this._owner;
+  }
+
+  th_set_owner(owner: DTPlayerStub): void {
+    this._owner = owner;
+  }
 }
 
 /******************** STUB CLASS
  * Stub class, for using in other component
  * *****/
-export class DTBunchStub extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>, IMetaDataTest> {
-  constructor(items: Array<Mocked<DYOToolsElement<IMetaDataTest>>> = [], options: Partial<DTBunchOptionsConstructor> = {}) {
+export class DTBunchStub extends DTBunchTest {
+  constructor(items: Array<Mocked<DYOToolsElement<IMetaDataTest>>> = []) {
     super();
     this._id = IDTest;
     this._key = KeyTest;
     this._errors = [];
-    this._globalOptions = { ...defaultOptions, ...options };
     this._items = items;
   }
 

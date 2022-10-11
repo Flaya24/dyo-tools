@@ -1,7 +1,8 @@
 import * as uuid from 'uuid';
 import DYOToolsError from "./DTError";
+import {DTComponentOptions} from "../types";
 
-export default abstract class DYOToolsComponent {
+export default abstract class DYOToolsComponent<IComponentOptions extends DTComponentOptions = DTComponentOptions> {
   /**
    * Component unique ID. Use uuid v4 generator.
    */
@@ -18,7 +19,7 @@ export default abstract class DYOToolsComponent {
    *
    * A component can have only one *physical context*, and be managed by a parent Component.
    */
-  protected _context?: DYOToolsComponent;
+  protected _context?: DYOToolsComponent<IComponentOptions>;
 
   /**
    * Higher Level Component category.
@@ -58,7 +59,7 @@ export default abstract class DYOToolsComponent {
    * @param key Optional Key to set. If not provided, set the _key with the _id value.
    * @param options TODO
    */
-  constructor(key?: string, options: any = {}) {
+  constructor(key?: string, options: Partial<IComponentOptions> = {}) {
     this._id = uuid.v4();
     this._key = key || this._id;
     this._errors = [];
@@ -95,7 +96,7 @@ export default abstract class DYOToolsComponent {
    * @returns Direct parent Component or higher level Component if filtered with **contextType**.
    * Returns undefined if context doesn't exist.
    */
-  getContext(contextType?: string): DYOToolsComponent | undefined {
+  getContext(contextType?: string): DYOToolsComponent<IComponentOptions> | undefined {
     if (this._context) {
       if (!contextType || this._context.getComponentType() === contextType) {
         return this._context;
@@ -108,7 +109,7 @@ export default abstract class DYOToolsComponent {
   /**
    * Setter for _context property.
    */
-  setContext(value: DYOToolsComponent): void {
+  setContext(value: DYOToolsComponent<IComponentOptions>): void {
     this._context = value;
   }
 
