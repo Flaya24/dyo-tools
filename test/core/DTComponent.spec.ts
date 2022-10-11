@@ -54,10 +54,12 @@ describe('class DYOToolsComponent', () => {
     });
 
     test('creations with options', () => {
-      const component = new DTComponentTest(KeyTest, { errors: true });
+      const component = new DTComponentTest(KeyTest, { errors: true, option1: false, option2: true });
 
       expect(component.th_get_options()).toStrictEqual({
-        errors: true
+        errors: true,
+        option1: false,
+        option2: true
       });
     });
   });

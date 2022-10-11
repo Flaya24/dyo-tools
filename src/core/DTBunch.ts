@@ -13,6 +13,15 @@ import DYOToolsError from './DTError';
 import { validFiltersForItem } from '../utils/filters';
 import DYOToolsComponentPhysical from "./DTComponentPhysical";
 
+// Default Options for class
+const defaultOptions: DTBunchOptionsConstructor = {
+  errors: false,
+  uniqueKey: false,
+  inheritOwner: false,
+  replaceIndex: false,
+  virtualContext: false,
+};
+
 export default class DYOToolsBunch<
     IBunchItem extends DYOToolsElement<DTAcceptedMetaData>,
     IComponentMeta extends DTAcceptedMetaData,
@@ -64,16 +73,7 @@ export default class DYOToolsBunch<
    * @param options Specific options configuration for the instance. Default empty object.
    */
   constructor(key?: string, items: IBunchItem[] = [], options: Partial<DTBunchOptionsConstructor> = {}) {
-    super(key);
-
-    const defaultOptions: DTBunchOptionsConstructor = {
-      errors: false,
-      uniqueKey: false,
-      inheritOwner: false,
-      replaceIndex: false,
-      virtualContext: false,
-    };
-    this._globalOptions = { ...defaultOptions, ...options };
+    super(key, {...defaultOptions, ...options});
 
     this._items = [];
     if (items && items.length > 0) {

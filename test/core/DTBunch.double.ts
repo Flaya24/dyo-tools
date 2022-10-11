@@ -26,6 +26,7 @@ import {
   MeldrineKeyTest,
   MeldrineToObjectTest, YssaliaIdTest, YssaliaKeyTest, YssaliaToObjectTest
 } from "./DTElement.double";
+import {DTErrorStub} from "./DTError.double";
 
 /******************** MOCK DEPENDENCIES
  * Dependencies used by the component are mocked with Jest
@@ -71,6 +72,21 @@ export class DTBunchTest extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>,
 
   th_set_items(items: Mocked<DYOToolsElement<IMetaDataTest>>[]): void {
     this._items = items;
+  }
+
+  th_set_errors(errors: Array<DTErrorStub>): void {
+    this._errors = errors;
+  }
+
+  th_get_options(): any {
+    return this._options;
+  }
+
+  th_set_options(options: any): void {
+    this._options = {
+      ...this._options,
+      ...options
+    };
   }
 }
 
