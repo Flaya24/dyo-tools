@@ -36,7 +36,7 @@ import {
   KeyTest as KeyPlayerTest,
   toStringTest as toStringPlayerTest,
 } from './DTPlayer.double';
-import { DTErrorStub } from './DTError.double';
+import { checkCallForMockedDTError, DTErrorStub } from './DTError.double';
 import { validFiltersForItem } from '../../src/utils/filters';
 import { DTComponentStub, IDTest as IDContextTest } from './DTComponent.double';
 import Mocked = jest.Mocked;
@@ -235,19 +235,9 @@ describe('class DYOToolsBunch', () => {
     let objectToAdd;
     let objectsToAdd;
 
-    const checkErrorCall = (error: DTError, code, message, initiatorId, convictedId) => {
-      expect((error as Error)).toBe(1);
-      expect((DTError as any).mock.calls[0][0]).toBe(code);
-      expect((DTError as any).mock.calls[0][1]).toBe(message);
-      expect((DTError as any).mock.calls[0][2].getId()).toBe(initiatorId);
-      expect((DTError as any).mock.calls[0][3].getId()).toBe(convictedId);
-    };
-
     beforeEach(() => {
       (DTError as any).mockReset();
-      jest.spyOn(bunchTest, 'getId').mockImplementation(function () {
-        return this._id;
-      });
+      jest.spyOn(bunchTest, 'getId').mockReturnValue(IDTest);
 
       bunchTest.th_set_items(generateMockedElements(5));
 
@@ -258,6 +248,7 @@ describe('class DYOToolsBunch', () => {
 
     test('add a new item at last index - simple case', () => {
       bunchTest.addAtIndex(objectToAdd, 5);
+
       expect(bunchTest.th_get_items()[5].getId()).toBe(objectToAdd.getId());
     });
 
@@ -272,6 +263,7 @@ describe('class DYOToolsBunch', () => {
 
     test('add a new item at specified index and replace - replace option', () => {
       bunchTest.addAtIndex(objectToAdd, 2, { replaceIndex: true });
+
       expect(bunchTest.th_get_items()[2].getId()).toBe(objectToAdd.getId());
       expect(bunchTest.th_get_items()[3].getId()).toBe(`${IldressIdTest}-3`);
       expect(bunchTest.th_get_items()[4].getId()).toBe(`${YssaliaIdTest}-4`);
@@ -280,106 +272,64 @@ describe('class DYOToolsBunch', () => {
 
     test('add a new item at lower index', () => {
       bunchTest.addAtIndex(objectToAdd, -11);
+
       expect(bunchTest.th_get_items()[0].getId()).toBe(objectToAdd.getId());
       expect(bunchTest.th_get_items()[1].getId()).toBe(`${HaileiIdTest}-0`);
     });
 
     test('add a new item at greater index', () => {
       bunchTest.addAtIndex(objectToAdd, 11);
+
       expect(bunchTest.th_get_items()[5].getId()).toBe(objectToAdd.getId());
       expect(bunchTest.th_get_items()[6]).toBeUndefined();
     });
 
-    test('trigger conflict when adding two same ids - default exception errors', () => {
+    test('trigger conflict when adding two same ids - parent triggerError', () => {
       const mockedTriggerError = DTBunch.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
+
       bunchTest.addAtIndex(objectsToAdd[0], 2);
 
       expect(mockedTriggerError.mock.calls.length).toBe(1);
-      // TODO : finish
-
-      // expect(errorThrown).toBeDefined();
-      // checkErrorCall(
-      //   'id_conflict',
-      //   'Element with same id already exists in the bunch',
-      //   IDTest,
-      //   objectsToAdd[0].getId(),
-      // );
-      // expect(bunchTest.th_get_items()[2].getId()).toBe(`${MaydenaIdTest}-2`);
-    });
-
-    test('trigger conflict when adding two same ids - stack errors', () => {
-      jest.spyOn(bunchTest, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
-
-      bunchTest.addAtIndex(objectsToAdd[0], 2, { errors: true });
-      const errors = bunchTest.getErrors();
-
-      expect(errors.length).toBe(1);
-      checkErrorCall(
+      checkCallForMockedDTError(
         'id_conflict',
         'Element with same id already exists in the bunch',
         IDTest,
         objectsToAdd[0].getId(),
       );
-      expect(bunchTest.th_get_items()[2].getId()).toBe(`${MaydenaIdTest}-2`);
     });
 
     test('no conflict when adding two same keys - default case', () => {
-      let errorThrown;
-      try {
-        bunchTest.addAtIndex(objectToAdd, 2);
-      } catch (error) {
-        errorThrown = error;
-      }
+      const mockedTriggerError = DTBunch.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
 
-      expect(errorThrown).toBeUndefined();
+      bunchTest.addAtIndex(objectToAdd, 2);
+
+      expect(mockedTriggerError.mock.calls.length).toBe(0);
       expect((bunchTest.find as any).mock.calls.length).toBe(0);
       expect(bunchTest.th_get_items()[0].getKey()).toBe(HaileiKeyTest);
       expect(bunchTest.th_get_items()[2].getKey()).toBe(HaileiKeyTest);
     });
 
-    test('trigger conflict when adding two same keys - uniqueKey option and exception errors', () => {
-      let errorThrown;
-      try {
-        bunchTest.addAtIndex(objectToAdd, 2, { uniqueKey: true });
-      } catch (error) {
-        errorThrown = error;
-      }
+    test('trigger conflict when adding two same keys - uniqueKey option and parent triggerError', () => {
+      const mockedTriggerError = DTBunch.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
 
-      expect(errorThrown).toBeDefined();
-      checkErrorCall(
-        'key_conflict',
-        'Element with same key already exists in the bunch',
-        IDTest,
-        objectToAdd.getId(),
+      bunchTest.addAtIndex(objectToAdd, 2, { uniqueKey: true });
+
+      expect(mockedTriggerError.mock.calls.length).toBe(1);
+      checkCallForMockedDTError(
+          'key_conflict',
+          'Element with same key already exists in the bunch',
+          IDTest,
+          objectToAdd.getId(),
       );
       expect((bunchTest.find as any).mock.calls.length).toBe(1);
       expect((bunchTest.find as any).mock.calls[0][0]).toStrictEqual({ key: { $eq: objectToAdd.getKey() } });
       expect(bunchTest.th_get_items()[2].getId()).toBe(`${MaydenaIdTest}-2`);
     });
 
-    test('trigger conflict when adding two same keys - uniqueKey option and stack errors', () => {
-      bunchTest.addAtIndex(objectToAdd, 2, { errors: true, uniqueKey: true });
-      jest.spyOn(bunchTest, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
-
-      const errors = bunchTest.getErrors();
-
-      expect(errors.length).toBe(1);
-      checkErrorCall(
-        'key_conflict',
-        'Element with same key already exists in the bunch',
-        IDTest,
-        objectToAdd.getId(),
-      );
-      expect(bunchTest.th_get_items()[2].getId()).toBe(`${MaydenaIdTest}-2`);
-    });
-
     test('not inherit owner when adding an item - default case', () => {
       const owner = new DTPlayerStub();
       bunchTest.th_set_owner(owner);
+
       bunchTest.addAtIndex(objectToAdd, 2);
 
       expect(bunchTest.th_get_owner().getId()).toBe(IDPlayerTest);
@@ -388,7 +338,8 @@ describe('class DYOToolsBunch', () => {
 
     test('inherit owner when adding an item - inheritOwner option', () => {
       const owner = new DTPlayerStub();
-      bunchTest.setOwner(owner);
+      bunchTest.th_set_owner(owner);
+
       bunchTest.addAtIndex(objectToAdd, 2, { inheritOwner: true });
 
       expect(bunchTest.th_get_owner().getId()).toBe(IDPlayerTest);
@@ -405,6 +356,7 @@ describe('class DYOToolsBunch', () => {
 
     test('not set context when adding an item - virtualContext option', () => {
       bunchTest.th_set_options({ virtualContext: true });
+
       bunchTest.addAtIndex(objectToAdd, 2);
 
       expect(bunchTest.th_get_items()[2].setContext.mock.calls.length).toBe(0);
@@ -417,6 +369,7 @@ describe('class DYOToolsBunch', () => {
       objectToAdd.setContext(bunchTestOld);
       objectToAdd.setContext.mockClear();
       jest.spyOn(bunchTestOld, 'remove').mockImplementation(() => {});
+      jest.spyOn(bunchTestOld, 'getComponentType').mockImplementation(() => 'bunch');
 
       bunchTest.addAtIndex(objectToAdd, 2);
 

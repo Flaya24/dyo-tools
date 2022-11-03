@@ -19,7 +19,7 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
    *
    * A component can have only one *physical context*, and be managed by a parent Component.
    */
-  protected _context?: DYOToolsComponent<IComponentOptions>;
+  protected _context?: DYOToolsComponent<DTComponentOptions>;
 
   /**
    * Higher Level Component category.
@@ -50,7 +50,7 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
   /**
    * TODO : Update JSDOC
    */
-  protected _options: any;
+  protected _options: IComponentOptions;
 
   /**
    * TODO UPDATE
@@ -64,13 +64,13 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
     this._key = key || this._id;
     this._errors = [];
 
-    const defaultOptions = {
+    const defaultOptions: DTComponentOptions = {
       errors: false
     };
     this._options = {
       ...defaultOptions,
       ...options
-    }
+    } as IComponentOptions
   }
 
   /**
@@ -96,10 +96,10 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
    * @returns Direct parent Component or higher level Component if filtered with **contextType**.
    * Returns undefined if context doesn't exist.
    */
-  getContext(contextType?: string): DYOToolsComponent<IComponentOptions> | undefined {
+  getContext<IContext extends DYOToolsComponent = DYOToolsComponent>(contextType?: string): IContext | undefined {
     if (this._context) {
       if (!contextType || this._context.getComponentType() === contextType) {
-        return this._context;
+        return this._context as IContext;
       }
       return this._context.getContext(contextType);
     }
@@ -109,7 +109,7 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
   /**
    * Setter for _context property.
    */
-  setContext(value: DYOToolsComponent<IComponentOptions>): void {
+  setContext<IContext extends DYOToolsComponent = DYOToolsComponent>(value: IContext): void {
     this._context = value;
   }
 

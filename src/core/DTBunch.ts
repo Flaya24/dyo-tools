@@ -143,7 +143,7 @@ export default class DYOToolsBunch<
    */
   addAtIndex(item: IBunchItem, index: number, options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
     const {
-      errors, uniqueKey, replaceIndex, inheritOwner, virtualContext
+      uniqueKey, replaceIndex, inheritOwner, virtualContext
     }: Partial<DTBunchOptions> = { ...this._options, ...options };
     let hasError = false;
     let finalIndex = index;
@@ -165,21 +165,12 @@ export default class DYOToolsBunch<
       const existingItemByKey = this.find({ key: { $eq: item.getKey() } });
       if (existingItemByKey) {
         hasError = true;
-        if (errors) {
-          this._errors.push(new DYOToolsError(
-            'key_conflict',
-            'Element with same key already exists in the bunch',
-            this,
-            item,
-          ));
-        } else {
-          throw new DYOToolsError(
-            'key_conflict',
-            'Element with same key already exists in the bunch',
-            this,
-            item,
-          );
-        }
+        this.triggerError(new DYOToolsError(
+          'key_conflict',
+          'Element with same key already exists in the bunch',
+          this,
+          item,
+        ));
       }
     }
 
