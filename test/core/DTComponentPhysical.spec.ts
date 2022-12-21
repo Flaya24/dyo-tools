@@ -1,7 +1,18 @@
-import {beforeEach, describe, test} from '@jest/globals';
+import {beforeEach, describe, jest, test} from '@jest/globals';
 import {DTPlayerStub, IDTest as IDPlayerTest,} from './DTPlayer.double';
-import {DTComponentPhysicalTest, inheritance} from './DTComponentPhysical.double';
+import {mockOverriddenMethods} from "./DTComponentWithMeta.double";
+import {DTComponentPhysicalTest} from './DTComponentPhysical.double';
+import {DTComponentPhysical, DTComponentWithMeta} from "../../src";
 
+/******************** MOCK DEPENDENCIES
+ * All Dependencies used by the component are mocked with Jest
+ * *****/
+jest.mock('../../src/core/DTComponent');
+jest.mock('../../src/core/DTComponentWithMeta');
+// Add specific mock for inherited methods to have a basic implementation
+mockOverriddenMethods(DTComponentWithMeta);
+
+/************************* TESTS SUITES *******************************/
 describe('class DYOToolsComponentPhysical', () => {
   let componentPhysicalTest: DTComponentPhysicalTest;
 
@@ -15,7 +26,7 @@ describe('class DYOToolsComponentPhysical', () => {
 
   describe('inheritance', () => {
     test('check good inheritance for class', () => {
-      expect(inheritance()).toBeTruthy();
+      expect(DTComponentPhysical.prototype instanceof DTComponentWithMeta).toBeTruthy();
     });
   });
 

@@ -284,4 +284,12 @@ describe('class DYOToolsComponent', () => {
       expect(componentRank3.th_get_errors().length).toBe(0);
     });
   });
+
+  describe('getOptions()', () => {
+    test('return options', () => {
+      componentTest.th_set_options({ errors: true, option1: false, option2: true });
+
+      expect(componentTest.getOptions()).toStrictEqual({ errors: true, option1: false, option2: true });
+    });
+  });
 });

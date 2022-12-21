@@ -4,7 +4,16 @@ import {
 import {
   DTComponentWithMetaTestMock, HaileiMetaData, MeldrineMetaData, IMetaDataTest, YssaliaMetaData, inheritance
 } from './DTComponentWithMeta.double';
+import {mockOverriddenMethods} from "./DTComponent.double";
+import {DTComponent, DTComponentWithMeta} from "../../src";
 
+/******************** MOCK DEPENDENCIES
+ * All Dependencies used by the component are mocked with Jest
+ * *****/
+jest.mock('../../src/core/DTComponent');
+mockOverriddenMethods(DTComponent);
+
+/************************* TESTS SUITES *******************************/
 describe('class DYOToolsComponentWithMeta', () => {
   let componentMock: DTComponentWithMetaTestMock;
 
@@ -18,7 +27,7 @@ describe('class DYOToolsComponentWithMeta', () => {
 
   describe('inheritance', () => {
     test('check good inheritance for class', () => {
-      expect(inheritance()).toBeTruthy();
+      expect(DTComponentWithMeta.prototype instanceof DTComponent).toBeTruthy();
     });
   });
 

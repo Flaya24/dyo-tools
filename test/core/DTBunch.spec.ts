@@ -6,8 +6,7 @@ import {
   DTBunchTest,
   generateMockedElements,
   IDTest,
-  KeyTest,
-  inheritance
+  KeyTest
 } from './DTBunch.double';
 import {
   HaileiIdTest,
@@ -26,7 +25,7 @@ import {
   YssaliaKeyTest,
   YssaliaToObjectTest
 } from './DTElement.double';
-import {DTBunch, DTComponentPhysical, DTError} from '../../src';
+import {DTBunch, DTComponentPhysical} from '../../src';
 import DYOToolsElement from '../../src/core/DTElement';
 import { BunchMetaData, IMetaDataTest } from './DTComponentWithMeta.double';
 import { DTAcceptedMetaDataValue, DTBunchOptions } from '../../src/types';
@@ -36,18 +35,33 @@ import {
   KeyTest as KeyPlayerTest,
   toStringTest as toStringPlayerTest,
 } from './DTPlayer.double';
-import { checkCallForMockedDTError, DTErrorStub } from './DTError.double';
+import { checkCallForMockedDTError, DTErrorStub, CodeTest as DTErrorCodeTest } from './DTError.double';
 import { validFiltersForItem } from '../../src/utils/filters';
 import { DTComponentStub, IDTest as IDContextTest } from './DTComponent.double';
 import Mocked = jest.Mocked;
 import MockedFunction = jest.MockedFunction;
 import DYOToolsError from "../../src/core/DTError";
+import {mockOverriddenMethods} from "./DTComponentPhysical.double";
 
+/******************** MOCK DEPENDENCIES
+ * All Dependencies used by the component are mocked with Jest
+ * *****/
+jest.mock('../../src/core/DTElement');
+jest.mock('../../src/core/DTError');
+jest.mock('../../src/utils/filters');
+jest.mock('../../src/core/DTComponent');
+jest.mock('../../src/core/DTComponentWithMeta');
+jest.mock('../../src/core/DTComponentPhysical');
+// Add specific mock for inherited methods to have a basic implementation
+mockOverriddenMethods(DTComponentPhysical);
+
+/************************* TESTS SUITES *******************************/
 describe('class DYOToolsBunch', () => {
   let bunchTest: DTBunchTest;
 
   beforeEach(() => {
     bunchTest = new DTBunchTest();
+    bunchTest.th_set_options(defaultOptions);
   });
 
   afterEach(() => {
@@ -56,14 +70,21 @@ describe('class DYOToolsBunch', () => {
 
   describe('inheritance', () => {
     test('check good inheritance for class', () => {
-      expect(inheritance()).toBeTruthy();
+      expect(DTBunch.prototype instanceof DTComponentPhysical).toBeTruthy();
     });
   });
 
   describe('constructor()', () => {
+    let addManyImpl;
+
     beforeEach(() => {
       jest.resetAllMocks();
+      addManyImpl = DTBunch.prototype.addMany;
       DTBunch.prototype.addMany = jest.fn();
+    })
+
+    afterEach(() => {
+      DTBunch.prototype.addMany = addManyImpl;
     })
 
     test('creation simple with key', () => {
@@ -236,7 +257,6 @@ describe('class DYOToolsBunch', () => {
     let objectsToAdd;
 
     beforeEach(() => {
-      (DTError as any).mockReset();
       jest.spyOn(bunchTest, 'getId').mockReturnValue(IDTest);
 
       bunchTest.th_set_items(generateMockedElements(5));
@@ -425,7 +445,6 @@ describe('class DYOToolsBunch', () => {
     let itemLibrary;
 
     beforeEach(() => {
-      (DTError as any).mockReset();
       jest.spyOn(bunchTest, 'addAtIndex').mockImplementation(() => {});
 
       bunchTest.th_set_items(generateMockedElements(5));
@@ -463,54 +482,44 @@ describe('class DYOToolsBunch', () => {
 
     test('errors when adding many items at index - default case - add no items and throw error', () => {
       const indexToAdd = 2;
-      let errorThrown;
-      jest.spyOn(bunchTest, 'addAtIndex').mockImplementation(function (item, index, options) {
-        if (item.getKey() !== MeldrineKeyTest) {
-          throw new DTError('test_error', `Item ${item.getId()}`);
-        } else {
-          this._items[index] = item;
-        }
+      let errorThrown: DTErrorStub;
+      jest.spyOn(bunchTest, 'addAtIndex').mockImplementationOnce(function (item, index, options) {
+        throw new DTErrorStub();
       });
 
       try {
         bunchTest.addManyAtIndex(itemsToAdd, indexToAdd);
-      } catch (error) {
-        errorThrown = error;
+      } catch (error: unknown) {
+        errorThrown = error as DTErrorStub;
       }
 
       expect(errorThrown).toBeDefined();
-      expect(DTError).toHaveBeenCalled();
-      expect((DTError as any).mock.calls.length).toBe(1);
-      expect((DTError as any).mock.calls[0][0]).toBe('test_error');
-      expect((DTError as any).mock.calls[0][1]).toBe(`Item ${itemsToAdd[0].getId()}`);
+      expect(DTErrorStub).toHaveBeenCalled();
+      expect(errorThrown.getCode()).toBe(DTErrorCodeTest);
       expect((bunchTest.addAtIndex as any).mock.calls.length).toBe(1);
       expect((bunchTest.addAtIndex as any).mock.calls[0][0].getId()).toBe(itemsToAdd[0].getId());
       expect((bunchTest.addAtIndex as any).mock.calls[0][1]).toBe(indexToAdd);
-      expect(bunchTest.th_get_items()[2].getKey()).not.toBe(MeldrineKeyTest);
     });
 
     test('errors when adding many items at index - errors case - add success items and stack errors for others', () => {
       const indexToAdd = 2;
-      jest.spyOn(bunchTest, 'addAtIndex').mockImplementation(function (item, index, options) {
-        if (item.getKey() !== MeldrineKeyTest) {
-          this._errors.push(new DTError('test_error', `Item ${item.getId()}`));
-        }
-      });
-      jest.spyOn(bunchTest, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
+      const errors = [];
+      jest.spyOn(bunchTest, 'addAtIndex')
+        .mockImplementationOnce(function (item, index, options) {
+          errors.push(new DTErrorStub());
+        })
+        .mockImplementationOnce(function (item, index, options) {
+          errors.push(new DTErrorStub());
+        });
 
       bunchTest.addManyAtIndex(itemsToAdd, indexToAdd, { errors: true });
-      const errors = bunchTest.getErrors();
 
       expect(errors.length).toBe(2);
-      expect(DTError).toHaveBeenCalled();
-      expect((DTError as any).mock.calls.length).toBe(2);
-      expect((DTError as any).mock.calls[0][0]).toBe('test_error');
-      expect((DTError as any).mock.calls[0][1]).toBe(`Item ${itemsToAdd[0].getId()}`);
-      expect((DTError as any).mock.calls[1][0]).toBe('test_error');
-      expect((DTError as any).mock.calls[1][1]).toBe(`Item ${itemsToAdd[2].getId()}`);
+      expect(DTErrorStub).toHaveBeenCalled();
       expect((bunchTest.addAtIndex as any).mock.calls.length).toBe(3);
+      expect((bunchTest.addAtIndex as any).mock.calls[0][0].getId()).toBe(itemsToAdd[0].getId());
+      expect((bunchTest.addAtIndex as any).mock.calls[1][0].getId()).toBe(itemsToAdd[1].getId());
+      expect((bunchTest.addAtIndex as any).mock.calls[2][0].getId()).toBe(itemsToAdd[2].getId());
     });
   });
 
@@ -532,6 +541,7 @@ describe('class DYOToolsBunch', () => {
         replaceIndex: true,
         inheritOwner: true,
       };
+
       bunchTest.addMany(itemsToAdd, testBunchOptions);
 
       expect((bunchTest.addManyAtIndex as any).mock.calls.length).toBe(1);
@@ -556,9 +566,6 @@ describe('class DYOToolsBunch', () => {
     };
 
     beforeEach(() => {
-      jest.spyOn(bunchTest, 'getAll').mockImplementation(function () {
-        return this._items;
-      });
       jest.spyOn(bunchTest, 'removeContext').mockImplementation(() => {});
 
       bunchTest.th_set_items(generateMockedElements(5));
@@ -668,6 +675,11 @@ describe('class DYOToolsBunch', () => {
     });
   });
 
+  describe('copy()', () => {
+    // @see copy.spec.ts for unit tests about copy method
+  })
+
+  // TODO : Tests à revoir ! les assertions sont pas ouf
   describe('find()', () => {
     const validFiltersForItemMockFn = validFiltersForItem as MockedFunction<typeof validFiltersForItem>;
     const checkItemFound = (items) => {
@@ -987,138 +999,13 @@ describe('class DYOToolsBunch', () => {
     });
   });
 
-  describe('copy()', () => {
-    test('copy a bunch - simple case with id and key', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      const bunchTestCopy = bunchTest.copy();
-      jest.spyOn(bunchTest, 'getId').mockImplementation(function () {
-        return this._id;
-      });
-      jest.spyOn(bunchTestCopy, 'getId').mockImplementation(function () {
-        return this._id;
-      });
-      jest.spyOn(bunchTest, 'getKey').mockImplementation(function () {
-        return this._key;
-      });
-      jest.spyOn(bunchTestCopy, 'getKey').mockImplementation(function () {
-        return this._key;
-      });
-
-      expect(bunchTest.getId() === bunchTestCopy.getId()).toBeFalsy();
-      expect(bunchTest.getKey() === bunchTestCopy.getKey()).toBeTruthy();
-    });
-
-    test('copy a bunch - not copy owner and context', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      jest.spyOn(bunchTest, 'setContext').mockImplementation(function (context) {
-        this._context = context;
-      });
-      jest.spyOn(bunchTest, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-
-      bunchTest.setContext(new DTComponentStub());
-      bunchTest.setOwner(new DTPlayerStub());
-
-      const bunchTestCopy = bunchTest.copy();
-      jest.spyOn(bunchTestCopy, 'getContext').mockImplementation(function () {
-        return this._context;
-      });
-      jest.spyOn(bunchTestCopy, 'getOwner').mockImplementation(function () {
-        return this._owner;
-      });
-
-      expect(bunchTestCopy.getContext()).toBeUndefined();
-      expect(bunchTestCopy.getOwner()).toBeUndefined();
-    });
-
-    test('copy a bunch - copy meta-data and globalOptions', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      const mockedSetManyMeta = DTBunch.prototype.setManyMeta as MockedFunction<(metaValues : Partial<{}>) => void>;
-      jest.spyOn(bunchTest, 'getManyMeta').mockImplementation(function () {
-        return BunchMetaData;
-      });
-
-      const copiedOptions: Partial<DTBunchOptions> = {
-        inheritOwner: true,
-        replaceIndex: true,
-        virtualContext: true,
-      };
-      bunchTest.th_set_options(copiedOptions);
-
-      const bunchTestCopy = bunchTest.copy();
-      jest.spyOn(bunchTestCopy, 'get').mockImplementation(function (key) {
-        return key === 'options' ? this._globalOptions : undefined;
-      });
-
-      // Weird behavior of Jest which doesn't clean the mock Calls, so it's the call index 2 to check
-      expect(mockedSetManyMeta.mock.calls[2][0]).toStrictEqual(BunchMetaData);
-      expect(bunchTestCopy.get('options')).toStrictEqual({
-        ...defaultOptions,
-        ...copiedOptions,
-      });
-    });
-
-    test('copy a bunch - empty errors', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      const errors = [new DTErrorStub(), new DTErrorStub()];
-      bunchTest.th_set_errors(errors);
-
-      const bunchTestCopy = bunchTest.copy();
-      jest.spyOn(bunchTestCopy, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
-
-      expect(bunchTestCopy.getErrors().length).toBe(0);
-    });
-
-    test('copy a bunch with items - default case', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      bunchTest.th_set_items(generateMockedElements(5));
-
-      const bunchTestCopy = bunchTest.copy();
-      jest.spyOn(bunchTestCopy, 'getAll').mockImplementation(function () {
-        return this._items;
-      });
-
-      const items = bunchTestCopy.getAll();
-
-      expect(items.length).toBe(5);
-      expect(bunchTest.th_get_items()[0].copy.mock.calls.length).toBe(1);
-      expect(bunchTest.th_get_items()[1].copy.mock.calls.length).toBe(1);
-      expect(bunchTest.th_get_items()[2].copy.mock.calls.length).toBe(1);
-      expect(bunchTest.th_get_items()[3].copy.mock.calls.length).toBe(1);
-      expect(bunchTest.th_get_items()[4].copy.mock.calls.length).toBe(1);
-    });
-
-    test('copy a bunch with items - virtual context case', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      bunchTest.th_set_items(generateMockedElements(5));
-      bunchTest.th_set_options({ virtualContext: true });
-
-      const bunchTestCopy = bunchTest.copy();
-      jest.spyOn(bunchTestCopy, 'getAll').mockImplementation(function () {
-        return this._items;
-      });
-
-      const items = bunchTestCopy.getAll();
-
-      expect(items.length).toBe(5);
-      expect(bunchTest.th_get_items()[0].copy.mock.calls.length).toBe(0);
-      expect(bunchTest.th_get_items()[1].copy.mock.calls.length).toBe(0);
-      expect(bunchTest.th_get_items()[2].copy.mock.calls.length).toBe(0);
-      expect(bunchTest.th_get_items()[3].copy.mock.calls.length).toBe(0);
-      expect(bunchTest.th_get_items()[4].copy.mock.calls.length).toBe(0);
-    });
-  });
-
   describe('toObject()', () => {
+
+    beforeEach(() => {
+      bunchTest.th_set_id(IDTest);
+      bunchTest.th_set_key(KeyTest);
+    })
+
     test('toObject output standard', () => {
       const toObjectBunch = bunchTest.toObject();
 
@@ -1130,10 +1017,7 @@ describe('class DYOToolsBunch', () => {
     });
 
     test('toObject output standard with owner', () => {
-      jest.spyOn(bunchTest, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-      bunchTest.setOwner(new DTPlayerStub());
+      bunchTest.th_set_owner(new DTPlayerStub());
 
       const toObjectBunch = bunchTest.toObject();
       expect(Object.keys(toObjectBunch)).toStrictEqual(['id', 'key', 'type', 'items', 'owner']);
@@ -1141,18 +1025,12 @@ describe('class DYOToolsBunch', () => {
     });
 
     test('toObject output standard with owner and meta', () => {
-      jest.spyOn(bunchTest, 'setOwner').mockImplementation(function (owner) {
-        this._owner = new DTPlayerStub();
-      });
-      jest.spyOn(bunchTest, 'setManyMeta').mockImplementation(function () {
-        this._meta = BunchMetaData as any;
-      });
       jest.spyOn(bunchTest, 'getManyMeta').mockImplementation(function () {
         return this._meta;
       });
 
-      bunchTest.setOwner(new DTPlayerStub());
-      bunchTest.setManyMeta({});
+      bunchTest.th_set_owner(new DTPlayerStub());
+      bunchTest.th_set_meta(BunchMetaData);
 
       const toObjectBunch = bunchTest.toObject();
       expect(Object.keys(toObjectBunch)).toStrictEqual(['id', 'key', 'type', 'items', 'owner', 'meta']);
@@ -1176,6 +1054,10 @@ describe('class DYOToolsBunch', () => {
   });
 
   describe('toString()', () => {
+    beforeEach(() => {
+      bunchTest.th_set_key(KeyTest);
+    })
+
     test('string output standard', () => {
       const toStringBunch = bunchTest.toString();
 
@@ -1191,11 +1073,7 @@ describe('class DYOToolsBunch', () => {
 
     test('string output standard with items and owner', () => {
       bunchTest.th_set_items(generateMockedElements(5));
-      jest.spyOn(bunchTest, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-
-      bunchTest.setOwner(new DTPlayerStub());
+      bunchTest.th_set_owner(new DTPlayerStub());
 
       const toStringBunch = bunchTest.toString();
       expect(toStringBunch).toBe(`Component ${KeyTest} - Type: Bunch - Owner: ${KeyPlayerTest} - Items: 5`);

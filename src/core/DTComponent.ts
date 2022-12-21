@@ -190,6 +190,13 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
   }
 
   /**
+   * TODO
+   */
+  getOptions(): IComponentOptions {
+    return this._options;
+  }
+
+  /**
    * Abstract method for JSON Object representation of the component and returning it.
    */
   abstract toObject(): unknown;

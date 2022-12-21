@@ -1,6 +1,11 @@
 import {DTComponent} from "../../src";
 import {DTErrorStub} from "./DTError.double";
 import {jest} from "@jest/globals";
+import {DTComponentOptions} from "../../src/types";
+interface IOptionsTest extends DTComponentOptions {
+    option1: boolean
+    option2: boolean
+}
 
 /******************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
@@ -16,7 +21,7 @@ export const SubKindTest = "DTComponent-subkind-test";
 /******************** STUB ABSTRACT IMPLEMENTATION
  * Implementation of abstract component class for tests
  * *****/
-export class DTComponentImpl extends DTComponent {
+export class DTComponentImpl extends DTComponent<IOptionsTest> {
     protected _componentType: string = ComponentTypeTest;
 
     copy(): DTComponent {
@@ -115,6 +120,8 @@ export function mockOverriddenMethods(mock: any) {
     mock.prototype.constructor.mockImplementation(function (key?: string) {
         this._id = IDTest;
         this._key = key || this._id;
+        this._errors = [];
+        return this;
     })
 }
 

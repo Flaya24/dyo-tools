@@ -12,7 +12,7 @@ import { validFiltersForItem } from '../utils/filters';
 import DYOToolsComponentPhysical from "./DTComponentPhysical";
 
 // Default Options for class
-const defaultOptions: DTBunchOptions = {
+export const defaultOptions: DTBunchOptions = {
   errors: false,
   uniqueKey: false,
   inheritOwner: false,

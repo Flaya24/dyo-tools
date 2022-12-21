@@ -1,19 +1,6 @@
-import {DTComponentPhysical, DTComponentWithMeta} from "../../src";
-import {IMetaDataTest, mockOverriddenMethods as parentMockMethods} from "./DTComponentWithMeta.double";
-import {jest} from "@jest/globals";
+import {DTComponentPhysical} from "../../src";
+import {IMetaDataTest} from "./DTComponentWithMeta.double";
 import {DTPlayerStub} from "./DTPlayer.double";
-
-/******************** MOCK DEPENDENCIES
- * Dependencies used by the component are mocked with Jest
- * *****/
-jest.mock('../../src/core/DTComponent');
-jest.mock('../../src/core/DTComponentWithMeta');
-// Add specific mock for inherited methods to have a basic implementation
-parentMockMethods(DTComponentWithMeta);
-// inheritance method : Check the correct inheritance
-export const inheritance = () => {
-    return DTComponentPhysical.prototype instanceof DTComponentWithMeta;
-}
 
 /******************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test

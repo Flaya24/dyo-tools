@@ -1,10 +1,18 @@
 import {beforeEach, describe, expect, jest, test} from '@jest/globals';
 import {DTPlayerMock, IDTest, inheritance, KeyTest} from './DTPlayer.double';
 import {DTComponentTestMock} from './DTComponent.double';
-import {PlayerMetaData} from './DTComponentWithMeta.double';
-import {DTPlayer} from "../../src";
+import {mockOverriddenMethods, PlayerMetaData} from './DTComponentWithMeta.double';
+import {DTComponentWithMeta, DTPlayer} from "../../src";
 import {MockedFunction} from "ts-jest";
 
+/******************** MOCK DEPENDENCIES
+ * All Dependencies used by the component are mocked with Jest
+ * *****/
+jest.mock('../../src/core/DTComponent');
+jest.mock('../../src/core/DTComponentWithMeta');
+mockOverriddenMethods(DTComponentWithMeta);
+
+/************************* TESTS SUITES *******************************/
 describe('class DYOToolsPlayer', () => {
   let playerMock: DTPlayerMock;
 
@@ -18,7 +26,7 @@ describe('class DYOToolsPlayer', () => {
 
   describe('inheritance', () => {
     test('check good inheritance for class', () => {
-      expect(inheritance()).toBeTruthy();
+      expect(DTPlayer.prototype instanceof DTComponentWithMeta).toBeTruthy();
     });
   });
 

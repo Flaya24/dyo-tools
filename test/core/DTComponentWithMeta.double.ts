@@ -1,21 +1,20 @@
-import {DTComponent, DTComponentWithMeta} from '../../src';
+import {DTComponentWithMeta} from '../../src';
 import {DTAcceptedMetaData} from "../../src/types";
-import {jest} from "@jest/globals";
-import {IDTest, mockOverriddenMethods as parentMockMethods} from "./DTComponent.double";
+import {IDTest} from "./DTComponent.double";
 
-// Global test variables
-export const ComponentTypeTest = 'DTComponentWithMeta-componentType-test';
-
+/******************** STUB PROPERTIES CONSTANTS
+ * Fixed properties to use with double classes, avoid auto generated and easy checking on test
+ * *****/
 // Test meta data interface
 export interface IMetaDataTest extends DTAcceptedMetaData {
-    name: string,
-    queen: boolean,
-    kd: number[],
-    rank?: number,
-    tribes?: string[]
+  name: string,
+  queen: boolean,
+  kd: number[],
+  rank?: number,
+  tribes?: string[]
 }
 
-// Elementary pentacle default values
+export const ComponentTypeTest = 'DTComponentWithMeta-componentType-test';
 export const HaileiMetaData: IMetaDataTest = {
   name: 'Hailei Dorcan Kazan',
   queen: true,
@@ -62,15 +61,8 @@ export const BunchMetaData: IMetaDataTest = {
   kd: [117, 3],
 };
 
-// Mock Inheritance
-jest.mock('../../src/core/DTComponent');
-parentMockMethods(DTComponent);
-
-export const inheritance = () => {
-  return DTComponentWithMeta.prototype instanceof DTComponent;
-}
-
 // Test Child for DTComponentWithMeta class (mocked abstract methods)
+// TODO : migrating
 export class DTComponentWithMetaTest extends DTComponentWithMeta<IMetaDataTest> {
     protected _componentType: string = ComponentTypeTest;
 
@@ -88,6 +80,7 @@ export class DTComponentWithMetaTest extends DTComponentWithMeta<IMetaDataTest> 
 }
 
 // Mock constructor for DTComponentTest class (getter tests)
+// TODO : migrating
 export class DTComponentWithMetaTestMock extends DTComponentWithMetaTest {
   constructor(defaultMeta?: IMetaDataTest) {
     super();
@@ -97,11 +90,16 @@ export class DTComponentWithMetaTestMock extends DTComponentWithMetaTest {
   }
 }
 
+/******************** HELPER METHODS
+ * Additional helper methods to use with testing
+ * *****/
 // Mocked implementations for overridden methods (for children tests)
 export function mockOverriddenMethods(mock: any) {
   // Constructor (mocked for copy)
   mock.prototype.constructor.mockImplementation(function (key?: string) {
     this._id = IDTest;
     this._key = key || this._id;
+    this._errors = [];
+    return this;
   })
 }

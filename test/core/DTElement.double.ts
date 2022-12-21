@@ -1,13 +1,14 @@
-import { DTElement, DTComponentPhysical } from '../../src';
-import { IMetaDataTest, MeldrineMetaData } from './DTComponentWithMeta.double';
-import {jest} from "@jest/globals";
-import {mockOverriddenMethods} from "./DTComponentPhysical.double";
+import {DTElement} from '../../src';
+import {IMetaDataTest} from './DTComponentWithMeta.double';
 
-// Global Variables
+/******************** STUB PROPERTIES CONSTANTS
+ * Fixed properties to use with double classes, avoid auto generated and easy checking on test
+ * *****/
+// Global constants
 export const IDTest = 'DTElement-id-1234567';
 export const KeyTest = 'DTElement-key-1234567';
 
-// Global constants for Mocked DTElements
+// Specific elements constants
 export const HaileiIdTest = 'DTElement-id-Hailei';
 export const HaileiKeyTest = 'DTElement-key-Hailei';
 export const HaileiToObjectTest = { id: 'DTElement-id-Hailei', key: 'DTElement-key-Hailei', type: 'element' };
@@ -24,13 +25,11 @@ export const YssaliaIdTest = 'DTElement-id-Yssalia';
 export const YssaliaKeyTest = 'DTElement-key-Yssalia';
 export const YssaliaToObjectTest = { id: 'DTElement-id-Yssalia', key: 'DTElement-key-Yssalia', type: 'element' };
 
-// Mock Inheritance
-jest.mock('../../src/core/DTComponent');
-jest.mock('../../src/core/DTComponentWithMeta');
-jest.mock('../../src/core/DTComponentPhysical');
-mockOverriddenMethods(DTComponentPhysical);
-
-// Mock Constructor and parent methods for DTElement
+/******************** HELPER TEST CLASS
+ * Helper test class, inherits the main component
+ * Providing methods to property access and other facilities, in order to avoid using class methods
+ * TODO: migrating
+ * *****/
 export class DTElementMock extends DTElement<IMetaDataTest> {
   constructor() {
     super();
@@ -43,7 +42,3 @@ export class DTElementMock extends DTElement<IMetaDataTest> {
   }
 }
 
-// Inheritance
-export const inheritance = () => {
-  return DTElement.prototype instanceof DTComponentPhysical;
-}

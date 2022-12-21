@@ -2,9 +2,20 @@ import {beforeEach, describe, expect, jest, test} from '@jest/globals';
 import {DTPlayerStub, KeyTest as KeyPlayerTest, toStringTest as toStringPlayerTest,} from './DTPlayer.double';
 import {DTElementMock, IDTest, inheritance, KeyTest} from './DTElement.double';
 import {MeldrineMetaData} from './DTComponentWithMeta.double';
-import {DTElement} from "../../src";
+import {DTComponentPhysical, DTElement} from "../../src";
 import {MockedFunction} from "ts-jest";
+import {mockOverriddenMethods} from "./DTComponentPhysical.double";
 
+/******************** MOCK DEPENDENCIES
+ * All Dependencies used by the component are mocked with Jest
+ * *****/
+jest.mock('../../src/core/DTComponent');
+jest.mock('../../src/core/DTComponentWithMeta');
+jest.mock('../../src/core/DTComponentPhysical');
+// Add specific mock for inherited methods to have a basic implementation
+mockOverriddenMethods(DTComponentPhysical);
+
+/************************* TESTS SUITES *******************************/
 describe('class DYOToolsElement', () => {
   let elementMock: DTElementMock;
 
@@ -18,7 +29,7 @@ describe('class DYOToolsElement', () => {
 
   describe('inheritance', () => {
     test('check good inheritance for class', () => {
-      expect(inheritance()).toBeTruthy();
+      expect(DTElement.prototype instanceof DTComponentPhysical).toBeTruthy();
     });
   });
 

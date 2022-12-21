@@ -1,5 +1,5 @@
-import { jest } from '@jest/globals';
-import {DTBunch, DTComponentPhysical} from '../../src';
+import {DTBunch} from '../../src';
+import {defaultOptions as DTBunchDefaultOptions} from '../../src/core/DTBunch'
 import {
   HaileiMetaData,
   IldressMetaData,
@@ -11,7 +11,6 @@ import {
 import DYOToolsElement from '../../src/core/DTElement';
 import {DTBunchOptions, DTElementToObject} from '../../src/types';
 import Mocked = jest.Mocked;
-import {mockOverriddenMethods} from "./DTComponentPhysical.double";
 import {
   HaileiIdTest,
   HaileiKeyTest,
@@ -29,40 +28,34 @@ import {
 import {DTErrorStub} from "./DTError.double";
 import {DTPlayerStub} from "./DTPlayer.double";
 
-/******************** MOCK DEPENDENCIES
- * Dependencies used by the component are mocked with Jest
- * *****/
-jest.mock('../../src/core/DTElement');
-jest.mock('../../src/core/DTError');
-jest.mock('../../src/utils/filters');
-jest.mock('../../src/core/DTComponent');
-jest.mock('../../src/core/DTComponentWithMeta');
-jest.mock('../../src/core/DTComponentPhysical');
-// Add specific mock for inherited methods to have a basic implementation
-mockOverriddenMethods(DTComponentPhysical);
-// inheritance method : Check the correct inheritance
-export const inheritance = () => {
-  return DTBunch.prototype instanceof DTComponentPhysical;
-}
-
 /******************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
  * *****/
 export const IDTest = 'DTBunch-id-1234567';
 export const KeyTest = 'DTBunch-key-1234567';
-export const defaultOptions: DTBunchOptions = {
-  errors: false,
-  uniqueKey: false,
-  inheritOwner: false,
-  replaceIndex: false,
-  virtualContext: false,
-};
+export const defaultOptions: DTBunchOptions = DTBunchDefaultOptions;
 
 /******************** HELPER TEST CLASS
  * Helper test class, inherits the main component
  * Providing methods to property access and other facilities, in order to avoid using class methods
  * *****/
 export class DTBunchTest extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>, IMetaDataTest> {
+  th_get_id(): string {
+    return this._id;
+  }
+
+  th_set_id(id: string): void {
+    this._id = id;
+  }
+
+  th_get_key(): string {
+    return this._key;
+  }
+
+  th_set_key(key: string): void {
+    this._key = key;
+  }
+
   th_get_componentType(): string {
     return this._componentType;
   }
@@ -97,6 +90,10 @@ export class DTBunchTest extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>,
   th_set_owner(owner: DTPlayerStub): void {
     this._owner = owner;
   }
+
+  th_set_meta(meta: IMetaDataTest): void {
+    this._meta = meta;
+  }
 }
 
 /******************** STUB CLASS
@@ -129,6 +126,7 @@ export class DTBunchStub extends DTBunchTest {
  * *****/
 
 // Function to generate Mocked DTElement collection
+// Warning : DYOToolsElement class must be MOCKED to use this !
 export const generateMockedElements = (numberElements: number): Array<Mocked<DYOToolsElement<IMetaDataTest>>> => {
   const mockedElements = [];
   const mockedData: Array<{ id: string, key: string, meta: IMetaDataTest, toObject: DTElementToObject<IMetaDataTest> }> = [
