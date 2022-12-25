@@ -36,6 +36,8 @@ export default class DYOToolsManager extends DYOToolsComponent {
       this._library.addMany(item.getAll());
     }
 
+    // Add the new item
+    item.setContext(this);
     this._items[item.getId()] = {
       scope: 'default',
       item
