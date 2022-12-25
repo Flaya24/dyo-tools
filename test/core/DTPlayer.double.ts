@@ -8,17 +8,33 @@ export const IDTest = 'DTPlayer-id-1234567';
 export const KeyTest = 'DTPlayer-key-1234567';
 export const toStringTest = 'DTPlayer Stub toString';
 
-// Mock Constructor and parent methods for DTPlayer
-// TODO : migrating
-export class DTPlayerMock extends DTPlayer<IMetaDataTest> {
-  constructor() {
-    super();
-    this._id = IDTest;
-    this._key = KeyTest;
+/******************** HELPER TEST CLASS
+ * Helper test class, inherits the main component
+ * Providing methods to property access and other facilities, in order to avoid using class methods
+ * *****/
+export class DTPlayerTest extends DTPlayer<IMetaDataTest> {
+  th_get_id(): string {
+    return this._id;
   }
 
-  getComponentType(): string {
+  th_set_id(id: string): void {
+    this._id = id;
+  }
+
+  th_get_key(): string {
+    return this._key;
+  }
+
+  th_set_key(key: string): void {
+    this._key = key;
+  }
+
+  th_get_componentType(): string {
     return this._componentType;
+  }
+
+  th_set_meta(meta: IMetaDataTest): void {
+    this._meta = meta;
   }
 }
 

@@ -1,9 +1,8 @@
 import {beforeEach, describe, expect, jest, test} from '@jest/globals';
 import {DTPlayerStub, KeyTest as KeyPlayerTest, toStringTest as toStringPlayerTest,} from './DTPlayer.double';
-import {DTElementMock, IDTest, inheritance, KeyTest} from './DTElement.double';
+import {DTElementTest, IDTest, KeyTest} from './DTElement.double';
 import {MeldrineMetaData} from './DTComponentWithMeta.double';
 import {DTComponentPhysical, DTElement} from "../../src";
-import {MockedFunction} from "ts-jest";
 import {mockOverriddenMethods} from "./DTComponentPhysical.double";
 
 /******************** MOCK DEPENDENCIES
@@ -17,10 +16,10 @@ mockOverriddenMethods(DTComponentPhysical);
 
 /************************* TESTS SUITES *******************************/
 describe('class DYOToolsElement', () => {
-  let elementMock: DTElementMock;
+  let elementTest: DTElementTest;
 
   beforeEach(() => {
-    elementMock = new DTElementMock();
+    elementTest = new DTElementTest();
   });
 
   afterEach(() => {
@@ -35,75 +34,22 @@ describe('class DYOToolsElement', () => {
 
   describe('_componentType', () => {
     test('componentType must be "element"', () => {
-      expect(elementMock.getComponentType()).toBe('element');
+      expect(elementTest.th_get_componentType()).toBe('element');
     });
   });
 
   describe('copy()', () => {
-    test('copy an element - simple case with id and key', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      const elementMockCopy = elementMock.copy();
-      jest.spyOn(elementMock, 'getId').mockImplementation(function () {
-        return this._id;
-      });
-      jest.spyOn(elementMockCopy, 'getId').mockImplementation(function () {
-        return this._id;
-      });
-      jest.spyOn(elementMock, 'getKey').mockImplementation(function () {
-        return this._key;
-      });
-      jest.spyOn(elementMockCopy, 'getKey').mockImplementation(function () {
-        return this._key;
-      });
-
-      expect(elementMock.getId() === elementMockCopy.getId()).toBeFalsy();
-      expect(elementMock.getKey() === elementMockCopy.getKey()).toBeTruthy();
-    });
-
-    test('copy an element - not copy owner and context', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      jest.spyOn(elementMock, 'setContext').mockImplementation(function (context) {
-        this._context = context;
-      });
-      jest.spyOn(elementMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-
-      elementMock.setContext(new DTElementMock());
-      elementMock.setOwner(new DTPlayerStub());
-
-      const elementMockCopy = elementMock.copy();
-      jest.spyOn(elementMockCopy, 'getContext').mockImplementation(function () {
-        return this._context;
-      });
-      jest.spyOn(elementMockCopy, 'getOwner').mockImplementation(function () {
-        return this._owner;
-      });
-
-      expect(elementMockCopy.getContext()).toBeUndefined();
-      expect(elementMockCopy.getOwner()).toBeUndefined();
-    });
-
-    test('copy an element - copy meta-data', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      const mockedSetManyMeta = DTElement.prototype.setManyMeta as MockedFunction<(metaValues : Partial<{}>) => void>;
-      jest.spyOn(elementMock, 'getManyMeta').mockImplementation(function () {
-        return MeldrineMetaData;
-      });
-
-      const elementMockCopy = elementMock.copy();
-
-      // Weird behavior of Jest which doesn't clean the mock Calls, so it's the call index 2 to check
-      expect(mockedSetManyMeta.mock.calls[2][0]).toStrictEqual(MeldrineMetaData);
-    });
-  });
+    // @see copy.spec.ts for unit tests about copy method
+  })
 
   describe('toObject()', () => {
+    beforeEach(() => {
+      elementTest.th_set_id(IDTest);
+      elementTest.th_set_key(KeyTest);
+    })
+
     test('toObject output standard', () => {
-      const toObjectElement = elementMock.toObject();
+      const toObjectElement = elementTest.toObject();
 
       expect(Object.keys(toObjectElement)).toStrictEqual(['id', 'key', 'type']);
       expect(toObjectElement.id).toBe(IDTest);
@@ -112,50 +58,44 @@ describe('class DYOToolsElement', () => {
     });
 
     test('toObject output standard with owner', () => {
-      jest.spyOn(elementMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-      elementMock.setOwner(new DTPlayerStub());
+      elementTest.th_set_owner(new DTPlayerStub());
 
-      const toObjectElement = elementMock.toObject();
+      const toObjectElement = elementTest.toObject();
+
       expect(Object.keys(toObjectElement)).toStrictEqual(['id', 'key', 'type', 'owner']);
       expect(toObjectElement.owner.toString()).toBe(toStringPlayerTest);
     });
 
     test('toObject output standard with owner and meta', () => {
-      jest.spyOn(elementMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = new DTPlayerStub();
-      });
-      jest.spyOn(elementMock, 'setManyMeta').mockImplementation(function () {
-        this._meta = MeldrineMetaData as any;
-      });
-      jest.spyOn(elementMock, 'getManyMeta').mockImplementation(function () {
+      jest.spyOn(elementTest, 'getManyMeta').mockImplementation(function () {
         return this._meta;
       });
+      elementTest.th_set_owner(new DTPlayerStub());
+      elementTest.th_set_meta(MeldrineMetaData);
 
-      elementMock.setOwner(new DTPlayerStub());
-      elementMock.setManyMeta({});
+      const toObjectElement = elementTest.toObject();
 
-      const toObjectElement = elementMock.toObject();
       expect(Object.keys(toObjectElement)).toStrictEqual(['id', 'key', 'type', 'owner', 'meta']);
       expect(toObjectElement.meta).toStrictEqual(MeldrineMetaData);
     });
   });
 
   describe('toString()', () => {
+    beforeEach(() => {
+      elementTest.th_set_key(KeyTest);
+    })
+
     test('string output standard', () => {
-      const toStringElement = elementMock.toString();
+      const toStringElement = elementTest.toString();
 
       expect(toStringElement).toBe(`Component ${KeyTest} - Type: Element`);
     });
 
     test('string output standard with owner', () => {
-      jest.spyOn(elementMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-      elementMock.setOwner(new DTPlayerStub());
+      elementTest.th_set_owner(new DTPlayerStub());
 
-      const toStringElement = elementMock.toString();
+      const toStringElement = elementTest.toString();
+
       expect(toStringElement).toBe(`Component ${KeyTest} - Type: Element - Owner: ${KeyPlayerTest}`);
     });
   });

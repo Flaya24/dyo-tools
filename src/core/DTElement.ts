@@ -17,7 +17,7 @@ export default class DYOToolsElement<
    * @returns New DTElement instance copied.
    */
   copy(): DYOToolsElement<IComponentMeta> {
-    const copyElement = new DYOToolsElement<IComponentMeta>(this._key);
+    const copyElement = new DYOToolsElement<IComponentMeta>(this._key, this._options);
     copyElement.setManyMeta({ ...this.getManyMeta() });
 
     return copyElement;

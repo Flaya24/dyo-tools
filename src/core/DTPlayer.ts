@@ -15,7 +15,7 @@ export default class DYOToolsPlayer<IComponentMeta extends DTAcceptedMetaData> e
    * @returns New DTPlayer instance copied.
    */
   copy(): DYOToolsPlayer<IComponentMeta> {
-    const copyElement = new DYOToolsPlayer<IComponentMeta>(this._key);
+    const copyElement = new DYOToolsPlayer<IComponentMeta>(this._key, this._options);
     copyElement.setManyMeta({ ...this.getManyMeta() });
 
     return copyElement;

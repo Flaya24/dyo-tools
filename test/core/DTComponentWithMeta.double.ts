@@ -1,6 +1,5 @@
 import {DTComponentWithMeta} from '../../src';
 import {DTAcceptedMetaData} from "../../src/types";
-import {IDTest} from "./DTComponent.double";
 
 /******************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
@@ -14,7 +13,14 @@ export interface IMetaDataTest extends DTAcceptedMetaData {
   tribes?: string[]
 }
 
+// Global properties
+export const IDTest = "DTComponentWithMeta-id-1234567";
+export const KeyTest = "DTComponentWithMeta-key-1234567";
 export const ComponentTypeTest = 'DTComponentWithMeta-componentType-test';
+export const ToObjectTest = { type: "DTComponentWithMeta-test-toObject" };
+export const ToStringTest = "DTComponentWithMeta-test-toString";
+
+// Specific components tests meta-data
 export const HaileiMetaData: IMetaDataTest = {
   name: 'Hailei Dorcan Kazan',
   queen: true,
@@ -61,9 +67,10 @@ export const BunchMetaData: IMetaDataTest = {
   kd: [117, 3],
 };
 
-// Test Child for DTComponentWithMeta class (mocked abstract methods)
-// TODO : migrating
-export class DTComponentWithMetaTest extends DTComponentWithMeta<IMetaDataTest> {
+/******************** STUB ABSTRACT IMPLEMENTATION
+ * Implementation of abstract component class for tests
+ * *****/
+export class DTComponentWithMetaImpl extends DTComponentWithMeta<IMetaDataTest> {
     protected _componentType: string = ComponentTypeTest;
 
     copy(): DTComponentWithMeta<IMetaDataTest> {
@@ -71,22 +78,25 @@ export class DTComponentWithMetaTest extends DTComponentWithMeta<IMetaDataTest> 
     }
 
     toObject(): any {
-      return {};
+      return ToObjectTest;
     }
 
     toString(): string {
-      return '';
+      return ToStringTest;
     }
 }
 
-// Mock constructor for DTComponentTest class (getter tests)
-// TODO : migrating
-export class DTComponentWithMetaTestMock extends DTComponentWithMetaTest {
-  constructor(defaultMeta?: IMetaDataTest) {
-    super();
-    if (defaultMeta) {
-      this._meta = { ...defaultMeta };
-    }
+/******************** HELPER TEST CLASS
+ * Helper test class, inherits the main component
+ * Providing methods to property access and other facilities, in order to avoid using class methods
+ * *****/
+export class DTComponentWithMetaTest extends DTComponentWithMetaImpl {
+  th_get_meta(): Partial<IMetaDataTest> {
+    return this._meta;
+  }
+
+  th_set_meta(meta: Partial<IMetaDataTest>): void {
+    this._meta = meta;
   }
 }
 
@@ -95,7 +105,7 @@ export class DTComponentWithMetaTestMock extends DTComponentWithMetaTest {
  * *****/
 // Mocked implementations for overridden methods (for children tests)
 export function mockOverriddenMethods(mock: any) {
-  // Constructor (mocked for copy)
+  // Constructor
   mock.prototype.constructor.mockImplementation(function (key?: string) {
     this._id = IDTest;
     this._key = key || this._id;

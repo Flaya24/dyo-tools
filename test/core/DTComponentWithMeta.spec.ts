@@ -1,8 +1,10 @@
+import {afterEach, beforeEach, describe, expect, jest, test,} from '@jest/globals';
 import {
-  jest, describe, expect, test, beforeEach, afterEach,
-} from '@jest/globals';
-import {
-  DTComponentWithMetaTestMock, HaileiMetaData, MeldrineMetaData, IMetaDataTest, YssaliaMetaData, inheritance
+  DTComponentWithMetaTest,
+  HaileiMetaData,
+  IMetaDataTest,
+  MeldrineMetaData,
+  YssaliaMetaData
 } from './DTComponentWithMeta.double';
 import {mockOverriddenMethods} from "./DTComponent.double";
 import {DTComponent, DTComponentWithMeta} from "../../src";
@@ -15,10 +17,10 @@ mockOverriddenMethods(DTComponent);
 
 /************************* TESTS SUITES *******************************/
 describe('class DYOToolsComponentWithMeta', () => {
-  let componentMock: DTComponentWithMetaTestMock;
+  let componentWithMetaTest: DTComponentWithMetaTest;
 
   beforeEach(() => {
-    componentMock = new DTComponentWithMetaTestMock(HaileiMetaData);
+    componentWithMetaTest = new DTComponentWithMetaTest();
   });
 
   afterEach(() => {
@@ -32,27 +34,24 @@ describe('class DYOToolsComponentWithMeta', () => {
   });
 
   describe('getMeta()', () => {
-    test('return one meta by key', () => {
-      expect(componentMock.getMeta('name')).toBe(HaileiMetaData.name);
+    test('return undefined if meta is empty', () => {
+      expect(componentWithMetaTest.getMeta('name')).toBeUndefined();
     });
 
-    test('return undefined if meta is empty', () => {
-      componentMock = new DTComponentWithMetaTestMock();
+    test('return one meta by key', () => {
+      componentWithMetaTest.th_set_meta(HaileiMetaData);
 
-      expect(componentMock.getMeta('name')).toBeUndefined();
+      expect(componentWithMetaTest.getMeta('name')).toBe(HaileiMetaData.name);
     });
   });
 
   describe('setMeta()', () => {
     test('set a new value for a meta', () => {
-      jest.spyOn(componentMock, 'getManyMeta').mockImplementation(function () {
-        return this._meta;
-      });
+      componentWithMetaTest.th_set_meta(HaileiMetaData);
+      componentWithMetaTest.setMeta('name', MeldrineMetaData.name);
 
-      componentMock.setMeta('name', MeldrineMetaData.name);
-      const newMeta = componentMock.getManyMeta();
-
-      expect(newMeta.name === HaileiMetaData.name).toBeFalsy();
+      const newMeta = componentWithMetaTest.th_get_meta();
+      expect(newMeta.name === MeldrineMetaData.name).toBeTruthy();
       expect(newMeta.rank === HaileiMetaData.rank).toBeTruthy();
       expect(newMeta.queen === HaileiMetaData.queen).toBeTruthy();
       expect(newMeta.kd[0] === HaileiMetaData.kd[0]).toBeTruthy();
@@ -61,14 +60,24 @@ describe('class DYOToolsComponentWithMeta', () => {
   });
 
   describe('getManyMeta()', () => {
+    test('return empty object meta by default', () => {
+      const keys: Array<keyof IMetaDataTest> = ['name', 'rank', 'tribes'];
+
+      expect(componentWithMetaTest.getManyMeta()).toStrictEqual({});
+      expect(componentWithMetaTest.getManyMeta(keys)).toStrictEqual({});
+    });
+
     test('return all meta', () => {
-      expect(componentMock.getManyMeta()).toStrictEqual(HaileiMetaData);
+      componentWithMetaTest.th_set_meta(HaileiMetaData);
+
+      expect(componentWithMetaTest.getManyMeta()).toStrictEqual(HaileiMetaData);
     });
 
     test('return meta by keys', () => {
+      componentWithMetaTest.th_set_meta(HaileiMetaData);
       const keys: Array<keyof IMetaDataTest> = ['name', 'kd', 'queen'];
 
-      expect(componentMock.getManyMeta(keys)).toStrictEqual({
+      expect(componentWithMetaTest.getManyMeta(keys)).toStrictEqual({
         name: HaileiMetaData.name,
         kd: HaileiMetaData.kd,
         queen: HaileiMetaData.queen,
@@ -76,52 +85,40 @@ describe('class DYOToolsComponentWithMeta', () => {
     });
 
     test('return meta by keys - unexisting keys', () => {
-      componentMock = new DTComponentWithMetaTestMock(YssaliaMetaData);
+      componentWithMetaTest.th_set_meta(YssaliaMetaData);
       const keys: Array<keyof IMetaDataTest> = ['name', 'rank', 'tribes'];
 
-      expect(componentMock.getManyMeta(keys)).toStrictEqual({
+      expect(componentWithMetaTest.getManyMeta(keys)).toStrictEqual({
         name: YssaliaMetaData.name,
       });
-    });
-
-    test('return empty object if meta is empty', () => {
-      componentMock = new DTComponentWithMetaTestMock();
-      const keys: Array<keyof IMetaDataTest> = ['name', 'rank', 'tribes'];
-
-      expect(componentMock.getManyMeta(keys)).toStrictEqual({});
     });
   });
 
   describe('setManyMeta()', () => {
     test('set new values', () => {
-      jest.spyOn(componentMock, 'getManyMeta').mockImplementation(function () {
-        return this._meta;
-      });
+      componentWithMetaTest.th_set_meta(HaileiMetaData);
       const setValues: Partial<IMetaDataTest> = {
         name: MeldrineMetaData.name,
         queen: MeldrineMetaData.queen,
         rank: MeldrineMetaData.rank,
       };
 
-      componentMock.setManyMeta(setValues);
-      const newMeta = componentMock.getManyMeta();
+      componentWithMetaTest.setManyMeta(setValues);
 
-      expect(newMeta.name === HaileiMetaData.name).toBeFalsy();
-      expect(newMeta.queen === HaileiMetaData.queen).toBeFalsy();
+      const newMeta = componentWithMetaTest.th_get_meta();
+      expect(newMeta.name === MeldrineMetaData.name).toBeTruthy();
+      expect(newMeta.queen === MeldrineMetaData.queen).toBeTruthy();
       expect(newMeta.kd[0] === HaileiMetaData.kd[0]).toBeTruthy();
-      expect(newMeta.rank === HaileiMetaData.rank).toBeFalsy();
+      expect(newMeta.rank === MeldrineMetaData.rank).toBeTruthy();
       expect(newMeta.tribes[0] === HaileiMetaData.tribes[0]).toBeTruthy();
     });
 
-    test('set no new values', () => {
-      jest.spyOn(componentMock, 'getManyMeta').mockImplementation(function () {
-        return this._meta;
-      });
+    test('set empty new values (keep former meta)', () => {
+      componentWithMetaTest.th_set_meta(HaileiMetaData);
 
-      componentMock.setManyMeta({});
-      const newMeta = componentMock.getManyMeta();
+      componentWithMetaTest.setManyMeta({});
 
-      expect(newMeta).toStrictEqual(HaileiMetaData);
+      expect(componentWithMetaTest.th_get_meta()).toStrictEqual(HaileiMetaData);
     });
   });
 });

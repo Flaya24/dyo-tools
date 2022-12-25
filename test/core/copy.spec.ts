@@ -1,11 +1,10 @@
 import {describe, expect, jest, test,} from '@jest/globals';
-import {DTBunch, DTElement} from '../../src';
+import {DTBunch, DTElement, DTPlayer} from '../../src';
 import {DTComponentStub} from "./DTComponent.double";
 import {DTPlayerStub} from "./DTPlayer.double";
-import {BunchMetaData, IMetaDataTest} from "./DTComponentWithMeta.double";
+import {BunchMetaData, HaileiMetaData, IMetaDataTest, PlayerMetaData} from "./DTComponentWithMeta.double";
 import {defaultOptions, KeyTest} from "./DTBunch.double";
 import {DTErrorStub} from "./DTError.double";
-import DYOToolsElement from "../../src/core/DTElement";
 
 /**
  * Special test suite for copy overridden method
@@ -14,6 +13,7 @@ import DYOToolsElement from "../../src/core/DTElement";
  * Mock for :
  *   - DTBunch
  *   - DTElement
+ *   - DTPlayer
  */
 
 describe('Inherited method copy', () => {
@@ -85,7 +85,7 @@ describe('Inherited method copy', () => {
     });
 
     test('copy a bunch with items - default case', () => {
-      const items: Array<DYOToolsElement<IMetaDataTest>> = [
+      const items: Array<DTElement<IMetaDataTest>> = [
         new DTElement(),
         new DTElement(),
         new DTElement(),
@@ -93,7 +93,7 @@ describe('Inherited method copy', () => {
       jest.spyOn(items[0], 'copy');
       jest.spyOn(items[1], 'copy');
       jest.spyOn(items[2], 'copy');
-      const bunch = new DTBunch<DYOToolsElement<IMetaDataTest>, IMetaDataTest>(KeyTest, items);
+      const bunch = new DTBunch<DTElement<IMetaDataTest>, IMetaDataTest>(KeyTest, items);
 
       const bunchCopy = bunch.copy();
 
@@ -104,7 +104,7 @@ describe('Inherited method copy', () => {
     });
 
     test('copy a bunch with items - virtual context case', () => {
-      const items: Array<DYOToolsElement<IMetaDataTest>> = [
+      const items: Array<DTElement<IMetaDataTest>> = [
         new DTElement(),
         new DTElement(),
         new DTElement(),
@@ -112,7 +112,7 @@ describe('Inherited method copy', () => {
       jest.spyOn(items[0], 'copy');
       jest.spyOn(items[1], 'copy');
       jest.spyOn(items[2], 'copy');
-      const bunch = new DTBunch<DYOToolsElement<IMetaDataTest>, IMetaDataTest>(KeyTest, items, { virtualContext: true });
+      const bunch = new DTBunch<DTElement<IMetaDataTest>, IMetaDataTest>(KeyTest, items, { virtualContext: true });
 
       const bunchCopy = bunch.copy();
 
@@ -120,6 +120,110 @@ describe('Inherited method copy', () => {
       expect((items[0].copy as any).mock.calls.length).toBe(0);
       expect((items[1].copy as any).mock.calls.length).toBe(0);
       expect((items[2].copy as any).mock.calls.length).toBe(0);
+    });
+  });
+
+  describe('DTElement copy()', () => {
+    afterEach(() => {
+      jest.resetAllMocks();
+    })
+
+    test('copy an element - simple case with id and key', () => {
+      const element = new DTElement(KeyTest);
+      const elementCopy = element.copy();
+
+      expect(element.getId() === elementCopy.getId()).toBeFalsy();
+      expect(element.getKey() === elementCopy.getKey()).toBeTruthy();
+    });
+
+    test('copy an element - not copy context', () => {
+      const element = new DTElement(KeyTest);
+      jest.spyOn(element, 'setContext').mockImplementation(function (context) {
+        this._context = context;
+      });
+
+      element.setContext(new DTComponentStub());
+
+      const elementCopy = element.copy();
+      jest.spyOn(elementCopy, 'getContext').mockImplementation(function () {
+        return this._context;
+      });
+
+      expect(elementCopy.getContext()).toBeUndefined();
+    });
+
+    test('copy an element - copy meta-data and options', () => {
+      const element = new DTElement(KeyTest, { errors: true });
+      jest.spyOn(element, 'getManyMeta').mockImplementation(function () {
+        return HaileiMetaData;
+      });
+
+      const elementCopy = element.copy();
+
+      expect(elementCopy.getManyMeta()).toStrictEqual(HaileiMetaData);
+      expect(elementCopy.getOptions()).toStrictEqual({ errors: true });
+    });
+
+    test('copy an element - empty errors', () => {
+      const element = new DTElement(KeyTest, { errors: true });
+      element.triggerError(new DTErrorStub());
+      element.triggerError(new DTErrorStub());
+
+      const elementCopy = element.copy();
+
+      expect(elementCopy.getErrors().length).toBe(0);
+    });
+  });
+
+  describe('DTPlayer copy()', () => {
+    afterEach(() => {
+      jest.resetAllMocks();
+    })
+
+    test('copy a player - simple case with id and key', () => {
+      const player = new DTPlayer(KeyTest);
+      const playerCopy = player.copy();
+
+      expect(player.getId() === playerCopy.getId()).toBeFalsy();
+      expect(player.getKey() === playerCopy.getKey()).toBeTruthy();
+    });
+
+    test('copy a player - not copy context', () => {
+      const player = new DTPlayer(KeyTest);
+      jest.spyOn(player, 'setContext').mockImplementation(function (context) {
+        this._context = context;
+      });
+
+      player.setContext(new DTComponentStub());
+
+      const playerCopy = player.copy();
+      jest.spyOn(playerCopy, 'getContext').mockImplementation(function () {
+        return this._context;
+      });
+
+      expect(playerCopy.getContext()).toBeUndefined();
+    });
+
+    test('copy a player - copy meta-data and options', () => {
+      const player = new DTPlayer(KeyTest, { errors: true });
+      jest.spyOn(player, 'getManyMeta').mockImplementation(function () {
+        return PlayerMetaData;
+      });
+
+      const playerCopy = player.copy();
+
+      expect(playerCopy.getManyMeta()).toStrictEqual(PlayerMetaData);
+      expect(playerCopy.getOptions()).toStrictEqual({ errors: true });
+    });
+
+    test('copy a player - empty errors', () => {
+      const player = new DTPlayer(KeyTest, { errors: true });
+      player.triggerError(new DTErrorStub());
+      player.triggerError(new DTErrorStub());
+
+      const playerCopy = player.copy();
+
+      expect(playerCopy.getErrors().length).toBe(0);
     });
   });
 });
