@@ -114,65 +114,102 @@ describe('class DYOToolsManager', () => {
   });
 
   describe('add', () => {
-    test('add a new item - simple case', () => {
-      const bunch = new DTBunchStub();
-      jest.spyOn(bunch, 'getAll').mockImplementation(function() {
-        return [];
-      })
+    let bunchToAdd: DTBunchStub;
 
-      managerTest.add(bunch);
+    const checkManagerItem = (bunchId: string, scope: string): void => {
+      expect(managerTest.th_get_single_item(bunchId)).toBeDefined();
+      expect(Object.keys(managerTest.th_get_single_item(bunchId))).toStrictEqual(['scope', 'item']);
+      expect(managerTest.th_get_single_item(bunchId).scope).toBe(scope);
+      expect(managerTest.th_get_single_item(bunchId).item.getId()).toBe(bunchId);
+    }
+
+    beforeEach(() => {
+      bunchToAdd = new DTBunchStub();
+      jest.spyOn(bunchToAdd, 'getAll').mockImplementation(function() {
+        return this._items;
+      });
+      jest.spyOn(bunchToAdd, 'getOptions').mockImplementation(function() {
+        return this._options;
+      });
+
+      // Add tests scopes
+      managerTest.th_set_scopes([ ...managerTest.th_get_scopes(), ...ScopesTest ]);
+    })
+
+    test('add a new item - empty bunch in default scope', () => {
+      managerTest.add(bunchToAdd);
 
       expect(Object.keys(managerTest.th_get_items()).length).toBe(1);
-      expect(managerTest.th_get_single_item(IDTestBunch)).toBeDefined();
-      expect(Object.keys(managerTest.th_get_single_item(IDTestBunch))).toStrictEqual(['scope', 'item']);
-      expect(managerTest.th_get_single_item(IDTestBunch).scope).toBe('default');
-      expect(managerTest.th_get_single_item(IDTestBunch).item.getId()).toBe(IDTestBunch);
+      checkManagerItem(IDTestBunch, 'default');
     });
 
-    test('add a new item - specific scope', () => {
-      // const bunch = new DTBunchStub();
-      // jest.spyOn(bunch, 'getAll').mockImplementation(function() {
-      //   return [];
-      // })
-      //
-      // managerTest.add(bunch);
-      //
-      // expect(Object.keys(managerTest.th_get_items()).length).toBe(1);
-      // expect(managerTest.th_get_single_item(IDTestBunch)).toBeDefined();
-      // expect(Object.keys(managerTest.th_get_single_item(IDTestBunch))).toStrictEqual(['scope', 'item']);
-      // expect(managerTest.th_get_single_item(IDTestBunch).scope).toBe('default');
-      // expect(managerTest.th_get_single_item(IDTestBunch).item.getId()).toBe(IDTestBunch);
+    test('add a new item - empty bunch in specific scope', () => {
+      managerTest.add(bunchToAdd, ScopesTest[0]);
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(1);
+      checkManagerItem(IDTestBunch, ScopesTest[0]);
     });
 
-    test('add a new item - add bunch elements into library - simple case', () => {
-      const bunchElements = generateMockedElements(5);
-      const bunchElementsKeys = bunchElements.map((item: DYOToolsElement<IMetaDataTest>) => item.getKey())
-      const bunch = new DTBunchStub(generateMockedElements(5));
-      jest.spyOn(bunch, 'getAll').mockImplementation(function() {
-        return this._items;
-      })
+    test('add a new item - virtual bunch in virtual scope', () => {
+      bunchToAdd.th_set_options({ virtualContext: true });
 
-      managerTest.add(bunch);
+      managerTest.add(bunchToAdd);
 
-      expect(managerTest.th_get_single_item(IDTestBunch).item.getAllKeys()).toStrictEqual(bunchElementsKeys);
-      expect(managerTest.th_get_library().addMany.mock.calls.length).toBe(1);
-      expect(managerTest.th_get_library().addMany.mock.calls[0][0].map((item) => item.getKey())).toStrictEqual(bunchElementsKeys);
-      expect(managerTest.th_get_library().addMany.mock.calls[0][1]).toBeUndefined();
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(1);
+      checkManagerItem(IDTestBunch, 'virtual');
     });
 
-    test('set context when adding an item', () => {
+    test('add a new item - not existing scope for bunch', () => {
+      // TODO
+    });
+
+    test('add a new item - invalid scope for virtual bunch', () => {
+      // TODO
+    });
+
+    test('add a new item - invalid virtual scope for bunch', () => {
+      // TODO
+    });
+
+    test('trigger conflict when adding two same bunch ids - parent triggerError', () => {
+      // TODO
+    });
+
+    test('add bunch elements into library - simple case', () => {
+      // TODO
+    });
+
+    test('add bunch elements into library - not adding existing elements in library', () => {
+      // TODO
+    });
+
+    // test('add a new item - add bunch elements into library - simple case', () => {
+    //   const bunchElements = generateMockedElements(5);
+    //   const bunchElementsKeys = bunchElements.map((item: DYOToolsElement<IMetaDataTest>) => item.getKey())
+    //   const bunch = new DTBunchStub(generateMockedElements(5));
+    //   jest.spyOn(bunch, 'getAll').mockImplementation(function() {
+    //     return this._items;
+    //   })
+    //
+    //   managerTest.add(bunch);
+    //
+    //   expect(managerTest.th_get_single_item(IDTestBunch).item.getAllKeys()).toStrictEqual(bunchElementsKeys);
+    //   expect(managerTest.th_get_library().addMany.mock.calls.length).toBe(1);
+    //   expect(managerTest.th_get_library().addMany.mock.calls[0][0].map((item) => item.getKey())).toStrictEqual(bunchElementsKeys);
+    //   expect(managerTest.th_get_library().addMany.mock.calls[0][1]).toBeUndefined();
+    // });
+
+    test('set context when adding an item - default case', () => {
       managerTest.th_set_id(IDTest);
-      const bunch = new DTBunchStub();
-      jest.spyOn(bunch, 'getAll').mockImplementation(function() {
-        return [];
-      })
 
-      managerTest.add(bunch);
+      managerTest.add(bunchToAdd);
 
-      expect((bunch.setContext as any).mock.calls.length).toBe(1);
-      expect((bunch.setContext as any).mock.calls[0][0].th_get_id()).toBe(IDTest);
+      expect((bunchToAdd.setContext as any).mock.calls.length).toBe(1);
+      expect((bunchToAdd.setContext as any).mock.calls[0][0].th_get_id()).toBe(IDTest);
     });
 
-
+    test('set context when adding an item - remove from old manager', () => {
+      // TODO
+    });
   });
 });

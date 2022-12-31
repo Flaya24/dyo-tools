@@ -30,16 +30,25 @@ export default class DYOToolsManager extends DYOToolsComponent {
     this._library = new DYOToolsBunch('library', elements, { virtualContext: true });
   }
 
-  add(item: any): void {
+  add(item: DYOToolsBunch<any, any>, targetScope?: string): void {
+    // Define scope validity
+    const { virtualContext } = item.getOptions();
+    let scope = 'default';
+    if (!targetScope) {
+      scope = virtualContext ? 'virtual': 'default';
+    } else {
+      scope = targetScope;
+    }
+
     // Update Library with new Elements
     if (item.getAll().length) {
       this._library.addMany(item.getAll());
     }
 
     // Add the new item
-    item.setContext(this);
+    item.setContext<DYOToolsManager>(this);
     this._items[item.getId()] = {
-      scope: 'default',
+      scope,
       item
     }
   }

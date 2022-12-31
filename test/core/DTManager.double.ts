@@ -47,6 +47,10 @@ export class DTManagerTest extends DTManager {
     return this._scopes;
   }
 
+  th_set_scopes(scopes: any): void {
+    this._scopes = scopes;
+  }
+
   th_get_actions(): any {
     return this._actions;
   }

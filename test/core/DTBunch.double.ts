@@ -106,6 +106,7 @@ export class DTBunchStub extends DTBunchTest {
     this._key = KeyTest;
     this._errors = [];
     this._items = items;
+    this._options = DTBunchDefaultOptions;
   }
 
   getId(): string {

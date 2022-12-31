@@ -1,14 +1,17 @@
-import DYOToolsComponentWithMeta from './DTComponentWithMeta';
 import DYOToolsElement from './DTElement';
 import {
   DTAcceptedMetaData,
-  DTBunchFilters, DTBunchFilterWithBaseOperator, DTBunchFilterWithMetaOperator, DTBunchOptions,
+  DTBunchFilters,
+  DTBunchFilterWithBaseOperator,
+  DTBunchFilterWithMetaOperator,
+  DTBunchOptions,
   DTBunchToObject,
-  FilterOperatorType, StandardPrimitiveType,
+  FilterOperatorType,
+  StandardPrimitiveType,
 } from '../types';
 import DYOToolsPlayer from './DTPlayer';
 import DYOToolsError from './DTError';
-import { validFiltersForItem } from '../utils/filters';
+import {validFiltersForItem} from '../utils/filters';
 import DYOToolsComponentPhysical from "./DTComponentPhysical";
 
 // Default Options for class
