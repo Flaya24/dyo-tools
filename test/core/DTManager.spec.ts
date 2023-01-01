@@ -1,11 +1,12 @@
 import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
 import {DomainTest, DTManagerStubDomain, DTManagerTest, IDTest, KeyTest, ScopesTest} from "./DTManager.double";
 import DTManager from "../../src/core/DTManager";
-import {DTBunchStub, generateMockedElements, IDTest as IDTestBunch} from "./DTBunch.double";
-import DYOToolsElement from "../../src/core/DTElement";
-import {IMetaDataTest} from "./DTComponentWithMeta.double";
+import {DTBunchStub, IDTest as IDTestBunch} from "./DTBunch.double";
 import {mockOverriddenMethods} from "./DTComponent.double";
 import {DTComponent} from "../../src";
+import DYOToolsError from "../../src/core/DTError";
+import {checkCallForMockedDTError} from "./DTError.double";
+import MockedFunction = jest.MockedFunction;
 
 /******************** MOCK DEPENDENCIES
  * Dependencies used by the component are mocked with Jest
@@ -13,6 +14,7 @@ import {DTComponent} from "../../src";
 jest.mock('../../src/core/DTElement');
 jest.mock('../../src/core/DTBunch');
 jest.mock('../../src/core/DTComponent');
+jest.mock('../../src/core/DTError');
 // Add specific mock for inherited methods to have a basic implementation
 mockOverriddenMethods(DTComponent);
 
@@ -124,6 +126,10 @@ describe('class DYOToolsManager', () => {
     }
 
     beforeEach(() => {
+      jest.spyOn(managerTest, 'getId').mockReturnValue(IDTest);
+      jest.spyOn(managerTest, 'isValidScope').mockReturnValue(true);
+
+      // Bunch to add
       bunchToAdd = new DTBunchStub();
       jest.spyOn(bunchToAdd, 'getAll').mockImplementation(function() {
         return this._items;
@@ -159,16 +165,54 @@ describe('class DYOToolsManager', () => {
       checkManagerItem(IDTestBunch, 'virtual');
     });
 
-    test('add a new item - not existing scope for bunch', () => {
-      // TODO
+    test('trigger error if not existing scope for bunch', () => {
+      const errorScope = 'not-existing-scope';
+      const mockedTriggerError = DTManager.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
+      jest.spyOn(managerTest, 'isValidScope').mockReturnValue(false);
+
+      managerTest.add(bunchToAdd, errorScope);
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(0);
+      expect((managerTest.isValidScope as any).mock.calls.length).toBe(1);
+      expect((managerTest.isValidScope as any).mock.calls[0][0]).toBe(errorScope);
+      expect(mockedTriggerError.mock.calls.length).toBe(1);
+      checkCallForMockedDTError(
+        'invalid_scope',
+        "Scope provided doesn't exist in the manager",
+        IDTest,
+        bunchToAdd.getId(),
+      );
     });
 
-    test('add a new item - invalid scope for virtual bunch', () => {
-      // TODO
+    test('trigger error if invalid scope for virtual bunch', () => {
+      bunchToAdd.th_set_options({ virtualContext: true });
+      const mockedTriggerError = DTManager.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
+
+      managerTest.add(bunchToAdd, ScopesTest[0]);
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(0);
+      expect(mockedTriggerError.mock.calls.length).toBe(1);
+      checkCallForMockedDTError(
+        'forbidden_scope',
+        "Scope provided cannot be associated to a virtual bunch",
+        IDTest,
+        bunchToAdd.getId(),
+      );
     });
 
-    test('add a new item - invalid virtual scope for bunch', () => {
-      // TODO
+    test('trigger error if invalid virtual scope for bunch', () => {
+      const mockedTriggerError = DTManager.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
+
+      managerTest.add(bunchToAdd, 'virtual');
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(0);
+      expect(mockedTriggerError.mock.calls.length).toBe(1);
+      checkCallForMockedDTError(
+        'forbidden_virtual_scope',
+        "Virtual Scope provided cannot be associated to a physical bunch",
+        IDTest,
+        bunchToAdd.getId(),
+      );
     });
 
     test('trigger conflict when adding two same bunch ids - parent triggerError', () => {

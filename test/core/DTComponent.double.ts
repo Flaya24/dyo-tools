@@ -2,6 +2,7 @@ import {DTComponent} from "../../src";
 import {DTErrorStub} from "./DTError.double";
 import {jest} from "@jest/globals";
 import {DTComponentOptions} from "../../src/types";
+
 interface IOptionsTest extends DTComponentOptions {
     option1: boolean
     option2: boolean

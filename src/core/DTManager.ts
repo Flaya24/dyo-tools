@@ -1,5 +1,6 @@
 import DYOToolsComponent from "./DTComponent";
 import DYOToolsBunch from "./DTBunch";
+import DYOToolsError from "./DTError";
 
 export default class DYOToolsManager extends DYOToolsComponent {
   /**
@@ -33,10 +34,29 @@ export default class DYOToolsManager extends DYOToolsComponent {
   add(item: DYOToolsBunch<any, any>, targetScope?: string): void {
     // Define scope validity
     const { virtualContext } = item.getOptions();
-    let scope = 'default';
+    let scope;
     if (!targetScope) {
       scope = virtualContext ? 'virtual': 'default';
     } else {
+      let errorCode: string;
+      let errorMessage: string;
+      if (!this.isValidScope(targetScope)) {
+        errorCode = 'invalid_scope';
+        errorMessage = "Scope provided doesn't exist in the manager";
+      }
+      if (virtualContext && targetScope !== 'virtual') {
+        errorCode = 'forbidden_scope';
+        errorMessage = "Scope provided cannot be associated to a virtual bunch";
+      }
+      if (!virtualContext && targetScope === 'virtual') {
+        errorCode = 'forbidden_virtual_scope';
+        errorMessage = "Virtual Scope provided cannot be associated to a physical bunch";
+      }
+
+      if (errorCode && errorMessage) {
+        this.triggerError(new DYOToolsError(errorCode, errorMessage, this, item));
+        return;
+      }
       scope = targetScope;
     }
 
@@ -59,6 +79,10 @@ export default class DYOToolsManager extends DYOToolsComponent {
 
   getScopes(): any {
     return this._scopes;
+  }
+
+  isValidScope(scope: string): boolean {
+    return this._scopes.includes(scope);
   }
 
   getActions(): any {
