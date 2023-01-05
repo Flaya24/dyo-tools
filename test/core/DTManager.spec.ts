@@ -1,12 +1,13 @@
 import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
 import {DomainTest, DTManagerStubDomain, DTManagerTest, IDTest, KeyTest, ScopesTest} from "./DTManager.double";
 import DTManager from "../../src/core/DTManager";
-import {DTBunchStub, IDTest as IDTestBunch} from "./DTBunch.double";
+import {DTBunchStub, generateMockedElements, IDTest as IDTestBunch} from "./DTBunch.double";
 import {mockOverriddenMethods} from "./DTComponent.double";
-import {DTComponent} from "../../src";
+import {DTComponent, DTElement} from "../../src";
 import DYOToolsError from "../../src/core/DTError";
 import {checkCallForMockedDTError} from "./DTError.double";
 import MockedFunction = jest.MockedFunction;
+import {IMetaDataTest} from "./DTComponentWithMeta.double";
 
 /******************** MOCK DEPENDENCIES
  * Dependencies used by the component are mocked with Jest
@@ -215,12 +216,33 @@ describe('class DYOToolsManager', () => {
       );
     });
 
-    test('trigger conflict when adding two same bunch ids - parent triggerError', () => {
-      // TODO
+    test('trigger conflict error when adding two same bunch ids', () => {
+      const mockedTriggerError = DTManager.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
+
+      managerTest.add(bunchToAdd);
+      managerTest.add(bunchToAdd);
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(1);
+      expect(mockedTriggerError.mock.calls.length).toBe(1);
+      checkCallForMockedDTError(
+        'id_conflict',
+        'Bunch with same id already exists in the manager',
+        IDTest,
+        bunchToAdd.getId(),
+      );
     });
 
     test('add bunch elements into library - simple case', () => {
-      // TODO
+      const bunchElements = generateMockedElements(5);
+      const bunchElementsKeys = bunchElements.map((item: DTElement<IMetaDataTest>) => item.getKey())
+      bunchToAdd.th_set_items(bunchElements);
+
+      managerTest.add(bunchToAdd);
+
+      expect(managerTest.th_get_single_item(IDTestBunch).item.getAllKeys()).toStrictEqual(bunchElementsKeys);
+      expect(managerTest.th_get_library().addMany.mock.calls.length).toBe(1);
+      expect(managerTest.th_get_library().addMany.mock.calls[0][0].map((item) => item.getKey())).toStrictEqual(bunchElementsKeys);
+      expect(managerTest.th_get_library().addMany.mock.calls[0][1]).toBeUndefined();
     });
 
     test('add bunch elements into library - not adding existing elements in library', () => {

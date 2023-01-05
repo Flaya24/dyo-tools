@@ -32,6 +32,17 @@ export default class DYOToolsManager extends DYOToolsComponent {
   }
 
   add(item: DYOToolsBunch<any, any>, targetScope?: string): void {
+    // Id conflict
+    if (Object.keys(this._items).includes(item.getId())) {
+      this.triggerError(new DYOToolsError(
+        'id_conflict',
+        'Bunch with same id already exists in the manager',
+        this,
+        item,
+      ));
+      return;
+    }
+
     // Define scope validity
     const { virtualContext } = item.getOptions();
     let scope;
