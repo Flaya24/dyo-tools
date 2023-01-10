@@ -71,17 +71,31 @@ export default class DYOToolsManager extends DYOToolsComponent {
       scope = targetScope;
     }
 
-    // Update Library with new Elements
+    // Update Library with non-existing new Elements
     if (item.getAll().length) {
-      this._library.addMany(item.getAll());
+      item.getAll().forEach((element: any) => {
+        if (!this._library.get(element.getId())) {
+          this._library.add(element);
+        }
+      });
+    }
+
+    // Update context
+    item.setContext<DYOToolsManager>(this);
+    const oldContext = item.getContext();
+    if (oldContext && oldContext.getComponentType() === 'manager') {
+      (oldContext as DYOToolsManager).remove(item.getId());
     }
 
     // Add the new item
-    item.setContext<DYOToolsManager>(this);
     this._items[item.getId()] = {
       scope,
       item
     }
+  }
+
+  remove(id: string): void {
+
   }
 
   getAll(): any {

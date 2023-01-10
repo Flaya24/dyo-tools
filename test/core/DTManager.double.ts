@@ -39,6 +39,10 @@ export class DTManagerTest extends DTManager {
     return this._items;
   }
 
+  th_set_items(items: any): void {
+    this._items = items;
+  }
+
   th_get_single_item(id: string): any {
     return this._items[id];
   }
@@ -59,9 +63,9 @@ export class DTManagerTest extends DTManager {
     return this._library;
   }
 
-  // th_set_library(items: any): void {
-  //   return this._library = new DTBunchStub
-  // }
+  th_set_library(library: any): void {
+    this._library = library;
+  }
 }
 
 /******************** STUB CLASS

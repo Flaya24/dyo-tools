@@ -1,4 +1,4 @@
-import {DTBunch} from '../../src';
+import {DTBunch, DTComponent} from '../../src';
 import {defaultOptions as DTBunchDefaultOptions} from '../../src/core/DTBunch'
 import {
   HaileiMetaData,
@@ -60,6 +60,14 @@ export class DTBunchTest extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>,
     return this._componentType;
   }
 
+  th_get_context(): DTComponent | undefined {
+    return this._context;
+  }
+
+  th_set_context(context: DTComponent): void {
+    this._context = context;
+  }
+
   th_get_items(): Mocked<DYOToolsElement<IMetaDataTest>>[] {
     return this._items;
   }
@@ -119,6 +127,29 @@ export class DTBunchStub extends DTBunchTest {
 
   getAllKeys(): string[] {
     return this._items.map((item: DYOToolsElement<IMetaDataTest>) => item.getKey());
+  }
+}
+
+// Specific Stub Library for Manager
+export class DTBunchStubLibrary extends DTBunchStub {
+  constructor(items: Array<Mocked<DYOToolsElement<IMetaDataTest>>> = []) {
+    super(items);
+    this._key = 'library';
+    this._errors = [];
+    this._items = items;
+    this._options = {
+      ...DTBunchDefaultOptions,
+      virtualContext: true
+    };
+  }
+
+  getKey(): string {
+    return 'library';
+  }
+
+  get(id: string): Mocked<DYOToolsElement<IMetaDataTest>> | undefined {
+    const itemFiltered = this._items.filter((item: Mocked<DYOToolsElement<IMetaDataTest>>) => item.getId() === id);
+    return itemFiltered.length > 0 ? itemFiltered[0] : undefined;
   }
 }
 
