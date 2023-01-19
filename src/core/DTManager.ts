@@ -94,6 +94,12 @@ export default class DYOToolsManager extends DYOToolsComponent {
     }
   }
 
+  addMany(items: any[]): void {
+    items.forEach((item: any) => {
+      this.add(item);
+    })
+  }
+
   remove(id: string): void {
 
   }

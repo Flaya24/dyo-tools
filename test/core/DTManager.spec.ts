@@ -49,6 +49,7 @@ describe('class DYOToolsManager', () => {
     });
   });
 
+  // TODO : WIP
   describe('constructor()', () => {
     beforeEach(() => {
       jest.resetAllMocks();
@@ -304,4 +305,51 @@ describe('class DYOToolsManager', () => {
       checkManagerItem(IDTestBunch, 'default');
     });
   });
+
+  // TODO : WIP
+  describe('addMany', () => {
+    let mockedAdd: MockedFunction<(item: any, scope?: string) => void>;
+    let bunchesToAdd: DTBunchStub[];
+
+    beforeEach(() => {
+      jest.spyOn(managerTest, 'add').mockImplementation(() => {});
+      mockedAdd = managerTest.add as MockedFunction<(item: any, scope?: string) => void>;
+
+      // Bunches to add
+      const bunchToAdd1 = new DTBunchStub();
+      bunchToAdd1.th_set_id(IDTestBunch + '_1');
+      const bunchToAdd2 = new DTBunchStub();
+      bunchToAdd2.th_set_id(IDTestBunch + '_2');
+      const bunchToAdd3 = new DTBunchStub();
+      bunchToAdd3.th_set_id(IDTestBunch + '_3');
+      bunchesToAdd = [ bunchToAdd1, bunchToAdd2, bunchToAdd3 ];
+
+      // Add tests scopes
+      managerTest.th_set_scopes([ ...managerTest.th_get_scopes(), ...ScopesTest ]);
+    });
+
+    test('add many items - use add method - default case', () => {
+      managerTest.addMany(bunchesToAdd);
+
+      expect(mockedAdd.mock.calls.length).toBe(3);
+      let itemCount = 0;
+      for (let addCalls of mockedAdd.mock.calls) {
+        expect(addCalls[0].th_get_id()).toBe(bunchesToAdd[itemCount].th_get_id());
+        expect(addCalls[1]).toBeUndefined();
+        itemCount++;
+      }
+    });
+
+    test('add many items - use add method - with scope case', () => {
+      // TODO
+    });
+
+    test('add many items - use add method - restore initial items when an exception error occurred', () => {
+      // TODO
+    });
+
+    test('add many items - use add method - not restore initial items when errors option is enabled', () => {
+      // TODO
+    });
+  })
 });
