@@ -341,7 +341,15 @@ describe('class DYOToolsManager', () => {
     });
 
     test('add many items - use add method - with scope case', () => {
-      // TODO
+      // managerTest.addMany(bunchesToAdd, ScopesTest[0]);
+      //
+      // expect(mockedAdd.mock.calls.length).toBe(3);
+      // let itemCount = 0;
+      // for (let addCalls of mockedAdd.mock.calls) {
+      //   expect(addCalls[0].th_get_id()).toBe(bunchesToAdd[itemCount].th_get_id());
+      //   expect(addCalls[1]).toBeUndefined();
+      //   itemCount++;
+      // }
     });
 
     test('add many items - use add method - restore initial items when an exception error occurred', () => {
