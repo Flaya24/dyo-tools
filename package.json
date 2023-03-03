@@ -10,7 +10,8 @@
     "lint:fix": "eslint src/ --ext .ts --fix",
     "test": "jest",
     "test:coverage": "c8 --check-coverage npm test",
-    "test:coverage:verify": "c8 --check-coverage --100 npm test"
+    "test:coverage:verify": "c8 --check-coverage --100 npm test",
+    "e2e": "cucumber-js --config cucumber.js"
   },
   "repository": {
     "type": "git",
@@ -39,6 +40,7 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
+    "@cucumber/cucumber": "^9.0.0",
     "uuid": "^8.3.2"
   }
 }
