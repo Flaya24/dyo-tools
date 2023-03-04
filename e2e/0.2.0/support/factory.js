@@ -4,15 +4,7 @@ const emptyBunch = (key, options = {}) => new DTBunch(key, [], options);
 
 const emptyVirtualBunch = (key) => emptyBunch(key, { virtualBunch: true });
 
-const pentacleBunch = (key, options = {}) => new DTBunch(key, [
-        haileiElement(),
-        meldrineElement(),
-        maydenaElement(),
-        ildressElement(),
-        yssaliaElement()
-    ],
-    options
-);
+const standard32Bunch = (key, options = {}) => new DTBunch(key, Object.values(standard32Elements()), options);
 
 const ownedEmptyBunch = (key, owner, options = {}) => {
     const bunch = emptyBunch(key, options);
@@ -20,69 +12,47 @@ const ownedEmptyBunch = (key, owner, options = {}) => {
     return bunch;
 }
 
-const haileiElement = () => {
-    const element = new DTElement('HAILEI');
-    element.setManyMeta({
-        name: 'Hailei Dorcan Kazan',
-        queen: true,
-        kd: [47, 1],
-        rank: 1,
-        tribes: ['Peuple de Salta', 'Fils de Salta', 'Peuple Kanti'],
-    });
-    return element;
-};
-
-const meldrineElement = () => {
-    const element = new DTElement('MELDRINE');
-    element.setManyMeta({
-        name: 'Meldrine Goldmane',
-        queen: false,
-        kd: [53, 0],
-        rank: 2,
-        tribes: ['Lodaniens'],
-    });
-    return element;
-};
-
-const maydenaElement = () => {
-    const element = new DTElement('MAYDENA');
-    element.setManyMeta({
-        name: "Maydena 'Intan Kazan",
-        queen: true,
-        kd: [29, 0],
-        tribes: ['Exil rouge', 'Désolation'],
-    });
-    return element;
-};
-
-const ildressElement = () => {
-    const element = new DTElement('ILDRESS');
-    element.setManyMeta({
-        name: 'Electel Ildress',
-        queen: false,
-        kd: [19, 1],
-        rank: 3,
-    });
-    return element;
-};
-
-const yssaliaElement = () => {
-    const element = new DTElement('YSSALIA');
-    element.setManyMeta({
-        name: 'Yssalia du Gillit',
-        queen: true,
-        kd: [23, 0],
-    });
-    return element;
-};
+const standard32Elements = () => {
+    return {
+        "7 of clubs": new DTElement('7 of clubs'),
+        "8 of clubs": new DTElement('8 of clubs'),
+        "9 of clubs": new DTElement('9 of clubs'),
+        "10 of clubs": new DTElement('10 of clubs'),
+        "J of clubs": new DTElement('J of clubs'),
+        "Q of clubs": new DTElement('Q of clubs'),
+        "K of clubs": new DTElement('K of clubs'),
+        "As of clubs": new DTElement('As of clubs'),
+        "7 of diamonds": new DTElement('7 of diamonds'),
+        "8 of diamonds": new DTElement('8 of diamonds'),
+        "9 of diamonds": new DTElement('9 of diamonds'),
+        "10 of diamonds": new DTElement('10 of diamonds'),
+        "J of diamonds": new DTElement('J of diamonds'),
+        "Q of diamonds": new DTElement('Q of diamonds'),
+        "K of diamonds": new DTElement('K of diamonds'),
+        "As of diamonds": new DTElement('As of diamonds'),
+        "7 of spades": new DTElement('7 of spades'),
+        "8 of spades": new DTElement('8 of spades'),
+        "9 of spades": new DTElement('9 of spades'),
+        "10 of spades": new DTElement('10 of spades'),
+        "J of spades": new DTElement('J of spades'),
+        "Q of spades": new DTElement('Q of spades'),
+        "K of spades": new DTElement('K of spades'),
+        "As of spades": new DTElement('As of spades'),
+        "7 of hearts": new DTElement('7 of hearts'),
+        "8 of hearts": new DTElement('8 of hearts'),
+        "9 of hearts": new DTElement('9 of hearts'),
+        "10 of hearts": new DTElement('10 of hearts'),
+        "J of hearts": new DTElement('J of hearts'),
+        "Q of hearts": new DTElement('Q of hearts'),
+        "K of hearts": new DTElement('K of hearts'),
+        "As of hearts": new DTElement('As of hearts'),
+    }
+}
 
 module.exports = {
     emptyBunch,
     emptyVirtualBunch,
-    pentacleBunch,
-    haileiElement,
-    meldrineElement,
-    maydenaElement,
-    ildressElement,
-    yssaliaElement,
+    standard32Bunch,
+    standard32Elements,
+    ownedEmptyBunch
 }

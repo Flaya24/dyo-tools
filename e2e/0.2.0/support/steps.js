@@ -1,35 +1,51 @@
 const expect = require('expect')
 const { Given, When, Then } = require('@cucumber/cucumber')
 const {DTManager, DTPlayer} = require("../../../dist/src");
-const { emptyBunch, emptyVirtualBunch, pentacleBunch} = require("./factory");
+const { emptyBunch, emptyVirtualBunch, standard32Bunch, standard32Elements, ownedEmptyBunch} = require("./factory");
+
+/******************* INSTALLATION (GIVEN) STEPS *************************/
 
 Given('my empty manager', function () {
-    this.manager = new DTManager('epicManager', [], [], { errors: true });
+    this.manager = new DTManager('empty-manager', [], [], { errors: true });
 })
 
-Given('my basic manager', function () {
-    this.manager = new DTManager('epicManager', [], [], { errors: true });
+Given('my solitaire manager', function () {
+    this.manager = new DTManager('solitaire-manager', [], [], { errors: true });
     this.manager.addMany([
-       pentacleBunch('deck'),
-       emptyBunch('discard'),
-       emptyVirtualBunch('virtualTrash'),
+       standard32Elements('deck'),
+       emptyBunch('play-zone'),
+       emptyVirtualBunch('win-stack'),
     ]);
 })
 
-Given('my extended manager', function () {
+Given('my bridge manager', function () {
     this.players = {
         'Priam': new DTPlayer('Priam'),
         'Ectesiam': new DTPlayer('Ectesiam'),
         'Axelle': new DTPlayer('Axelle'),
         'Morgane': new DTPlayer('Morgane'),
     }
-    this.manager = new DTManager('epicManager', [], [], { errors: true });
+    this.manager = new DTManager('bridge-manager', [], [], { errors: true });
+
+    const dummyBunch = ownedEmptyBunch('hand', this.players['Axelle']);
+    dummyBunch.setMeta('role', 'dummy');
+    const declarerBunch = ownedEmptyBunch('hand', this.players['Priam']);
+    declarerBunch.setMeta('role', 'declarer');
+    this.currentHandId = declarerBunch.getId();
+
     this.manager.addMany([
-        pentacleBunch('deck'),
-        emptyBunch('discard'),
-        emptyVirtualBunch('virtualTrash'),
+        standard32Bunch('library'),
+        emptyBunch('play-zone'),
+        emptyVirtualBunch('win-stack-team1'),
+        emptyVirtualBunch('win-stack-team2'),
+        declarerBunch,
+        ownedEmptyBunch('hand', this.players['Ectesiam']),
+        dummyBunch,
+        ownedEmptyBunch('hand', this.players['Morgane']),
     ]);
 })
+
+/**************************** ACT STEPS ********************************/
 
 When('I add {int} physical bunches and {int} virtual bunches', function (nbBunches, nbVirtualBunches) {
     let i = 1;
