@@ -6,22 +6,24 @@ Feature: Epic 1 - Manager and bunches
     Then I should have 7 bunches in my manager
 
   Scenario: No duplicated bunches
-    Given my solitaire manager
+    Given my dominion manager
     When I add an already existing bunch
     Then I should see an error
 
   Scenario: Easy finding of bunch
-    Given my bridge manager
+    Given my dominion manager
     Then I should find my current hand
-    And I should find 4 bunches with key "hand"
-    And I should find 1 bunch which have "Priam" as owner
-    And I should find 2 bunches which have meta
-      | role | dummy,declarer |
+    And I should find 2 bunches with
+      | key | hand |
+    And I should find 5 bunches with
+      | owner | PRIAM |
+    And I should find 2 bunches with
+      | cost | 4 |
 
   Scenario: Bunch removal
-    Given my bridge manager
-    When I removed hands and win stack from team 1
+    Given my dominion manager
+    When I remove my current hand
     Then I shouldn't find my current hand
-    And I should find 2 bunches with key "hand"
-    And I should have 5 bunches in my manager
+    And I should find 1 bunches with
+      | key | hand |
 
