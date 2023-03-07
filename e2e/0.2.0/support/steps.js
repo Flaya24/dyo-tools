@@ -2,6 +2,7 @@ const expect = require('expect')
 const { Given, When, Then } = require('@cucumber/cucumber')
 const {DTManager, DTPlayer, DTBunch} = require("../../../dist/src");
 const initializeDominionManager = require("../resources/dominion");
+const {transformDataTableToBunchFinderArgs} = require("../resources/utils");
 
 /******************* INSTALLATION (GIVEN) STEPS *************************/
 
@@ -44,12 +45,22 @@ Then('I should see an error', function () {
     expect(this.manager.getLastError().getCode()).toBe('id_conflict');
 });
 
-Then('I should find my current hand', function () {
-    expect(this.manager.get(this.current).getId()).toBe(this.current.getId());
+Then('I should find my current hand', function (pred) {
+    expect(this.manager.get(this.current.getId()).getId()).toBe(this.current.getId());
 })
 
-Then('I should find {int} bunches with', function (nbBunch, table) {
-    console.log('table', table);
+Then('I shouldn\'t find my current hand', function (pred) {
+    expect(this.manager.get(this.current.getId())).toBeUndefined();
 })
+
+Then('I should find {int} bunches with', function (nbBunches, table) {
+    const findArgs = transformDataTableToBunchFinderArgs(table);
+    expect(this.manager.find(findArgs).length).toBe(nbBunches);
+})
+
+When('I remove my current hand', function () {
+    this.manager.remove(this.current.getId());
+})
+
 
 
