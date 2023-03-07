@@ -1,6 +1,6 @@
 const expect = require('expect')
 const { Given, When, Then } = require('@cucumber/cucumber')
-const {DTManager, DTPlayer, DTBunch} = require("../../../dist/src");
+const {DTManager, DTPlayer, DTBunch, DTElement} = require("../../../dist/src");
 const initializeDominionManager = require("../resources/dominion");
 const {transformDataTableToBunchFinderArgs} = require("../resources/utils");
 
@@ -60,6 +60,32 @@ Then('I should find {int} bunches with', function (nbBunches, table) {
 
 When('I remove my current hand', function () {
     this.manager.remove(this.current.getId());
+})
+
+Then('I should have {int} elements in my library', function (nbElements) {
+    expect(this.manager.getLibrary().getAll().length).toBe(nbElements);
+})
+
+When('I add a new trash pile with 2 already existing elements', function () {
+    const coppers = this.manager.getLibrary().find({ key: { $eq: 'COPPER' }});
+    const trashPile = new DTBunch('trash', [
+        new DTElement('CURSE'),
+        new DTElement('CURSE'),
+        new DTElement('CURSE'),
+        coppers[0],
+        coppers[1]
+    ]);
+    this.manager.add(trashPile);
+})
+
+Then('I shouldn\'t find my library id into bunches', function () {
+    const libraryId = this.manager.getLibrary().getId();
+    expect(this.manager.get(libraryId)).toBeUndefined();
+})
+
+When('I add a new external card in my current hand', function () {
+    const curseCard = new DTElement('CURSE');
+    this.current.add(curseCard);
 })
 
 
