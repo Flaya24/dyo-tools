@@ -6,7 +6,7 @@ Feature: Epic 2 - Manager and Library
 
   Scenario: Autodetect already existing element
     Given my dominion manager
-    When I add a new trash pile with 2 already existing elements
+    When I add a new trash pile with 2 already existing elements into the scope "default"
     Then I should have 107 elements in my library
 
   Scenario: Library isn't a manager bunch

@@ -8,7 +8,7 @@ Feature: Epic 1 - Manager and bunches
   Scenario: No duplicated bunches
     Given my dominion manager
     When I add an already existing bunch
-    Then I should see an error
+    Then I should see an error "id_conflict"
 
   Scenario: Easy finding of bunch
     Given my dominion manager

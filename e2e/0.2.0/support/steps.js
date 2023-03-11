@@ -41,8 +41,8 @@ When('I add an already existing bunch', function () {
     this.manager.add(this.current);
 })
 
-Then('I should see an error', function () {
-    expect(this.manager.getLastError().getCode()).toBe('id_conflict');
+Then('I should see an error {string}', function (errorCode) {
+    expect(this.manager.getLastError().getCode()).toBe(errorCode);
 });
 
 Then('I should find my current hand', function (pred) {
@@ -58,6 +58,10 @@ Then('I should find {int} bunches with', function (nbBunches, table) {
     expect(this.manager.find(findArgs).length).toBe(nbBunches);
 })
 
+
+When('I move my current hand to the scope {string}', function (scope) {
+    this.manager.moveToScope(scope, this.current.getId());
+})
 When('I remove my current hand', function () {
     this.manager.remove(this.current.getId());
 })
@@ -66,7 +70,7 @@ Then('I should have {int} elements in my library', function (nbElements) {
     expect(this.manager.getLibrary().getAll().length).toBe(nbElements);
 })
 
-When('I add a new trash pile with 2 already existing elements', function () {
+When('I add a new trash pile with 2 already existing elements into the scope {string}', function (scope) {
     const coppers = this.manager.getLibrary().find({ key: { $eq: 'COPPER' }});
     const trashPile = new DTBunch('trash', [
         new DTElement('CURSE'),
@@ -75,7 +79,7 @@ When('I add a new trash pile with 2 already existing elements', function () {
         coppers[0],
         coppers[1]
     ]);
-    this.manager.add(trashPile);
+    this.manager.add(trashPile, scope);
 })
 
 Then('I shouldn\'t find my library id into bunches', function () {
@@ -86,6 +90,14 @@ Then('I shouldn\'t find my library id into bunches', function () {
 When('I add a new external card in my current hand', function () {
     const curseCard = new DTElement('CURSE');
     this.current.add(curseCard);
+})
+
+Then('I should have {int} scopes in my manager', function (nbScopes) {
+    expect(this.manager.getScopes().length).toBe(nbScopes);
+})
+
+Then('I should have {int} bunches in my scope {string}', function (nbBunches, scope) {
+    expect(this.manager.getAll(scope).length).toBe(nbBunches);
 })
 
 

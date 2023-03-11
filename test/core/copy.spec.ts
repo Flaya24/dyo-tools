@@ -1,10 +1,14 @@
-import {describe, expect, jest, test,} from '@jest/globals';
-import {DTBunch, DTElement, DTPlayer} from '../../src';
-import {DTComponentStub} from "./DTComponent.double";
-import {DTPlayerStub} from "./DTPlayer.double";
-import {BunchMetaData, HaileiMetaData, IMetaDataTest, PlayerMetaData} from "./DTComponentWithMeta.double";
-import {defaultOptions, KeyTest} from "./DTBunch.double";
-import {DTErrorStub} from "./DTError.double";
+import {
+  describe, expect, jest, test,
+} from '@jest/globals';
+import { DTBunch, DTElement, DTPlayer } from '../../src';
+import { DTComponentStub } from './DTComponent.double';
+import { DTPlayerStub } from './DTPlayer.double';
+import {
+  BunchMetaData, HaileiMetaData, IMetaDataTest, PlayerMetaData,
+} from './DTComponentWithMeta.double';
+import { defaultOptions, KeyTest } from './DTBunch.double';
+import { DTErrorStub } from './DTError.double';
 
 /**
  * Special test suite for copy overridden method
@@ -20,7 +24,7 @@ describe('Inherited method copy', () => {
   describe('DTBunch copy()', () => {
     afterEach(() => {
       jest.resetAllMocks();
-    })
+    });
 
     test('copy a bunch - simple case with id and key', () => {
       const bunch = new DTBunch(KeyTest);
@@ -39,7 +43,7 @@ describe('Inherited method copy', () => {
         this._owner = owner;
       });
 
-      bunch.setContext(new DTComponentStub())
+      bunch.setContext(new DTComponentStub());
       bunch.setOwner(new DTPlayerStub());
 
       const bunchCopy = bunch.copy();
@@ -59,11 +63,9 @@ describe('Inherited method copy', () => {
         inheritOwner: true,
         replaceIndex: true,
         virtualContext: true,
-      }
+      };
       const bunch = new DTBunch('', [], copiedOptions);
-      jest.spyOn(bunch, 'getManyMeta').mockImplementation(function () {
-        return BunchMetaData;
-      });
+      jest.spyOn(bunch, 'getManyMeta').mockImplementation(() => BunchMetaData);
 
       const bunchCopy = bunch.copy();
 
@@ -126,7 +128,7 @@ describe('Inherited method copy', () => {
   describe('DTElement copy()', () => {
     afterEach(() => {
       jest.resetAllMocks();
-    })
+    });
 
     test('copy an element - simple case with id and key', () => {
       const element = new DTElement(KeyTest);
@@ -154,9 +156,7 @@ describe('Inherited method copy', () => {
 
     test('copy an element - copy meta-data and options', () => {
       const element = new DTElement(KeyTest, { errors: true });
-      jest.spyOn(element, 'getManyMeta').mockImplementation(function () {
-        return HaileiMetaData;
-      });
+      jest.spyOn(element, 'getManyMeta').mockImplementation(() => HaileiMetaData);
 
       const elementCopy = element.copy();
 
@@ -178,7 +178,7 @@ describe('Inherited method copy', () => {
   describe('DTPlayer copy()', () => {
     afterEach(() => {
       jest.resetAllMocks();
-    })
+    });
 
     test('copy a player - simple case with id and key', () => {
       const player = new DTPlayer(KeyTest);
@@ -206,9 +206,7 @@ describe('Inherited method copy', () => {
 
     test('copy a player - copy meta-data and options', () => {
       const player = new DTPlayer(KeyTest, { errors: true });
-      jest.spyOn(player, 'getManyMeta').mockImplementation(function () {
-        return PlayerMetaData;
-      });
+      jest.spyOn(player, 'getManyMeta').mockImplementation(() => PlayerMetaData);
 
       const playerCopy = player.copy();
 
