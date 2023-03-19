@@ -7,6 +7,11 @@ const cards = {
             type: 'treasure',
             cost: 0,
             treasurePoints: 1
+        },
+        events: {
+          play: (ctx) => {
+              ctx.getOwner.setMeta('coin', 1);
+          }
         }
     },
     "SILVER": {
@@ -14,6 +19,11 @@ const cards = {
             type: 'treasure',
             cost: 3,
             treasurePoints: 2
+        },
+        events: {
+            play: (ctx) => {
+                ctx.getOwner.setMeta('coin', 2);
+            }
         }
     },
     "GOLD": {
@@ -21,6 +31,11 @@ const cards = {
             type: 'treasure',
             cost: 6,
             treasurePoints: 3
+        },
+        events: {
+            play: (ctx) => {
+                ctx.getOwner.setMeta('coin', 3);
+            }
         }
     },
     "ESTATE": {
@@ -69,6 +84,11 @@ const cards = {
 const buildCard = (key) => {
     const element = new DTElement(key);
     element.setManyMeta(cards[key].meta);
+    if (cards[key].events) {
+        for (let actionKey of Object.keys(cards[key].events)) {
+            element.addEvent(actionKey, cards[key].events[actionKey]);
+        }
+    }
     return element;
 }
 
@@ -137,7 +157,7 @@ const initializeDominionManager = () => {
     ]
 
     // Initialize players deck, discard and hand
-    let current;
+    let current = {};
     for (let player of players) {
         const deck = new DTBunch('deck');
         deck.setOwner(player);
@@ -149,9 +169,6 @@ const initializeDominionManager = () => {
 
         const hand = new DTBunch('hand');
         hand.setOwner(player);
-        if (player.getKey() === 'PRIAM') {
-            current = hand;
-        }
         manager.add(hand, 'hand');
 
         const playZone = new DTBunch('playZone');
@@ -161,7 +178,54 @@ const initializeDominionManager = () => {
         const playerCards = new DTBunch('playerCards', [], { virtualContext: true });
         playerCards.setOwner(player);
         manager.add(playerCards);
+
+        if (player.getKey() === 'PRIAM') {
+            current = {
+                player,
+                deck,
+                hand,
+                playZone
+            }
+        }
     }
+
+    // Initialize actions
+    const fakeShuffle = (bunch) => {
+      const estates = bunch.find({ key: { $eq: 'ESTATE' }});
+      const coppers = bunch.find({ key: { $eq: 'COPPER' }});
+
+      bunch.removeAll();
+      bunch.addMany([
+          coppers[0],
+          estates[0],
+          coppers[1],
+          estates[1],
+          coppers[2],
+          estates[2],
+          coppers[3],
+          coppers[4],
+          coppers[5],
+          coppers[6],
+      ])
+    };
+    const fakeShuffleAction = new DTSimpleAction('shuffle', fakeShuffle, {
+        target: 'bunch',
+        scopes: ['deck']
+    });
+
+    const drawAction = new DTTransferAction('draw', {
+       scopes: ['deck'],
+       destinationScope: 'hand'
+    });
+
+    const playAction = new DTTransferAction('play', {
+        scopes: ['hand'],
+        destinationScope: 'playZone'
+    });
+
+    manager.addAction(fakeShuffleAction);
+    manager.addAction(drawAction);
+    manager.addAction(playAction);
 
     // Return
     return {

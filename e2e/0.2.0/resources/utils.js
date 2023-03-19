@@ -17,6 +17,11 @@ const transformDataTableToBunchFinderArgs = (table) => {
     return finalArgs;
 }
 
+const extractKeysElement = (elements) => {
+    return elements.map((element) => element.getKey());
+}
+
 module.exports = {
-    transformDataTableToBunchFinderArgs
+    transformDataTableToBunchFinderArgs,
+    extractKeysElement
 }
