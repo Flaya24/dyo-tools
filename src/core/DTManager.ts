@@ -1,6 +1,7 @@
 import DYOToolsComponent from "./DTComponent";
 import DYOToolsBunch from "./DTBunch";
 import DYOToolsError from "./DTError";
+import {DTManagerItemsType} from "../types";
 
 export default class DYOToolsManager extends DYOToolsComponent {
   /**
@@ -8,7 +9,7 @@ export default class DYOToolsManager extends DYOToolsComponent {
    */
   protected _componentType = 'manager';
 
-  protected _items: any;
+  protected _items: DTManagerItemsType;
 
   protected _scopes: any;
 
@@ -102,6 +103,10 @@ export default class DYOToolsManager extends DYOToolsComponent {
 
   remove(id: string): void {
 
+  }
+
+  get(id: string): any {
+    return this._items[id]?.item ?? undefined;
   }
 
   getAll(): any {

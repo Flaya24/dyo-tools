@@ -1,3 +1,5 @@
+import {DTBunch} from "../index";
+
 /** filters Methods * */
 export enum FilterOperatorType {
   EQ = '$eq',
@@ -73,4 +75,11 @@ export interface DTBunchFilters {
 /** DTPlayer interfaces * */
 export interface DTPlayerToObject<IComponentMeta> extends DTComponentToObject {
   meta?: Partial<IComponentMeta>
+}
+
+/** DTManager interfaces * */
+export type DTManagerItemsType = Record<string, DTManagerItemType>;
+export type DTManagerItemType = {
+  scope: string,
+  item: DTBunch<any, any>,
 }

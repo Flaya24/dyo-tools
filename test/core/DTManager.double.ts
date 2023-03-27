@@ -1,6 +1,6 @@
-import {jest} from '@jest/globals';
-import {DTManager, DTComponent} from '../../src';
-import {mockOverriddenMethods} from "./DTComponent.double";
+import {DTManager} from '../../src';
+import {DTBunchStubLibrary, DTBunchTest, generateMockedElements, IDTest as IDTestBunch} from "./DTBunch.double";
+import {DTManagerItemsType} from "../../src/types";
 
 /******************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
@@ -39,7 +39,7 @@ export class DTManagerTest extends DTManager {
     return this._items;
   }
 
-  th_set_items(items: any): void {
+  th_set_items(items: DTManagerItemsType): void {
     this._items = items;
   }
 
@@ -82,6 +82,40 @@ export class DTManagerStubDomain extends DTManagerTest {
 /******************** HELPER METHODS
  * Additional helper methods to use with testing
  * *****/
+// Add mocked bunches and elements to a Manager
+export function populateManager(manager: DTManagerTest): DTManagerTest {
+  const mockedElements = generateMockedElements(5);
+
+  // Library
+  manager.th_set_library(new DTBunchStubLibrary(mockedElements));
+
+  // Bunches
+  const bunch1 = new DTBunchTest();
+  bunch1.th_set_items(mockedElements);
+  bunch1.th_set_id(IDTestBunch + '_1');
+  const bunch2 = new DTBunchTest();
+  bunch2.th_set_id(IDTestBunch + '_2');
+  const bunch3 = new DTBunchTest();
+  bunch3.th_set_id(IDTestBunch + '_3');
+
+  const items: DTManagerItemsType = {
+    [bunch1.th_get_id()]: {
+      scope: 'default',
+      item: bunch1
+    },
+    [bunch2.th_get_id()]: {
+      scope: 'default',
+      item: bunch2
+    },
+    [bunch3.th_get_id()]: {
+      scope: 'default',
+      item: bunch3
+    },
+  };
+  manager.th_set_items(items);
+
+  return manager;
+}
 
 
 

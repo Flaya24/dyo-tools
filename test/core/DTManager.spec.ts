@@ -1,5 +1,13 @@
 import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
-import {DomainTest, DTManagerStubDomain, DTManagerTest, IDTest, KeyTest, ScopesTest} from "./DTManager.double";
+import {
+  DomainTest,
+  DTManagerStubDomain,
+  DTManagerTest,
+  IDTest,
+  KeyTest,
+  populateManager,
+  ScopesTest
+} from "./DTManager.double";
 import DTManager from "../../src/core/DTManager";
 import {
   DTBunchStub,
@@ -123,7 +131,7 @@ describe('class DYOToolsManager', () => {
     // });
   });
 
-  describe('add', () => {
+  describe('add()', () => {
     let bunchToAdd: DTBunchStub;
 
     const checkManagerItem = (bunchId: string, scope: string): void => {
@@ -307,7 +315,7 @@ describe('class DYOToolsManager', () => {
   });
 
   // TODO : WIP
-  describe('addMany', () => {
+  describe('addMany()', () => {
     let mockedAdd: MockedFunction<(item: any, scope?: string) => void>;
     let bunchesToAdd: DTBunchStub[];
 
@@ -358,6 +366,26 @@ describe('class DYOToolsManager', () => {
 
     test('add many items - use add method - not restore initial items when errors option is enabled', () => {
       // TODO
+    });
+  })
+
+  describe('get()', () => {
+
+    beforeEach(() => {
+      populateManager(managerTest);
+    })
+
+    test('return a bunch by its id', () => {
+      const bunch = managerTest.get(IDTestBunch + '_1');
+
+      expect(bunch).toBeDefined();
+      expect(bunch.th_get_id()).toBe(IDTestBunch + '_1');
+    });
+
+    test('return undefined if bunch is not found', () => {
+      const bunch = managerTest.get(IDTestBunch + '_5');
+
+      expect(bunch).toBeUndefined();
     });
   })
 });
