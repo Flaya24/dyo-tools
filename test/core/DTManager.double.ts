@@ -89,6 +89,9 @@ export function populateManager(manager: DTManagerTest): DTManagerTest {
   // Library
   manager.th_set_library(new DTBunchStubLibrary(mockedElements));
 
+  // Scopes
+  manager.th_set_scopes(ScopesTest);
+
   // Bunches
   const bunch1 = new DTBunchTest();
   bunch1.th_set_items(mockedElements);
@@ -104,11 +107,11 @@ export function populateManager(manager: DTManagerTest): DTManagerTest {
       item: bunch1
     },
     [bunch2.th_get_id()]: {
-      scope: 'default',
+      scope: ScopesTest[0],
       item: bunch2
     },
     [bunch3.th_get_id()]: {
-      scope: 'default',
+      scope: ScopesTest[0],
       item: bunch3
     },
   };

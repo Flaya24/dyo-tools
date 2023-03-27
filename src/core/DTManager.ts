@@ -109,8 +109,15 @@ export default class DYOToolsManager extends DYOToolsComponent {
     return this._items[id]?.item ?? undefined;
   }
 
-  getAll(): any {
-    return 1;
+  getAll(scope?: string): any {
+    const finalItems = [];
+    Object.values(this._items).forEach((item: any) => {
+      if (!scope || item.scope === scope) {
+        finalItems.push(item.item);
+      }
+    })
+
+    return finalItems;
   }
 
   getScopes(): any {

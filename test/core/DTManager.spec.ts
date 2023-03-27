@@ -388,4 +388,50 @@ describe('class DYOToolsManager', () => {
       expect(bunch).toBeUndefined();
     });
   })
+
+  describe('getAll()', () => {
+
+    beforeEach(() => {
+      populateManager(managerTest);
+    })
+
+    test('return all bunch items', () => {
+      const bunches = managerTest.getAll();
+
+      const bunchesIds = bunches.map(bunch => bunch.th_get_id());
+      expect(bunchesIds.length).toBe(3);
+      expect(bunchesIds.includes(IDTestBunch + '_1')).toBeTruthy();
+      expect(bunchesIds.includes(IDTestBunch + '_2')).toBeTruthy();
+      expect(bunchesIds.includes(IDTestBunch + '_3')).toBeTruthy();
+    });
+
+    test('return empty array if no bunch', () => {
+      managerTest.th_set_items({});
+
+      const bunches = managerTest.getAll();
+
+      expect(bunches.length).toBe(0);
+    });
+
+    test('scope argument : return only bunches into the scope', () => {
+      const bunches = managerTest.getAll(ScopesTest[0]);
+
+      const bunchesIds = bunches.map(bunch => bunch.th_get_id());
+      expect(bunchesIds.length).toBe(2);
+      expect(bunchesIds.includes(IDTestBunch + '_2')).toBeTruthy();
+      expect(bunchesIds.includes(IDTestBunch + '_3')).toBeTruthy();
+    });
+
+    test('scope argument : return empty array if no bunch into the scope', () => {
+      const bunches = managerTest.getAll(ScopesTest[1]);
+
+      expect(bunches.length).toBe(0);
+    });
+
+    test('scope argument : return empty array if invalid scope is passed', () => {
+      const bunches = managerTest.getAll('invalid_scope');
+
+      expect(bunches.length).toBe(0);
+    });
+  })
 });
