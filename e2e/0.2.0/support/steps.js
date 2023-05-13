@@ -17,17 +17,6 @@ Given('my dominion manager', function () {
     this.players = players;
 })
 
-Given('deal is done', function () {
-    const libraryCards = this.manager.getLibrary().getAll();
-    const hands = this.manager.getAll('hand');
-    let handIndex = 0;
-
-    for (let card of libraryCards) {
-        hands[handIndex].add(card);
-        handIndex = handIndex === 0 ? 1 : 0;
-    }
-})
-
 
 /**************************** ACT STEPS ********************************/
 
@@ -111,47 +100,7 @@ Then('I should have {int} bunches in my scope {string}', function (nbBunches, sc
     expect(this.manager.getAll(scope).length).toBe(nbBunches);
 })
 
-When('I add a new action {string}', function (actionKey) {
-    this.manager.addAction(new DTSimpleAction(actionKey, (element) => {}, {}));
-})
 
-Then('I should have {int} actions in my manager', function (nbActions) {
-    expect(Object.keys(this.manager.getActions()).length).toBe(nbActions);
-})
-
-When('I shuffle my current {string}', function(bunchKey) {
-    this.current[bunchKey].do('shuffle');
-})
-
-When('I draw my 5 cards hand', function() {
-    let i = 0;
-    while (i <= 5) {
-        this.current.deck.get(0).do('draw');
-    }
-})
-
-When('I play my first card Copper', function() {
-    const firstCardCopper = this.current.hand.find({ key: { $eq: 'COPPER' }})[0];
-    firstCardCopper.do('play');
-})
-
-Then('I should have copper,estate,copper,estate,copper at the top of my current deck', function() {
-    const expected = ['COPPER','ESTATE','COPPER','ESTATE','COPPER'];
-    expect(extractKeysElement(this.current.deck.getAll()).slice(0,5)).toStrictEqual(expected);
-})
-
-Then('I should have copper,estate,copper,estate,copper in my current hand', function() {
-    const expected = ['COPPER','ESTATE','COPPER','ESTATE','COPPER'];
-    expect(extractKeysElement(this.current.hand.getAll())).toStrictEqual(expected);
-})
-
-Then('I should have 1 copper into my play zone', function() {
-    expect(extractKeysElement(this.current.playZone.getAll())).toStrictEqual(['COPPER']);
-})
-
-Then('my player should have {int} coin for the turn', function(nbCoins) {
-    expect(this.current.player.getMeta('coin')).toBe(nbCoins);
-})
 
 
 

@@ -1,4 +1,6 @@
-import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
+import {
+  afterEach, beforeEach, describe, expect, jest, test,
+} from '@jest/globals';
 import {
   DomainTest,
   DTManagerStubDomain,
@@ -6,26 +8,26 @@ import {
   IDTest,
   KeyTest,
   populateManager,
-  ScopesTest
-} from "./DTManager.double";
-import DTManager from "../../src/core/DTManager";
+  ScopesTest,
+} from './DTManager.double';
+import DTManager from '../../src/core/DTManager';
 import {
+  defaultOptions as DTBunchDefaultOptions,
   DTBunchStub,
   DTBunchStubLibrary,
-  DTBunchTest,
   generateMockedElements,
-  IDTest as IDTestBunch
-} from "./DTBunch.double";
-import {mockOverriddenMethods} from "./DTComponent.double";
-import {DTComponent, DTElement} from "../../src";
-import DYOToolsError from "../../src/core/DTError";
-import {checkCallForMockedDTError} from "./DTError.double";
+  IDTest as IDTestBunch, IDTestLibrary,
+} from './DTBunch.double';
+import { mockOverriddenMethods } from './DTComponent.double';
+import { DTComponent, DTElement } from '../../src';
+import DYOToolsError from '../../src/core/DTError';
+import { checkCallForMockedDTError } from './DTError.double';
+import { IMetaDataTest } from './DTComponentWithMeta.double';
 import MockedFunction = jest.MockedFunction;
-import {IMetaDataTest} from "./DTComponentWithMeta.double";
 
-/******************** MOCK DEPENDENCIES
+/** ****************** MOCK DEPENDENCIES
  * Dependencies used by the component are mocked with Jest
- * *****/
+ * **** */
 jest.mock('../../src/core/DTElement');
 jest.mock('../../src/core/DTBunch');
 jest.mock('../../src/core/DTComponent');
@@ -33,7 +35,7 @@ jest.mock('../../src/core/DTError');
 // Add specific mock for inherited methods to have a basic implementation
 mockOverriddenMethods(DTComponent);
 
-/************************* TESTS SUITES *******************************/
+/** *********************** TESTS SUITES ****************************** */
 describe('class DYOToolsManager', () => {
   let managerTest: DTManagerTest;
 
@@ -131,6 +133,38 @@ describe('class DYOToolsManager', () => {
     // });
   });
 
+  describe('getLibrary()', () => {
+    test('return current manager Library', () => {
+      managerTest.th_set_library(new DTBunchStubLibrary());
+
+      const library: DTBunchStubLibrary = managerTest.getLibrary();
+      expect(library).toBeTruthy();
+      expect(library.getId()).toBe(IDTestLibrary);
+    });
+  });
+
+  describe('getScopes()', () => {
+    test('return manager scopes', () => {
+      managerTest.th_set_scopes(ScopesTest);
+
+      expect(managerTest.getScopes()).toStrictEqual(ScopesTest);
+    });
+  });
+
+  describe('isValidScope()', () => {
+    beforeEach(() => {
+      managerTest.th_set_scopes(ScopesTest);
+    });
+
+    test('return true if scope exists', () => {
+      expect(managerTest.isValidScope(ScopesTest[0])).toBe(true);
+    });
+
+    test('return false if scope doesn\'t exist', () => {
+      expect(managerTest.isValidScope('invalid_scope')).toBe(false);
+    });
+  });
+
   describe('add()', () => {
     let bunchToAdd: DTBunchStub;
 
@@ -139,7 +173,7 @@ describe('class DYOToolsManager', () => {
       expect(Object.keys(managerTest.th_get_single_item(bunchId))).toStrictEqual(['scope', 'item']);
       expect(managerTest.th_get_single_item(bunchId).scope).toBe(scope);
       expect(managerTest.th_get_single_item(bunchId).item.getId()).toBe(bunchId);
-    }
+    };
 
     beforeEach(() => {
       jest.spyOn(managerTest, 'getId').mockReturnValue(IDTest);
@@ -147,19 +181,19 @@ describe('class DYOToolsManager', () => {
 
       // Bunch to add
       bunchToAdd = new DTBunchStub();
-      jest.spyOn(bunchToAdd, 'getAll').mockImplementation(function() {
+      jest.spyOn(bunchToAdd, 'getAll').mockImplementation(function () {
         return this._items;
       });
-      jest.spyOn(bunchToAdd, 'getOptions').mockImplementation(function() {
+      jest.spyOn(bunchToAdd, 'getOptions').mockImplementation(function () {
         return this._options;
       });
-      jest.spyOn(bunchToAdd, 'getContext').mockImplementation(function() {
+      jest.spyOn(bunchToAdd, 'getContext').mockImplementation(function () {
         return this._context;
       });
 
       // Add tests scopes
-      managerTest.th_set_scopes([ ...managerTest.th_get_scopes(), ...ScopesTest ]);
-    })
+      managerTest.th_set_scopes([...managerTest.th_get_scopes(), ...ScopesTest]);
+    });
 
     test('add a new item - empty bunch in default scope', () => {
       managerTest.add(bunchToAdd);
@@ -213,7 +247,7 @@ describe('class DYOToolsManager', () => {
       expect(mockedTriggerError.mock.calls.length).toBe(1);
       checkCallForMockedDTError(
         'forbidden_scope',
-        "Scope provided cannot be associated to a virtual bunch",
+        'Scope provided cannot be associated to a virtual bunch',
         IDTest,
         bunchToAdd.getId(),
       );
@@ -228,7 +262,7 @@ describe('class DYOToolsManager', () => {
       expect(mockedTriggerError.mock.calls.length).toBe(1);
       checkCallForMockedDTError(
         'forbidden_virtual_scope',
-        "Virtual Scope provided cannot be associated to a physical bunch",
+        'Virtual Scope provided cannot be associated to a physical bunch',
         IDTest,
         bunchToAdd.getId(),
       );
@@ -252,7 +286,7 @@ describe('class DYOToolsManager', () => {
 
     test('add bunch elements into library - simple case', () => {
       const bunchElements = generateMockedElements(5);
-      const bunchElementsKeys = bunchElements.map((item: DTElement<IMetaDataTest>) => item.getKey())
+      const bunchElementsKeys = bunchElements.map((item: DTElement<IMetaDataTest>) => item.getKey());
       bunchToAdd.th_set_items(bunchElements);
 
       managerTest.add(bunchToAdd);
@@ -260,7 +294,7 @@ describe('class DYOToolsManager', () => {
       expect(managerTest.th_get_single_item(IDTestBunch).item.getAllKeys()).toStrictEqual(bunchElementsKeys);
       expect(managerTest.th_get_library().add.mock.calls.length).toBe(5);
       let itemCount = 0;
-      for (let addCalls of managerTest.th_get_library().add.mock.calls) {
+      for (const addCalls of managerTest.th_get_library().add.mock.calls) {
         expect(addCalls[0].getKey()).toBe(bunchElements[itemCount].getKey());
         expect(addCalls[1]).toBeUndefined();
         itemCount++;
@@ -279,12 +313,11 @@ describe('class DYOToolsManager', () => {
       expect(managerTest.th_get_single_item(IDTestBunch).item.getAllKeys()).toStrictEqual(bunchElementsKeys);
       expect(managerTest.th_get_library().add.mock.calls.length).toBe(3);
       let itemCount = 2;
-      for (let addCalls of managerTest.th_get_library().add.mock.calls) {
+      for (const addCalls of managerTest.th_get_library().add.mock.calls) {
         expect(addCalls[0].getKey()).toBe(bunchElements[itemCount].getKey());
         expect(addCalls[1]).toBeUndefined();
         itemCount++;
       }
-
     });
 
     test('set context when adding an item - default case', () => {
@@ -299,9 +332,9 @@ describe('class DYOToolsManager', () => {
     test('set context when adding an item - remove from old manager', () => {
       const oldManagerTest = new DTManagerTest();
       bunchToAdd.th_set_context(oldManagerTest);
-      oldManagerTest.th_set_items({ [bunchToAdd.getId()] : { scope: 'default', item: bunchToAdd } });
+      oldManagerTest.th_set_items({ [bunchToAdd.getId()]: { scope: 'default', item: bunchToAdd } });
       managerTest.th_set_id(IDTest);
-      oldManagerTest.th_set_id(IDTest + '-old');
+      oldManagerTest.th_set_id(`${IDTest}-old`);
       jest.spyOn(oldManagerTest, 'remove');
       jest.spyOn(oldManagerTest, 'getComponentType').mockImplementation(() => 'manager');
 
@@ -325,15 +358,15 @@ describe('class DYOToolsManager', () => {
 
       // Bunches to add
       const bunchToAdd1 = new DTBunchStub();
-      bunchToAdd1.th_set_id(IDTestBunch + '_1');
+      bunchToAdd1.th_set_id(`${IDTestBunch}_1`);
       const bunchToAdd2 = new DTBunchStub();
-      bunchToAdd2.th_set_id(IDTestBunch + '_2');
+      bunchToAdd2.th_set_id(`${IDTestBunch}_2`);
       const bunchToAdd3 = new DTBunchStub();
-      bunchToAdd3.th_set_id(IDTestBunch + '_3');
-      bunchesToAdd = [ bunchToAdd1, bunchToAdd2, bunchToAdd3 ];
+      bunchToAdd3.th_set_id(`${IDTestBunch}_3`);
+      bunchesToAdd = [bunchToAdd1, bunchToAdd2, bunchToAdd3];
 
       // Add tests scopes
-      managerTest.th_set_scopes([ ...managerTest.th_get_scopes(), ...ScopesTest ]);
+      managerTest.th_set_scopes([...managerTest.th_get_scopes(), ...ScopesTest]);
     });
 
     test('add many items - use add method - default case', () => {
@@ -341,7 +374,7 @@ describe('class DYOToolsManager', () => {
 
       expect(mockedAdd.mock.calls.length).toBe(3);
       let itemCount = 0;
-      for (let addCalls of mockedAdd.mock.calls) {
+      for (const addCalls of mockedAdd.mock.calls) {
         expect(addCalls[0].th_get_id()).toBe(bunchesToAdd[itemCount].th_get_id());
         expect(addCalls[1]).toBeUndefined();
         itemCount++;
@@ -367,42 +400,43 @@ describe('class DYOToolsManager', () => {
     test('add many items - use add method - not restore initial items when errors option is enabled', () => {
       // TODO
     });
-  })
+  });
+
+  // TODO
+  describe('moveToScope()', () => {});
 
   describe('get()', () => {
-
     beforeEach(() => {
       populateManager(managerTest);
-    })
+    });
 
     test('return a bunch by its id', () => {
-      const bunch = managerTest.get(IDTestBunch + '_1');
+      const bunch = managerTest.get(`${IDTestBunch}_1`);
 
       expect(bunch).toBeDefined();
-      expect(bunch.th_get_id()).toBe(IDTestBunch + '_1');
+      expect(bunch.th_get_id()).toBe(`${IDTestBunch}_1`);
     });
 
     test('return undefined if bunch is not found', () => {
-      const bunch = managerTest.get(IDTestBunch + '_5');
+      const bunch = managerTest.get(`${IDTestBunch}_5`);
 
       expect(bunch).toBeUndefined();
     });
-  })
+  });
 
   describe('getAll()', () => {
-
     beforeEach(() => {
       populateManager(managerTest);
-    })
+    });
 
     test('return all bunch items', () => {
       const bunches = managerTest.getAll();
 
-      const bunchesIds = bunches.map(bunch => bunch.th_get_id());
+      const bunchesIds = bunches.map((bunch) => bunch.th_get_id());
       expect(bunchesIds.length).toBe(3);
-      expect(bunchesIds.includes(IDTestBunch + '_1')).toBeTruthy();
-      expect(bunchesIds.includes(IDTestBunch + '_2')).toBeTruthy();
-      expect(bunchesIds.includes(IDTestBunch + '_3')).toBeTruthy();
+      expect(bunchesIds.includes(`${IDTestBunch}_1`)).toBeTruthy();
+      expect(bunchesIds.includes(`${IDTestBunch}_2`)).toBeTruthy();
+      expect(bunchesIds.includes(`${IDTestBunch}_3`)).toBeTruthy();
     });
 
     test('return empty array if no bunch', () => {
@@ -416,10 +450,10 @@ describe('class DYOToolsManager', () => {
     test('scope argument : return only bunches into the scope', () => {
       const bunches = managerTest.getAll(ScopesTest[0]);
 
-      const bunchesIds = bunches.map(bunch => bunch.th_get_id());
+      const bunchesIds = bunches.map((bunch) => bunch.th_get_id());
       expect(bunchesIds.length).toBe(2);
-      expect(bunchesIds.includes(IDTestBunch + '_2')).toBeTruthy();
-      expect(bunchesIds.includes(IDTestBunch + '_3')).toBeTruthy();
+      expect(bunchesIds.includes(`${IDTestBunch}_2`)).toBeTruthy();
+      expect(bunchesIds.includes(`${IDTestBunch}_3`)).toBeTruthy();
     });
 
     test('scope argument : return empty array if no bunch into the scope', () => {
@@ -433,5 +467,29 @@ describe('class DYOToolsManager', () => {
 
       expect(bunches.length).toBe(0);
     });
-  })
+  });
+
+  // TODO
+  describe('remove()', () => {});
+
+  // TODO
+  describe('removeMany()', () => {});
+
+  // TODO
+  describe('removeAll()', () => {});
+
+  // TODO
+  describe('find()', () => {});
+
+  // TODO
+  describe('updateLibrary()', () => {});
+
+  // TODO
+  describe('reloadLibrary()', () => {});
+
+  // TODO
+  describe('toObject()', () => {});
+
+  // TODO
+  describe('toString()', () => {});
 });

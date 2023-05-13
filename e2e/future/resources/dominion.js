@@ -84,6 +84,11 @@ const cards = {
 const buildCard = (key) => {
     const element = new DTElement(key);
     element.setManyMeta(cards[key].meta);
+    if (cards[key].events) {
+        for (let actionKey of Object.keys(cards[key].events)) {
+            element.addEvent(actionKey, cards[key].events[actionKey]);
+        }
+    }
     return element;
 }
 
@@ -183,6 +188,44 @@ const initializeDominionManager = () => {
             }
         }
     }
+
+    // Initialize actions
+    const fakeShuffle = (bunch) => {
+      const estates = bunch.find({ key: { $eq: 'ESTATE' }});
+      const coppers = bunch.find({ key: { $eq: 'COPPER' }});
+
+      bunch.removeAll();
+      bunch.addMany([
+          coppers[0],
+          estates[0],
+          coppers[1],
+          estates[1],
+          coppers[2],
+          estates[2],
+          coppers[3],
+          coppers[4],
+          coppers[5],
+          coppers[6],
+      ])
+    };
+    const fakeShuffleAction = new DTSimpleAction('shuffle', fakeShuffle, {
+        target: 'bunch',
+        scopes: ['deck']
+    });
+
+    const drawAction = new DTTransferAction('draw', {
+       scopes: ['deck'],
+       destinationScope: 'hand'
+    });
+
+    const playAction = new DTTransferAction('play', {
+        scopes: ['hand'],
+        destinationScope: 'playZone'
+    });
+
+    manager.addAction(fakeShuffleAction);
+    manager.addAction(drawAction);
+    manager.addAction(playAction);
 
     // Return
     return {

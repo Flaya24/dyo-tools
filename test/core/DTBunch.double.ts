@@ -1,5 +1,5 @@
-import {DTBunch, DTComponent} from '../../src';
-import {defaultOptions as DTBunchDefaultOptions} from '../../src/core/DTBunch'
+import { DTBunch, DTComponent } from '../../src';
+import { defaultOptions as DTBunchDefaultOptions } from '../../src/core/DTBunch';
 import {
   HaileiMetaData,
   IldressMetaData,
@@ -9,7 +9,7 @@ import {
   YssaliaMetaData,
 } from './DTComponentWithMeta.double';
 import DYOToolsElement from '../../src/core/DTElement';
-import {DTBunchOptions, DTElementToObject} from '../../src/types';
+import { DTBunchOptions, DTElementToObject } from '../../src/types';
 import Mocked = jest.Mocked;
 import {
   HaileiIdTest,
@@ -23,22 +23,23 @@ import {
   MaydenaToObjectTest,
   MeldrineIdTest,
   MeldrineKeyTest,
-  MeldrineToObjectTest, YssaliaIdTest, YssaliaKeyTest, YssaliaToObjectTest
-} from "./DTElement.double";
-import {DTErrorStub} from "./DTError.double";
-import {DTPlayerStub} from "./DTPlayer.double";
+  MeldrineToObjectTest, YssaliaIdTest, YssaliaKeyTest, YssaliaToObjectTest,
+} from './DTElement.double';
+import { DTErrorStub } from './DTError.double';
+import { DTPlayerStub } from './DTPlayer.double';
 
-/******************** STUB PROPERTIES CONSTANTS
+/** ****************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
- * *****/
+ * **** */
 export const IDTest = 'DTBunch-id-1234567';
+export const IDTestLibrary = 'DTBunch-id-library-1234567';
 export const KeyTest = 'DTBunch-key-1234567';
 export const defaultOptions: DTBunchOptions = DTBunchDefaultOptions;
 
-/******************** HELPER TEST CLASS
+/** ****************** HELPER TEST CLASS
  * Helper test class, inherits the main component
  * Providing methods to property access and other facilities, in order to avoid using class methods
- * *****/
+ * **** */
 export class DTBunchTest extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>, IMetaDataTest> {
   th_get_id(): string {
     return this._id;
@@ -87,7 +88,7 @@ export class DTBunchTest extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>,
   th_set_options(options: any): void {
     this._options = {
       ...this._options,
-      ...options
+      ...options,
     };
   }
 
@@ -104,9 +105,9 @@ export class DTBunchTest extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>,
   }
 }
 
-/******************** STUB CLASS
+/** ****************** STUB CLASS
  * Stub class, for using in other component
- * *****/
+ * **** */
 export class DTBunchStub extends DTBunchTest {
   constructor(items: Array<Mocked<DYOToolsElement<IMetaDataTest>>> = []) {
     super();
@@ -134,13 +135,18 @@ export class DTBunchStub extends DTBunchTest {
 export class DTBunchStubLibrary extends DTBunchStub {
   constructor(items: Array<Mocked<DYOToolsElement<IMetaDataTest>>> = []) {
     super(items);
+    this._id = IDTestLibrary;
     this._key = 'library';
     this._errors = [];
     this._items = items;
     this._options = {
       ...DTBunchDefaultOptions,
-      virtualContext: true
+      virtualContext: true,
     };
+  }
+
+  getId(): string {
+    return IDTestLibrary;
   }
 
   getKey(): string {
@@ -153,9 +159,9 @@ export class DTBunchStubLibrary extends DTBunchStub {
   }
 }
 
-/******************** HELPER METHODS
+/** ****************** HELPER METHODS
  * Additional helper methods to use with testing
- * *****/
+ * **** */
 
 // Function to generate Mocked DTElement collection
 // Warning : DYOToolsElement class must be MOCKED to use this !
@@ -221,5 +227,3 @@ export const generateMockedElements = (numberElements: number): Array<Mocked<DYO
 
   return mockedElements;
 };
-
-

@@ -1,7 +1,7 @@
-import DYOToolsComponent from "./DTComponent";
-import DYOToolsBunch from "./DTBunch";
-import DYOToolsError from "./DTError";
-import {DTManagerItemsType} from "../types";
+import DYOToolsComponent from './DTComponent';
+import DYOToolsBunch from './DTBunch';
+import DYOToolsError from './DTError';
+import { DTManagerItemsType } from '../types';
 
 export default class DYOToolsManager extends DYOToolsComponent {
   /**
@@ -11,7 +11,7 @@ export default class DYOToolsManager extends DYOToolsComponent {
 
   protected _items: DTManagerItemsType;
 
-  protected _scopes: any;
+  protected _scopes: string[];
 
   protected _actions: any;
 
@@ -26,10 +26,22 @@ export default class DYOToolsManager extends DYOToolsComponent {
     this._scopes = [
       'default',
       'virtual',
-      ...scopes
+      ...scopes,
     ];
     this._actions = {};
     this._library = new DYOToolsBunch('library', elements, { virtualContext: true });
+  }
+
+  getLibrary(): any {
+    return this._library;
+  }
+
+  getScopes(): string[] {
+    return this._scopes;
+  }
+
+  isValidScope(scope: string): boolean {
+    return this._scopes.includes(scope);
   }
 
   add(item: DYOToolsBunch<any, any>, targetScope?: string): void {
@@ -48,7 +60,7 @@ export default class DYOToolsManager extends DYOToolsComponent {
     const { virtualContext } = item.getOptions();
     let scope;
     if (!targetScope) {
-      scope = virtualContext ? 'virtual': 'default';
+      scope = virtualContext ? 'virtual' : 'default';
     } else {
       let errorCode: string;
       let errorMessage: string;
@@ -58,11 +70,11 @@ export default class DYOToolsManager extends DYOToolsComponent {
       }
       if (virtualContext && targetScope !== 'virtual') {
         errorCode = 'forbidden_scope';
-        errorMessage = "Scope provided cannot be associated to a virtual bunch";
+        errorMessage = 'Scope provided cannot be associated to a virtual bunch';
       }
       if (!virtualContext && targetScope === 'virtual') {
         errorCode = 'forbidden_virtual_scope';
-        errorMessage = "Virtual Scope provided cannot be associated to a physical bunch";
+        errorMessage = 'Virtual Scope provided cannot be associated to a physical bunch';
       }
 
       if (errorCode && errorMessage) {
@@ -91,14 +103,14 @@ export default class DYOToolsManager extends DYOToolsComponent {
     // Add the new item
     this._items[item.getId()] = {
       scope,
-      item
-    }
+      item,
+    };
   }
 
   addMany(items: any[]): void {
     items.forEach((item: any) => {
       this.add(item);
-    })
+    });
   }
 
   remove(id: string): void {
@@ -115,35 +127,20 @@ export default class DYOToolsManager extends DYOToolsComponent {
       if (!scope || item.scope === scope) {
         finalItems.push(item.item);
       }
-    })
+    });
 
     return finalItems;
-  }
-
-  getScopes(): any {
-    return this._scopes;
-  }
-
-  isValidScope(scope: string): boolean {
-    return this._scopes.includes(scope);
   }
 
   getActions(): any {
     return this._actions;
   }
 
-  getLibrary(): any {
-    return this._library;
-  }
-
   toString(): string {
-    return "";
+    return '';
   }
 
   toObject(): unknown {
     return undefined;
   }
-
-
-
 }
