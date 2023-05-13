@@ -1,8 +1,10 @@
 import { DTManager } from '../../src';
 import {
+  defaultOptions,
   DTBunchStubLibrary, DTBunchTest, generateMockedElements, IDTest as IDTestBunch,
 } from './DTBunch.double';
 import { DTManagerItemsType } from '../../src/types';
+import {expect} from "@jest/globals";
 
 /** ****************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
@@ -98,10 +100,31 @@ export function populateManager(manager: DTManagerTest): DTManagerTest {
   const bunch1 = new DTBunchTest();
   bunch1.th_set_items(mockedElements);
   bunch1.th_set_id(`${IDTestBunch}_1`);
+  jest.spyOn(bunch1, 'getId').mockImplementation(function() {
+    return `${IDTestBunch}_1`;
+  });
+  jest.spyOn(bunch1, 'getOptions').mockImplementation(function() {
+    return { ...defaultOptions };
+  });
+
   const bunch2 = new DTBunchTest();
   bunch2.th_set_id(`${IDTestBunch}_2`);
+  jest.spyOn(bunch2, 'getId').mockImplementation(function() {
+    return `${IDTestBunch}_2`;
+  });
+  jest.spyOn(bunch2, 'getOptions').mockImplementation(function() {
+    return { ...defaultOptions };
+  });
+
   const bunch3 = new DTBunchTest();
   bunch3.th_set_id(`${IDTestBunch}_3`);
+  bunch3.th_set_options({ virtualContext: true });
+  jest.spyOn(bunch3, 'getId').mockImplementation(function() {
+    return `${IDTestBunch}_3`;
+  });
+  jest.spyOn(bunch3, 'getOptions').mockImplementation(function() {
+    return { ...defaultOptions, virtualContext: true };
+  });
 
   const items: DTManagerItemsType = {
     [bunch1.th_get_id()]: {
@@ -113,7 +136,7 @@ export function populateManager(manager: DTManagerTest): DTManagerTest {
       item: bunch2,
     },
     [bunch3.th_get_id()]: {
-      scope: ScopesTest[0],
+      scope: 'virtual',
       item: bunch3,
     },
   };
@@ -121,3 +144,10 @@ export function populateManager(manager: DTManagerTest): DTManagerTest {
 
   return manager;
 }
+
+export const checkManagerItem = (managerTest: DTManagerTest, bunchId: string, scope: string): void => {
+  expect(managerTest.th_get_single_item(bunchId)).toBeDefined();
+  expect(Object.keys(managerTest.th_get_single_item(bunchId))).toStrictEqual(['scope', 'item']);
+  expect(managerTest.th_get_single_item(bunchId).scope).toBe(scope);
+  expect(managerTest.th_get_single_item(bunchId).item.th_get_id()).toBe(bunchId);
+};

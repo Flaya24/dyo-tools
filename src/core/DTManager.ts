@@ -62,20 +62,7 @@ export default class DYOToolsManager extends DYOToolsComponent {
     if (!targetScope) {
       scope = virtualContext ? 'virtual' : 'default';
     } else {
-      let errorCode: string;
-      let errorMessage: string;
-      if (!this.isValidScope(targetScope)) {
-        errorCode = 'invalid_scope';
-        errorMessage = "Scope provided doesn't exist in the manager";
-      }
-      if (virtualContext && targetScope !== 'virtual') {
-        errorCode = 'forbidden_scope';
-        errorMessage = 'Scope provided cannot be associated to a virtual bunch';
-      }
-      if (!virtualContext && targetScope === 'virtual') {
-        errorCode = 'forbidden_virtual_scope';
-        errorMessage = 'Virtual Scope provided cannot be associated to a physical bunch';
-      }
+      const { code: errorCode, message: errorMessage } = this.getErrorDataForScope(targetScope, virtualContext);
 
       if (errorCode && errorMessage) {
         this.triggerError(new DYOToolsError(errorCode, errorMessage, this, item));
@@ -113,6 +100,28 @@ export default class DYOToolsManager extends DYOToolsComponent {
     });
   }
 
+  moveToScope(bunchId: string, targetScope: string): void {
+    if (!Object.keys(this._items).includes(bunchId)) {
+      this.triggerError(new DYOToolsError(
+        'invalid_id',
+        'Bunch id provided doesn\'t exist in the manager',
+        this,
+      ));
+      return;
+    }
+
+    const bunch = this._items[bunchId].item;
+
+    const { virtualContext } = bunch.getOptions();
+    const { code: errorCode, message: errorMessage } = this.getErrorDataForScope(targetScope, virtualContext);
+    if (errorCode && errorMessage) {
+      this.triggerError(new DYOToolsError(errorCode, errorMessage, this, bunch));
+      return;
+    }
+
+    this._items[bunchId].scope = targetScope;
+  }
+
   remove(id: string): void {
 
   }
@@ -142,5 +151,23 @@ export default class DYOToolsManager extends DYOToolsComponent {
 
   toObject(): unknown {
     return undefined;
+  }
+
+  private getErrorDataForScope(targetScope: string, virtualContext: boolean = false): { code: string, message: string } {
+    const response = { code: '', message: '' };
+    if (!this.isValidScope(targetScope)) {
+      response.code = 'invalid_scope';
+      response.message = "Scope provided doesn't exist in the manager";
+    }
+    if (virtualContext && targetScope !== 'virtual') {
+      response.code = 'forbidden_scope';
+      response.message = 'Scope provided cannot be associated to a virtual bunch';
+    }
+    if (!virtualContext && targetScope === 'virtual') {
+      response.code = 'forbidden_virtual_scope';
+      response.message = 'Virtual Scope provided cannot be associated to a physical bunch';
+    }
+
+    return response;
   }
 }

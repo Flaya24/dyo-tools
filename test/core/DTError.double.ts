@@ -75,7 +75,7 @@ export class DTErrorStub extends DTError {
 /******************** HELPER METHODS
  * Additional helper methods to use with testing
  * *****/
-export const checkCallForMockedDTError = (code, message, initiatorId, convictedId) => {
+export const checkCallForMockedDTError = (code, message, initiatorId, convictedId?) => {
   const mockedErrorConstructor = DTError.prototype.constructor as MockedFunction<(code: string, message: string, initiator?: DYOToolsComponent, convicted?: DYOToolsComponent) => DTError>;
   if (!mockedErrorConstructor.mock) {
     throw new Error('The DTError Constructor is not a mock');
@@ -84,7 +84,9 @@ export const checkCallForMockedDTError = (code, message, initiatorId, convictedI
     expect(mockedErrorConstructor.mock.calls[0][0]).toBe(code);
     expect(mockedErrorConstructor.mock.calls[0][1]).toBe(message);
     expect(mockedErrorConstructor.mock.calls[0][2].getId()).toBe(initiatorId);
-    expect(mockedErrorConstructor.mock.calls[0][3].getId()).toBe(convictedId);
+    if (convictedId) {
+      expect(mockedErrorConstructor.mock.calls[0][3].getId()).toBe(convictedId);
+    }
   }
 };
 

@@ -2,6 +2,7 @@ import {
   afterEach, beforeEach, describe, expect, jest, test,
 } from '@jest/globals';
 import {
+  checkManagerItem,
   DomainTest,
   DTManagerStubDomain,
   DTManagerTest,
@@ -168,13 +169,6 @@ describe('class DYOToolsManager', () => {
   describe('add()', () => {
     let bunchToAdd: DTBunchStub;
 
-    const checkManagerItem = (bunchId: string, scope: string): void => {
-      expect(managerTest.th_get_single_item(bunchId)).toBeDefined();
-      expect(Object.keys(managerTest.th_get_single_item(bunchId))).toStrictEqual(['scope', 'item']);
-      expect(managerTest.th_get_single_item(bunchId).scope).toBe(scope);
-      expect(managerTest.th_get_single_item(bunchId).item.getId()).toBe(bunchId);
-    };
-
     beforeEach(() => {
       jest.spyOn(managerTest, 'getId').mockReturnValue(IDTest);
       jest.spyOn(managerTest, 'isValidScope').mockReturnValue(true);
@@ -199,14 +193,14 @@ describe('class DYOToolsManager', () => {
       managerTest.add(bunchToAdd);
 
       expect(Object.keys(managerTest.th_get_items()).length).toBe(1);
-      checkManagerItem(IDTestBunch, 'default');
+      checkManagerItem(managerTest, IDTestBunch, 'default');
     });
 
     test('add a new item - empty bunch in specific scope', () => {
       managerTest.add(bunchToAdd, ScopesTest[0]);
 
       expect(Object.keys(managerTest.th_get_items()).length).toBe(1);
-      checkManagerItem(IDTestBunch, ScopesTest[0]);
+      checkManagerItem(managerTest, IDTestBunch, ScopesTest[0]);
     });
 
     test('add a new item - virtual bunch in virtual scope', () => {
@@ -215,7 +209,7 @@ describe('class DYOToolsManager', () => {
       managerTest.add(bunchToAdd);
 
       expect(Object.keys(managerTest.th_get_items()).length).toBe(1);
-      checkManagerItem(IDTestBunch, 'virtual');
+      checkManagerItem(managerTest, IDTestBunch, 'virtual');
     });
 
     test('trigger error if not existing scope for bunch', () => {
@@ -343,7 +337,7 @@ describe('class DYOToolsManager', () => {
       expect((oldManagerTest.remove as any).mock.calls.length).toBe(1);
       expect((oldManagerTest.remove as any).mock.calls[0][0]).toBe(bunchToAdd.getId());
       expect(Object.keys(managerTest.th_get_items()).length).toBe(1);
-      checkManagerItem(IDTestBunch, 'default');
+      checkManagerItem(managerTest, IDTestBunch, 'default');
     });
   });
 
@@ -402,8 +396,95 @@ describe('class DYOToolsManager', () => {
     });
   });
 
-  // TODO
-  describe('moveToScope()', () => {});
+  describe('moveToScope()', () => {
+    beforeEach(() => {
+      populateManager(managerTest);
+
+      jest.spyOn(managerTest, 'getId').mockReturnValue(IDTest);
+      jest.spyOn(managerTest, 'isValidScope').mockReturnValue(true);
+    });
+
+    test('move to default scope', () => {
+      managerTest.moveToScope(`${IDTestBunch}_2`, 'default');
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(3);
+      checkManagerItem(managerTest, `${IDTestBunch}_2`, 'default');
+    });
+
+    test('move to existing scope', () => {
+      managerTest.moveToScope(`${IDTestBunch}_2`, ScopesTest[1]);
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(3);
+      checkManagerItem(managerTest, `${IDTestBunch}_2`, ScopesTest[1]);
+    });
+
+    test('move to non-existing scope - trigger invalid_scope error', () => {
+      const mockedTriggerError = DTManager.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
+      jest.spyOn(managerTest, 'isValidScope').mockReturnValue(false);
+
+      managerTest.moveToScope(`${IDTestBunch}_2`, 'invalid_scope');
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(3);
+      expect(mockedTriggerError.mock.calls.length).toBe(1);
+      checkCallForMockedDTError(
+        'invalid_scope',
+        "Scope provided doesn't exist in the manager",
+        IDTest,
+        `${IDTestBunch}_2`,
+      );
+    });
+
+    test('move non-virtual bunch to virtual scope - trigger forbidden_virtual_scope error', () => {
+      const mockedTriggerError = DTManager.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
+
+      managerTest.moveToScope(`${IDTestBunch}_2`, 'virtual');
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(3);
+      expect(mockedTriggerError.mock.calls.length).toBe(1);
+      checkCallForMockedDTError(
+        'forbidden_virtual_scope',
+        'Virtual Scope provided cannot be associated to a physical bunch',
+        IDTest,
+        `${IDTestBunch}_2`,
+      );
+    });
+
+    test('move virtual bunch to non-virtual scope - trigger forbidden_scope error', () => {
+      const mockedTriggerError = DTManager.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
+
+      managerTest.moveToScope(`${IDTestBunch}_3`, ScopesTest[0]);
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(3);
+      expect(mockedTriggerError.mock.calls.length).toBe(1);
+      checkCallForMockedDTError(
+        'forbidden_scope',
+        'Scope provided cannot be associated to a virtual bunch',
+        IDTest,
+        `${IDTestBunch}_3`,
+      );
+    });
+
+    test('move to same scope - nothing append', () => {
+      managerTest.moveToScope(`${IDTestBunch}_1`, 'default');
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(3);
+      checkManagerItem(managerTest, `${IDTestBunch}_1`, 'default');
+    });
+
+    test('move an non-existing bunch id - trigger invalid_id error', () => {
+      const mockedTriggerError = DTManager.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
+
+      managerTest.moveToScope(`${IDTestBunch}_5`, ScopesTest[0]);
+
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(3);
+      expect(mockedTriggerError.mock.calls.length).toBe(1);
+      checkCallForMockedDTError(
+        'invalid_id',
+        'Bunch id provided doesn\'t exist in the manager',
+        IDTest,
+      );
+    });
+  });
 
   describe('get()', () => {
     beforeEach(() => {
@@ -451,9 +532,8 @@ describe('class DYOToolsManager', () => {
       const bunches = managerTest.getAll(ScopesTest[0]);
 
       const bunchesIds = bunches.map((bunch) => bunch.th_get_id());
-      expect(bunchesIds.length).toBe(2);
+      expect(bunchesIds.length).toBe(1);
       expect(bunchesIds.includes(`${IDTestBunch}_2`)).toBeTruthy();
-      expect(bunchesIds.includes(`${IDTestBunch}_3`)).toBeTruthy();
     });
 
     test('scope argument : return empty array if no bunch into the scope', () => {
