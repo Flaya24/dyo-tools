@@ -1,10 +1,10 @@
-import {DTElement} from '../../src';
-import {IMetaDataTest} from './DTComponentWithMeta.double';
-import {DTPlayerStub} from "./DTPlayer.double";
+import { DTElement } from '../../src';
+import { IMetaDataTest } from './DTComponentWithMeta.double';
+import { DTPlayerStub } from './DTPlayer.double';
 
-/******************** STUB PROPERTIES CONSTANTS
+/** ****************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
- * *****/
+ * **** */
 // Global constants
 export const IDTest = 'DTElement-id-1234567';
 export const KeyTest = 'DTElement-key-1234567';
@@ -26,10 +26,10 @@ export const YssaliaIdTest = 'DTElement-id-Yssalia';
 export const YssaliaKeyTest = 'DTElement-key-Yssalia';
 export const YssaliaToObjectTest = { id: 'DTElement-id-Yssalia', key: 'DTElement-key-Yssalia', type: 'element' };
 
-/******************** HELPER TEST CLASS
+/** ****************** HELPER TEST CLASS
  * Helper test class, inherits the main component
  * Providing methods to property access and other facilities, in order to avoid using class methods
- * *****/
+ * **** */
 export class DTElementTest extends DTElement<IMetaDataTest> {
   th_get_id(): string {
     return this._id;
@@ -63,4 +63,66 @@ export class DTElementTest extends DTElement<IMetaDataTest> {
     this._meta = meta;
   }
 }
+/** ****************** STUB CLASS
+ * Stub class, for using in other component
+ * **** */
+export class DTElementStub extends DTElement<IMetaDataTest> {
+  public parentIndex: number;
 
+  constructor(index = 0) {
+    super();
+    this._key = KeyTest;
+    this.parentIndex = index;
+  }
+}
+export class DTElementStubExtended extends DTElementStub {
+  private propString: string;
+
+  private propArray: string[];
+
+  private propNumber: number;
+
+  private propBoolean: boolean;
+
+  private propObject: Record<string, unknown>;
+
+  getPropString(): string {
+    return this.propString;
+  }
+
+  setPropString(propString: string): void {
+    this.propString = propString;
+  }
+
+  getPropArray(): string[] {
+    return this.propArray;
+  }
+
+  setPropArray(propArray: string[]): void {
+    this.propArray = propArray;
+  }
+
+  getPropNumber(): number {
+    return this.propNumber;
+  }
+
+  setPropNumber(propNumber: number): void {
+    this.propNumber = propNumber;
+  }
+
+  getPropBoolean(): boolean {
+    return this.propBoolean;
+  }
+
+  setPropBoolean(propBoolean: boolean): void {
+    this.propBoolean = propBoolean;
+  }
+
+  getPropObject(): Record<string, unknown> {
+    return this.propObject;
+  }
+
+  setPropObject(propObject: Record<string, unknown>): void {
+    this.propObject = propObject;
+  }
+}

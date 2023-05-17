@@ -1,6 +1,6 @@
-import {DTBunch} from "../index";
+import { DTBunch } from '../index';
 
-/** filters Methods * */
+/** Constants Enum * */
 export enum FilterOperatorType {
   EQ = '$eq',
   IN = '$in',
@@ -11,8 +11,6 @@ export enum FilterOperatorType {
   CONTAINS = '$contains',
   NCONTAINS = '$ncontains',
 }
-
-export type StandardPrimitiveType = string | number | boolean | null;
 
 /** DTComponent interfaces * */
 export interface DTComponentOptions {
@@ -82,4 +80,26 @@ export type DTManagerItemsType = Record<string, DTManagerItemType>;
 export type DTManagerItemType = {
   scope: string,
   item: DTBunch<any, any>,
+};
+
+/** DYO Finder interfaces * */
+
+export type StandardPrimitiveType = string | number | boolean | null;
+export type DYOFinderConfiguration = Record<string, DYOFinderConfigurationProp>;
+
+export interface DYOFinderConfigurationProp {
+  operators: FilterOperatorType[],
+  getValue: (item: any) => StandardPrimitiveType
 }
+
+export interface DYOFinderFilterOperator {
+  [FilterOperatorType.EQ]: StandardPrimitiveType
+  [FilterOperatorType.IN]: Array<StandardPrimitiveType>
+  [FilterOperatorType.NIN]: Array<StandardPrimitiveType>
+  [FilterOperatorType.NE]: StandardPrimitiveType
+  [FilterOperatorType.LTE]: number
+  [FilterOperatorType.GTE]: number
+  [FilterOperatorType.CONTAINS]: StandardPrimitiveType
+  [FilterOperatorType.NCONTAINS]: StandardPrimitiveType
+}
+export type DYOFinderFilters = Record<string, Partial<DYOFinderFilterOperator>>;

@@ -22,7 +22,7 @@ import {
 import { mockOverriddenMethods } from './DTComponent.double';
 import { DTComponent, DTElement } from '../../src';
 import DYOToolsError from '../../src/core/DTError';
-import { checkCallForMockedDTError } from './DTError.double';
+import { checkCallForMockedDTError, DTErrorStub } from './DTError.double';
 import { IMetaDataTest } from './DTComponentWithMeta.double';
 import MockedFunction = jest.MockedFunction;
 
@@ -291,7 +291,7 @@ describe('class DYOToolsManager', () => {
       for (const addCalls of managerTest.th_get_library().add.mock.calls) {
         expect(addCalls[0].getKey()).toBe(bunchElements[itemCount].getKey());
         expect(addCalls[1]).toBeUndefined();
-        itemCount++;
+        itemCount += 1;
       }
     });
 
@@ -310,7 +310,7 @@ describe('class DYOToolsManager', () => {
       for (const addCalls of managerTest.th_get_library().add.mock.calls) {
         expect(addCalls[0].getKey()).toBe(bunchElements[itemCount].getKey());
         expect(addCalls[1]).toBeUndefined();
-        itemCount++;
+        itemCount += 1;
       }
     });
 
@@ -341,7 +341,6 @@ describe('class DYOToolsManager', () => {
     });
   });
 
-  // TODO : WIP
   describe('addMany()', () => {
     let mockedAdd: MockedFunction<(item: any, scope?: string) => void>;
     let bunchesToAdd: DTBunchStub[];
@@ -359,8 +358,9 @@ describe('class DYOToolsManager', () => {
       bunchToAdd3.th_set_id(`${IDTestBunch}_3`);
       bunchesToAdd = [bunchToAdd1, bunchToAdd2, bunchToAdd3];
 
-      // Add tests scopes
+      // Add tests scopes and options
       managerTest.th_set_scopes([...managerTest.th_get_scopes(), ...ScopesTest]);
+      managerTest.th_set_options({ errors: false });
     });
 
     test('add many items - use add method - default case', () => {
@@ -371,28 +371,68 @@ describe('class DYOToolsManager', () => {
       for (const addCalls of mockedAdd.mock.calls) {
         expect(addCalls[0].th_get_id()).toBe(bunchesToAdd[itemCount].th_get_id());
         expect(addCalls[1]).toBeUndefined();
-        itemCount++;
+        itemCount += 1;
       }
     });
 
     test('add many items - use add method - with scope case', () => {
-      // managerTest.addMany(bunchesToAdd, ScopesTest[0]);
-      //
-      // expect(mockedAdd.mock.calls.length).toBe(3);
-      // let itemCount = 0;
-      // for (let addCalls of mockedAdd.mock.calls) {
-      //   expect(addCalls[0].th_get_id()).toBe(bunchesToAdd[itemCount].th_get_id());
-      //   expect(addCalls[1]).toBeUndefined();
-      //   itemCount++;
-      // }
+      managerTest.addMany(bunchesToAdd, ScopesTest[0]);
+
+      expect(mockedAdd.mock.calls.length).toBe(3);
+      let itemCount = 0;
+      for (const addCalls of mockedAdd.mock.calls) {
+        expect(addCalls[0].th_get_id()).toBe(bunchesToAdd[itemCount].th_get_id());
+        expect(addCalls[1]).toBe(ScopesTest[0]);
+        itemCount += 1;
+      }
     });
 
-    test('add many items - use add method - restore initial items when an exception error occurred', () => {
-      // TODO
+    test('errors when adding many items at index - default case - add no items and throw error', () => {
+      jest.spyOn(managerTest, 'add')
+        .mockImplementationOnce(function (item) {
+          this._items[`${IDTestBunch}_1`] = {
+            scope: 'default',
+            item,
+          };
+        })
+        .mockImplementationOnce(() => {
+          throw new DTErrorStub();
+        })
+        .mockImplementationOnce(function (item) {
+          this._items[`${IDTestBunch}_3`] = {
+            scope: 'default',
+            item,
+          };
+        });
+
+      expect(() => { managerTest.addMany(bunchesToAdd); }).toThrow();
+      expect(mockedAdd.mock.calls.length).toBe(2);
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(0);
     });
 
-    test('add many items - use add method - not restore initial items when errors option is enabled', () => {
-      // TODO
+    test('errors when adding many items at index - errors case - add success items and stack errors for others', () => {
+      managerTest.th_set_options({ errors: true });
+      jest.spyOn(managerTest, 'add')
+        .mockImplementationOnce(function (item) {
+          this._items[`${IDTestBunch}_1`] = {
+            scope: 'default',
+            item,
+          };
+        })
+        .mockImplementationOnce(function () {
+          this._errors = [new DTErrorStub()];
+        })
+        .mockImplementationOnce(function (item) {
+          this._items[`${IDTestBunch}_3`] = {
+            scope: 'default',
+            item,
+          };
+        });
+
+      managerTest.addMany(bunchesToAdd);
+
+      expect(mockedAdd.mock.calls.length).toBe(3);
+      expect(Object.keys(managerTest.th_get_items()).length).toBe(2);
     });
   });
 
@@ -548,6 +588,9 @@ describe('class DYOToolsManager', () => {
       expect(bunches.length).toBe(0);
     });
   });
+
+  // TODO
+  describe('getScope()', () => {});
 
   // TODO
   describe('remove()', () => {});

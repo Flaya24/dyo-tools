@@ -11,8 +11,8 @@ import {
 } from '../types';
 import DYOToolsPlayer from './DTPlayer';
 import DYOToolsError from './DTError';
-import {validFiltersForItem} from '../utils/filters';
-import DYOToolsComponentPhysical from "./DTComponentPhysical";
+import { validFiltersForItem } from '../utils/filters';
+import DYOToolsComponentPhysical from './DTComponentPhysical';
 
 // Default Options for class
 export const defaultOptions: DTBunchOptions = {
@@ -74,7 +74,7 @@ export default class DYOToolsBunch<
    * @param options Specific options configuration for the instance. Default empty object.
    */
   constructor(key?: string, items: IBunchItem[] = [], options: Partial<DTBunchOptions> = {}) {
-    super(key, {...defaultOptions, ...options});
+    super(key, { ...defaultOptions, ...options });
 
     this._items = [];
     if (items && items.length > 0) {
@@ -146,7 +146,7 @@ export default class DYOToolsBunch<
    */
   addAtIndex(item: IBunchItem, index: number, options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
     const {
-      uniqueKey, replaceIndex, inheritOwner, virtualContext
+      uniqueKey, replaceIndex, inheritOwner, virtualContext,
     }: Partial<DTBunchOptions> = { ...this._options, ...options };
     let hasError = false;
     let finalIndex = index;

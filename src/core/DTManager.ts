@@ -1,7 +1,7 @@
 import DYOToolsComponent from './DTComponent';
 import DYOToolsBunch from './DTBunch';
 import DYOToolsError from './DTError';
-import { DTManagerItemsType } from '../types';
+import { DTComponentOptions, DTManagerItemsType } from '../types';
 
 export default class DYOToolsManager extends DYOToolsComponent {
   /**
@@ -94,10 +94,20 @@ export default class DYOToolsManager extends DYOToolsComponent {
     };
   }
 
-  addMany(items: any[]): void {
-    items.forEach((item: any) => {
-      this.add(item);
-    });
+  addMany(items: DYOToolsBunch<any, any>[], targetScope?: string): void {
+    const previousItems = { ...this._items };
+    const { errors }: DTComponentOptions = this._options;
+
+    try {
+      items.forEach((item: any) => {
+        this.add(item, targetScope);
+      });
+    } catch (err: unknown) {
+      this._items = previousItems;
+      if (!errors) {
+        throw err;
+      }
+    }
   }
 
   moveToScope(bunchId: string, targetScope: string): void {
@@ -153,7 +163,7 @@ export default class DYOToolsManager extends DYOToolsComponent {
     return undefined;
   }
 
-  private getErrorDataForScope(targetScope: string, virtualContext: boolean = false): { code: string, message: string } {
+  private getErrorDataForScope(targetScope: string, virtualContext = false): { code: string, message: string } {
     const response = { code: '', message: '' };
     if (!this.isValidScope(targetScope)) {
       response.code = 'invalid_scope';
