@@ -5,6 +5,7 @@ import {
   DTBunchStubLibrary, DTBunchTest, generateMockedElements, IDTest as IDTestBunch,
 } from './DTBunch.double';
 import { DTManagerItemsType } from '../../src/types';
+import DYOFinder from "../../src/libs/DYOFinder";
 
 /** ****************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
@@ -76,6 +77,10 @@ export class DTManagerTest extends DTManager {
       ...this._options,
       ...options,
     };
+  }
+
+  th_get_finder(): DYOFinder {
+    return this._finder;
   }
 }
 

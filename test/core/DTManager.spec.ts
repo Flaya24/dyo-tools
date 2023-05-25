@@ -33,6 +33,7 @@ jest.mock('../../src/core/DTElement');
 jest.mock('../../src/core/DTBunch');
 jest.mock('../../src/core/DTComponent');
 jest.mock('../../src/core/DTError');
+jest.mock('../../src/libs/DYOFinder');
 // Add specific mock for inherited methods to have a basic implementation
 mockOverriddenMethods(DTComponent);
 
@@ -78,6 +79,9 @@ describe('class DYOToolsManager', () => {
       expect(newManager.th_get_library().constructor.mock.calls[0][0]).toBe('library');
       expect(newManager.th_get_library().constructor.mock.calls[0][1]).toStrictEqual([]);
       expect(newManager.th_get_library().constructor.mock.calls[0][2].virtualContext).toBe(true);
+
+      // Finder initialization
+
     });
 
     test('creation simple without key - use domain if defined', () => {
@@ -602,7 +606,9 @@ describe('class DYOToolsManager', () => {
   describe('removeAll()', () => {});
 
   // TODO
-  describe('find()', () => {});
+  describe('find()', () => {
+
+  });
 
   // TODO
   describe('updateLibrary()', () => {});

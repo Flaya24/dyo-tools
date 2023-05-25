@@ -26,8 +26,16 @@ export default class DYOFinder {
       for (const [propKey, configProp] of Object.entries(this._configuration)) {
         if (configProp.objectSearch && filters[propKey]) {
           const objectValue = configProp.getValue(item);
-          for (const [objectK, objectV] of Object.entries(objectValue)) {
-            const metaValue = Object.prototype.hasOwnProperty.call(objectValue, objectV) ? itemMeta[meta] : null;
+          if (objectValue) {
+            for (const [filterK, filterV] of Object.entries(filters[propKey])) {
+              const metaValue = Object.prototype.hasOwnProperty.call(objectValue, filterK) ? objectValue[filterK] : undefined;
+              if (!this.checkAllValidFiltersForProp(metaValue, filterV, configProp.operators)) {
+                validItem = false;
+                break;
+              }
+            }
+          } else {
+            validItem = false;
           }
         }
         else if (filters[propKey] && !this.checkAllValidFiltersForProp(configProp.getValue(item), filters[propKey], configProp.operators)) {

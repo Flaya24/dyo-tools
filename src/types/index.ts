@@ -103,4 +103,4 @@ export interface DYOFinderFilterOperator {
   [FilterOperatorType.CONTAINS]: StandardPrimitiveType
   [FilterOperatorType.NCONTAINS]: StandardPrimitiveType
 }
-export type DYOFinderFilters = Record<string, Partial<DYOFinderFilterOperator>> | Record<string, Record<string, Partial<DYOFinderFilterOperator>>>;
+export type DYOFinderFilters = Record<string, Partial<DYOFinderFilterOperator |  Record<string, Partial<DYOFinderFilterOperator>>>>;

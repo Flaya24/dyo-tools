@@ -160,19 +160,28 @@ describe('class DYOFinder', () => {
       expect(finderExecutionTestValue(finder.execute({}))).toStrictEqual([0, []]);
     });
 
-    test('find items with object search', () => {
+    test('find items with object search property', () => {
       expect(finderExecutionTestValue(finder.execute(
         { propMeta: { meta1: { $eq: 'value1' } } },
-      ))).toStrictEqual([1, [0]]);
+      ))).toStrictEqual([2, [0, 1]]);
       expect(finderExecutionTestValue(finder.execute(
         { propMeta: { meta2: { $in: ['value2', 'value1'] } } },
       ))).toStrictEqual([2, [1, 2]]);
       expect(finderExecutionTestValue(finder.execute(
         { propMeta: { meta1: { $ne: 'value1' } } },
-      ))).toStrictEqual([3, [1, 2, 4]]);
+      ))).toStrictEqual([2, [2, 4]]);
       expect(finderExecutionTestValue(finder.execute(
         { propMeta: { meta1: { } } },
       ))).toStrictEqual([0, []]);
+    });
+
+    test('find items with complex and multiple filters', () => {
+      expect(finderExecutionTestValue(finder.execute(
+        { propString: { $eq: 'item_prime' }, propNumber: { $lte: 18 } },
+      ))).toStrictEqual([1, [0]]);
+      expect(finderExecutionTestValue(finder.execute(
+        { propString: { $in: ['item_prime', 'item_third'] }, propArray: { $ne: undefined }, propMeta: { meta2: { $ne: undefined } } },
+      ))).toStrictEqual([1, [1]]);
     });
   });
 });

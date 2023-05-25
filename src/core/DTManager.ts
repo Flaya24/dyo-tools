@@ -1,7 +1,26 @@
 import DYOToolsComponent from './DTComponent';
 import DYOToolsBunch from './DTBunch';
 import DYOToolsError from './DTError';
-import { DTComponentOptions, DTManagerItemsType } from '../types';
+import {DTComponentOptions, DTManagerItemsType, DYOFinderConfiguration, FilterOperatorType} from '../types';
+import DYOFinder from "../libs/DYOFinder";
+
+const baseOperators = [
+  FilterOperatorType.EQ,
+  FilterOperatorType.IN,
+  FilterOperatorType.NIN,
+  FilterOperatorType.NE,
+];
+
+export const finderConfiguration: DYOFinderConfiguration = {
+  id: {
+    operators: baseOperators,
+    getValue: (item: any) => item.getId(),
+  },
+  key: {
+    operators: baseOperators,
+    getValue: (item: any) => item.getKey(),
+  }
+}
 
 export default class DYOToolsManager extends DYOToolsComponent {
   /**
@@ -16,6 +35,8 @@ export default class DYOToolsManager extends DYOToolsComponent {
   protected _actions: any;
 
   protected _library: any;
+
+  protected _finder: DYOFinder;
 
   constructor(key?: string, elements: any[] = [], scopes: string[] = []) {
     super(key);

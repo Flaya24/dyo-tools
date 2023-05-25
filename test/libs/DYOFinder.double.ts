@@ -137,6 +137,7 @@ export function generateComponent(): DTBunchStub {
     elementStub.setPropNumber(data.propNumber);
     elementStub.setPropBoolean(data.propBoolean);
     elementStub.setPropObject(data.propObject);
+    elementStub.setPropMeta(data.propMeta);
 
     items.push(elementStub);
     itemIndex += 1;
