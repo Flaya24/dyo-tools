@@ -86,6 +86,8 @@ export class DTElementStubExtended extends DTElementStub {
 
   private propObject: Record<string, unknown>;
 
+  private propMeta: Record<string, unknown>;
+
   getPropString(): string {
     return this.propString;
   }
@@ -124,5 +126,13 @@ export class DTElementStubExtended extends DTElementStub {
 
   setPropObject(propObject: Record<string, unknown>): void {
     this.propObject = propObject;
+  }
+
+  getPropMeta(): Record<string, unknown> {
+    return this.propMeta;
+  }
+
+  setPropMeta(propMeta: Record<string, unknown>): void {
+    this.propMeta = propMeta;
   }
 }

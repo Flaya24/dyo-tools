@@ -13,24 +13,17 @@ const baseOperators = [
   FilterOperatorType.NE,
 ];
 
-const advancedOperators = [
-  FilterOperatorType.GTE,
-  FilterOperatorType.LTE,
-  FilterOperatorType.CONTAINS,
-  FilterOperatorType.NCONTAINS,
-];
-
 export const DefaultConfiguration: DYOFinderConfiguration = {
   propString: {
     operators: baseOperators,
     getValue: (item: any) => item.getPropString(),
   },
   propArray: {
-    operators: baseOperators,
+    operators: [...baseOperators, FilterOperatorType.CONTAINS, FilterOperatorType.NCONTAINS],
     getValue: (item: any) => item.getPropArray(),
   },
   propNumber: {
-    operators: baseOperators,
+    operators: [...baseOperators, FilterOperatorType.LTE, FilterOperatorType.GTE],
     getValue: (item: any) => item.getPropNumber(),
   },
   propBoolean: {
@@ -40,6 +33,11 @@ export const DefaultConfiguration: DYOFinderConfiguration = {
   propObject: {
     operators: baseOperators,
     getValue: (item: any) => item.getPropObject(),
+  },
+  propMeta: {
+    operators: baseOperators,
+    getValue: (item: any) => item.getPropMeta(),
+    objectSearch: true,
   },
 };
 
@@ -54,6 +52,13 @@ export default class DYOFinderTest extends DYOFinder {
 
   th_get_configuration(): DYOFinderConfiguration {
     return this._configuration;
+  }
+
+  th_set_configuration(configuration: DYOFinderConfiguration): void {
+    this._configuration = {
+      ...this._configuration,
+      ...configuration,
+    };
   }
 }
 
@@ -74,6 +79,9 @@ export function generateComponent(): DTBunchStub {
       propObject: {
         data: 'value',
       },
+      propMeta: {
+        meta1: 'value1',
+      },
     },
     {
       propString: 'item_prime',
@@ -82,6 +90,10 @@ export function generateComponent(): DTBunchStub {
       propBoolean: false,
       propObject: {
         data: 'value',
+      },
+      propMeta: {
+        meta1: 'value1',
+        meta2: 'value2',
       },
     },
     {
@@ -92,10 +104,13 @@ export function generateComponent(): DTBunchStub {
       propObject: {
         data: 'value',
       },
+      propMeta: {
+        meta1: 'value2',
+        meta2: 'value2',
+      },
     },
     {
       propString: 'item_third',
-      propArray: ['tag2'],
       propNumber: 17,
       propBoolean: false,
       propObject: null,
@@ -106,6 +121,9 @@ export function generateComponent(): DTBunchStub {
       propNumber: 31,
       propBoolean: true,
       propObject: null,
+      propMeta: {
+        meta3: 'value3',
+      },
     },
   ];
 

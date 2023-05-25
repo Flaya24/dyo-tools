@@ -89,7 +89,8 @@ export type DYOFinderConfiguration = Record<string, DYOFinderConfigurationProp>;
 
 export interface DYOFinderConfigurationProp {
   operators: FilterOperatorType[],
-  getValue: (item: any) => StandardPrimitiveType
+  getValue: (item: any) => StandardPrimitiveType,
+  objectSearch?: boolean,
 }
 
 export interface DYOFinderFilterOperator {
@@ -102,4 +103,4 @@ export interface DYOFinderFilterOperator {
   [FilterOperatorType.CONTAINS]: StandardPrimitiveType
   [FilterOperatorType.NCONTAINS]: StandardPrimitiveType
 }
-export type DYOFinderFilters = Record<string, Partial<DYOFinderFilterOperator>>;
+export type DYOFinderFilters = Record<string, Partial<DYOFinderFilterOperator>> | Record<string, Record<string, Partial<DYOFinderFilterOperator>>>;

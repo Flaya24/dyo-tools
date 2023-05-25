@@ -5,7 +5,6 @@ import {
   StandardPrimitiveType,
 } from '../types';
 import DYOToolsBunch from '../core/DTBunch';
-import { validFiltersForItem } from '../utils/filters';
 
 export default class DYOFinder {
   protected _component: DYOToolsBunch<any, any>;
@@ -25,7 +24,13 @@ export default class DYOFinder {
       let validItem = !!(Object.keys(filters).length);
 
       for (const [propKey, configProp] of Object.entries(this._configuration)) {
-        if (filters[propKey] && !this.checkAllValidFiltersForProp(configProp.getValue(item), filters[propKey], configProp.operators)) {
+        if (configProp.objectSearch && filters[propKey]) {
+          const objectValue = configProp.getValue(item);
+          for (const [objectK, objectV] of Object.entries(objectValue)) {
+            const metaValue = Object.prototype.hasOwnProperty.call(objectValue, objectV) ? itemMeta[meta] : null;
+          }
+        }
+        else if (filters[propKey] && !this.checkAllValidFiltersForProp(configProp.getValue(item), filters[propKey], configProp.operators)) {
           validItem = false;
         }
       }
@@ -110,7 +115,7 @@ export default class DYOFinder {
     if (operator === FilterOperatorType.CONTAINS) {
       return itemProp ? (itemProp as StandardPrimitiveType[]).includes(filter as StandardPrimitiveType) : false;
     }
-    // $Ncontains Filter
+    // $ncontains Filter
     if (operator === FilterOperatorType.NCONTAINS) {
       return itemProp ? !(itemProp as StandardPrimitiveType[]).includes(filter as StandardPrimitiveType) : false;
     }

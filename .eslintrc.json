@@ -20,7 +20,7 @@
     // Disable JSX unexpected error
     "react/jsx-filename-extension": "off",
     // Max length line : 130
-    "max-len": ["error", 130],
+    "max-len": ["error", 160],
     // Authorize for-of to return and break
     "no-restricted-syntax": [
       "error",
