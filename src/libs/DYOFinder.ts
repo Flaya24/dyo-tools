@@ -1,19 +1,25 @@
 import {
-  DTBunchFilterWithBaseOperator,
+  DYOFinderComponentType,
   DYOFinderConfiguration,
-  DYOFinderFilters, FilterOperatorType,
+  DYOFinderFilterOperator,
+  DYOFinderFilters,
+  FilterOperatorType,
   StandardPrimitiveType,
+  StandardPrimitiveTypeWithArray,
 } from '../types';
-import DYOToolsBunch from '../core/DTBunch';
 
 export default class DYOFinder {
-  protected _component: DYOToolsBunch<any, any>;
+  protected _component: DYOFinderComponentType;
 
   protected _configuration: DYOFinderConfiguration;
 
-  constructor(component: DYOToolsBunch<any, any>, configuration: DYOFinderConfiguration) {
+  constructor(component: DYOFinderComponentType, configuration: DYOFinderConfiguration) {
     this._component = component;
     this._configuration = configuration;
+  }
+
+  getComponent(): DYOFinderComponentType {
+    return this._component;
   }
 
   execute(filters: DYOFinderFilters): any[] {
@@ -24,22 +30,23 @@ export default class DYOFinder {
       let validItem = !!(Object.keys(filters).length);
 
       for (const [propKey, configProp] of Object.entries(this._configuration)) {
-        if (configProp.objectSearch && filters[propKey]) {
-          const objectValue = configProp.getValue(item);
-          if (objectValue) {
-            for (const [filterK, filterV] of Object.entries(filters[propKey])) {
-              const metaValue = Object.prototype.hasOwnProperty.call(objectValue, filterK) ? objectValue[filterK] : undefined;
-              if (!this.checkAllValidFiltersForProp(metaValue, filterV, configProp.operators)) {
-                validItem = false;
-                break;
+        if (filters[propKey]) {
+          if (configProp.objectSearch) {
+            const objectValue = configProp.getValue(item);
+            if (objectValue) {
+              for (const [filterK, filterV] of Object.entries(filters[propKey])) {
+                const metaValue = Object.prototype.hasOwnProperty.call(objectValue, filterK) ? objectValue[filterK] : undefined;
+                if (!this.checkAllValidFiltersForProp(metaValue, filterV, configProp.operators)) {
+                  validItem = false;
+                  break;
+                }
               }
+            } else {
+              validItem = false;
             }
-          } else {
+          } else if (!this.checkAllValidFiltersForProp((configProp.getValue(item) as StandardPrimitiveType), filters[propKey], configProp.operators)) {
             validItem = false;
           }
-        }
-        else if (filters[propKey] && !this.checkAllValidFiltersForProp(configProp.getValue(item), filters[propKey], configProp.operators)) {
-          validItem = false;
         }
       }
 
@@ -52,14 +59,14 @@ export default class DYOFinder {
   }
 
   private checkAllValidFiltersForProp = (
-    itemProp: StandardPrimitiveType,
-    operators: Partial<DTBunchFilterWithBaseOperator>,
+    itemProp: StandardPrimitiveTypeWithArray,
+    operators: Partial<DYOFinderFilterOperator>,
     validOperators: FilterOperatorType[],
   ) => {
     if (Object.keys(operators).length) {
       for (const operator of Object.keys(operators)) {
         if (!validOperators.includes(operator as FilterOperatorType)
-          || !this.validFiltersForItem(itemProp, operators[operator], operator as FilterOperatorType.EQ)) {
+          || !this.validFiltersForItem(itemProp, operators[operator], operator as FilterOperatorType)) {
           return false;
         }
       }
@@ -68,25 +75,10 @@ export default class DYOFinder {
     return false;
   };
 
-  private validFiltersForItem(itemProp: StandardPrimitiveType,
-    filter: StandardPrimitiveType,
-    operator: FilterOperatorType.EQ): boolean;
-  private validFiltersForItem(itemProp: StandardPrimitiveType,
-    filter: StandardPrimitiveType[],
-    operator: FilterOperatorType.IN | FilterOperatorType.NIN): boolean;
-  private validFiltersForItem(itemProp: StandardPrimitiveType,
-    filter: StandardPrimitiveType,
-    operator: FilterOperatorType.NE): boolean;
-  private validFiltersForItem(itemProp: number, filter: number,
-    operator: FilterOperatorType.LTE |
-    FilterOperatorType.GTE): boolean;
-  private validFiltersForItem(itemProp: StandardPrimitiveType[],
-    filter: StandardPrimitiveType,
-    operator: FilterOperatorType.CONTAINS | FilterOperatorType.NCONTAINS): boolean;
   private validFiltersForItem(
-    itemProp: StandardPrimitiveType | StandardPrimitiveType[],
-    filter: StandardPrimitiveType | StandardPrimitiveType[],
-    operator: FilterOperatorType = FilterOperatorType.EQ,
+    itemProp: StandardPrimitiveTypeWithArray,
+    filter: StandardPrimitiveTypeWithArray,
+    operator: FilterOperatorType,
   ): boolean {
     // $eq Filter
     if (operator === FilterOperatorType.EQ) {
@@ -94,11 +86,11 @@ export default class DYOFinder {
     }
     // $in Filter
     if (operator === FilterOperatorType.IN) {
-      return filter ? (filter as StandardPrimitiveType[]).includes(itemProp as StandardPrimitiveType) : false;
+      return filter ? (filter as Array<StandardPrimitiveType>).includes(itemProp as StandardPrimitiveType) : false;
     }
     // $nin Filter
     if (operator === FilterOperatorType.NIN) {
-      return filter ? !(filter as StandardPrimitiveType[]).includes(itemProp as StandardPrimitiveType) : false;
+      return filter ? !(filter as Array<StandardPrimitiveType>).includes(itemProp as StandardPrimitiveType) : false;
     }
     // $ne Filter
     /* c8 ignore next */
@@ -121,11 +113,15 @@ export default class DYOFinder {
     }
     // $contains Filter
     if (operator === FilterOperatorType.CONTAINS) {
-      return itemProp ? (itemProp as StandardPrimitiveType[]).includes(filter as StandardPrimitiveType) : false;
+      return (itemProp && Array.isArray(itemProp))
+        ? (itemProp as Array<StandardPrimitiveType>).includes(filter as StandardPrimitiveType)
+        : false;
     }
     // $ncontains Filter
     if (operator === FilterOperatorType.NCONTAINS) {
-      return itemProp ? !(itemProp as StandardPrimitiveType[]).includes(filter as StandardPrimitiveType) : false;
+      return (itemProp && Array.isArray(itemProp))
+        ? !(itemProp as Array<StandardPrimitiveType>).includes(filter as StandardPrimitiveType)
+        : false;
     }
 
     return false;

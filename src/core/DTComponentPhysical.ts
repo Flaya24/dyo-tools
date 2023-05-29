@@ -1,15 +1,14 @@
-import {DTAcceptedMetaData, DTComponentOptions} from "../types";
-import DYOToolsComponentWithMeta from "./DTComponentWithMeta";
-import DYOToolsPlayer from "./DTPlayer";
+import { DTAcceptedMetaData, DTComponentOptions } from '../types';
+import DYOToolsComponentWithMeta from './DTComponentWithMeta';
+import DYOToolsPlayer from './DTPlayer';
+
+
 
 export default abstract class DYOToolsComponentPhysical<
   IComponentMeta extends DTAcceptedMetaData,
-  IComponentOptions extends DTComponentOptions = DTComponentOptions
+  IComponentOptions extends DTComponentOptions = DTComponentOptions,
   > extends DYOToolsComponentWithMeta<IComponentMeta, IComponentOptions> {
-
   protected _owner?: DYOToolsPlayer<DTAcceptedMetaData>;
-
-  private _events?: any;
 
   /**
    * Getter for _owner property.
@@ -36,22 +35,4 @@ export default abstract class DYOToolsComponentPhysical<
    * Abstract method for copying the Component and returning it.
    */
   abstract copy(): DYOToolsComponentPhysical<IComponentMeta, IComponentOptions>;
-
-  addEvent(): void {
-
-  }
-
-  removeEvent(): void {
-
-  }
-
-  validEvents(): void {
-
-  }
-
-  triggerEvent(): void {
-
-  }
-
-  abstract do(): void;
 }

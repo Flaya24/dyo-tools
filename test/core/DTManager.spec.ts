@@ -13,17 +13,18 @@ import {
 } from './DTManager.double';
 import DTManager from '../../src/core/DTManager';
 import {
-  defaultOptions as DTBunchDefaultOptions,
   DTBunchStub,
   DTBunchStubLibrary,
   generateMockedElements,
-  IDTest as IDTestBunch, IDTestLibrary,
+  IDTest as IDTestBunch,
+  IDTestLibrary,
 } from './DTBunch.double';
 import { mockOverriddenMethods } from './DTComponent.double';
 import { DTComponent, DTElement } from '../../src';
 import DYOToolsError from '../../src/core/DTError';
 import { checkCallForMockedDTError, DTErrorStub } from './DTError.double';
 import { IMetaDataTest } from './DTComponentWithMeta.double';
+import { componentManagerDefaultFinderConfiguration, managerDefaultOptions } from '../../src/constants';
 import MockedFunction = jest.MockedFunction;
 
 /** ****************** MOCK DEPENDENCIES
@@ -61,7 +62,6 @@ describe('class DYOToolsManager', () => {
     });
   });
 
-  // TODO : WIP
   describe('constructor()', () => {
     beforeEach(() => {
       jest.resetAllMocks();
@@ -72,7 +72,7 @@ describe('class DYOToolsManager', () => {
 
       expect(newManager.th_get_items()).toStrictEqual({});
       expect(newManager.th_get_scopes()).toStrictEqual(['default', 'virtual']);
-      expect(newManager.th_get_actions()).toStrictEqual({});
+      expect(newManager.th_get_options()).toStrictEqual(managerDefaultOptions);
 
       // Library tests
       expect(newManager.th_get_library().constructor.mock.calls.length).toBe(1);
@@ -81,7 +81,9 @@ describe('class DYOToolsManager', () => {
       expect(newManager.th_get_library().constructor.mock.calls[0][2].virtualContext).toBe(true);
 
       // Finder initialization
-
+      expect((newManager.th_get_finder() as any).constructor.mock.calls.length).toBe(1);
+      expect((newManager.th_get_finder() as any).constructor.mock.calls[0][0]).toStrictEqual(newManager);
+      expect((newManager.th_get_finder() as any).constructor.mock.calls[0][1]).toStrictEqual(componentManagerDefaultFinderConfiguration);
     });
 
     test('creation simple without key - use domain if defined', () => {
@@ -104,38 +106,41 @@ describe('class DYOToolsManager', () => {
       expect(newManagerWithDomain2.getKey() === DomainTest).toStrictEqual(true);
     });
 
-    // test('creation with elements for library', () => {
-    //   const mockedElements = generateMockedElements(5);
-    //   const newManager = new DTManagerTest(null, mockedElements);
-    //
-    //   expect(newManager.th_prop_items()).toStrictEqual({});
-    //   expect(newManager.th_prop_scopes()).toStrictEqual(['default', 'virtual']);
-    //   expect(newManager.th_prop_actions()).toStrictEqual({});
-    //
-    //   expect(newManager.th_prop_library().constructor.mock.calls.length).toBe(1);
-    //   expect(newManager.th_prop_library().constructor.mock.calls[0][0]).toBe('library');
-    //   expect(newManager.th_prop_library().constructor.mock.calls[0][1]).toStrictEqual(mockedElements);
-    //   expect(newManager.th_prop_library().constructor.mock.calls[0][2].virtualContext).toBe(true);
-    // });
-    //
-    // test('creation with elements for library and scopes', () => {
-    //   const mockedElements = generateMockedElements(5);
-    //   const newManager = new DTManagerTest(null, mockedElements, ScopesTest);
-    //
-    //   expect(newManager.th_prop_items()).toStrictEqual({});
-    //   expect(newManager.th_prop_actions()).toStrictEqual({});
-    //
-    //   expect(newManager.th_prop_library().constructor.mock.calls.length).toBe(1);
-    //   expect(newManager.th_prop_library().constructor.mock.calls[0][0]).toBe('library');
-    //   expect(newManager.th_prop_library().constructor.mock.calls[0][1]).toStrictEqual(mockedElements);
-    //   expect(newManager.th_prop_library().constructor.mock.calls[0][2].virtualContext).toBe(true);
-    //
-    //   expect(newManager.th_prop_scopes()).toStrictEqual([
-    //     'default',
-    //     'virtual',
-    //     ...ScopesTest
-    //   ]);
-    // });
+    test('creation with elements for library', () => {
+      const mockedElements = generateMockedElements(5);
+      const newManager = new DTManagerTest(KeyTest, mockedElements);
+
+      expect(newManager.th_get_items()).toStrictEqual({});
+      expect(newManager.th_get_scopes()).toStrictEqual(['default', 'virtual']);
+
+      // Library tests
+      expect(newManager.th_get_library().constructor.mock.calls.length).toBe(1);
+      expect(newManager.th_get_library().constructor.mock.calls[0][0]).toBe('library');
+      expect(newManager.th_get_library().constructor.mock.calls[0][1].length).toStrictEqual(5);
+      expect(newManager.th_get_library().constructor.mock.calls[0][1].map((item) => item.getId()))
+        .toStrictEqual(mockedElements.map((item) => item.getId()));
+      expect(newManager.th_get_library().constructor.mock.calls[0][2].virtualContext).toBe(true);
+    });
+
+    test('creation with extended scopes', () => {
+      const mockedElements = generateMockedElements(5);
+      const newManager = new DTManagerTest(null, mockedElements, ScopesTest);
+
+      expect(newManager.th_get_items()).toStrictEqual({});
+      expect(newManager.th_get_scopes()).toStrictEqual([
+        'default',
+        'virtual',
+        ...ScopesTest,
+      ]);
+    });
+
+    test('creation with specific options', () => {
+      const mockedElements = generateMockedElements(5);
+      const options = { errors: true, deleteFromLibrary: true };
+      const newManager = new DTManagerTest(null, mockedElements, ScopesTest, options);
+
+      expect(newManager.th_get_options()).toStrictEqual(options);
+    });
   });
 
   describe('getLibrary()', () => {
@@ -593,28 +598,110 @@ describe('class DYOToolsManager', () => {
     });
   });
 
-  // TODO
-  describe('getScope()', () => {});
+  describe('getScope()', () => {
+    beforeEach(() => {
+      populateManager(managerTest);
+    });
 
-  // TODO
-  describe('remove()', () => {});
+    test('get scope for an existing bunch id', () => {
+      const scope1 = managerTest.getScope(`${IDTestBunch}_1`);
+      const scope2 = managerTest.getScope(`${IDTestBunch}_2`);
+      const scope3 = managerTest.getScope(`${IDTestBunch}_3`);
 
-  // TODO
-  describe('removeMany()', () => {});
+      expect(scope1).toBe('default');
+      expect(scope2).toBe(ScopesTest[0]);
+      expect(scope3).toBe('virtual');
+    });
+
+    test('get undefined scope for an non-existing bunch id', () => {
+      const scope = managerTest.getScope(`${IDTestBunch}_5`);
+
+      expect(scope).toBeUndefined();
+    });
+  });
+
+  // TODO : WIP => call Remove Many
+  describe('remove()', () => {
+    beforeEach(() => {
+      populateManager(managerTest);
+
+      jest.spyOn(managerTest, 'removeMany');
+    });
+
+    test('remove one item using removeMany', () => {
+      managerTest.remove(`${IDTestBunch}_2`);
+
+      expect((managerTest.removeMany as any).mock.calls.length).toBe(1);
+      expect((managerTest.removeMany as any).mock.calls[0][0]).toStrictEqual([`${IDTestBunch}_2`]);
+    });
+  });
+
+  // TODO : WIP
+  describe('removeMany()', () => {
+    beforeEach(() => {
+      populateManager(managerTest);
+    });
+
+    test('remove multiple bunches from manager', () => {
+      managerTest.removeMany([`${IDTestBunch}_1`, `${IDTestBunch}_2`]);
+
+      const newItems = managerTest.th_get_items();
+      expect(Object.keys(newItems).length).toBe(1);
+      expect(Object.keys(newItems)).toStrictEqual([`${IDTestBunch}_3`]);
+    });
+
+    test('remove multiple bunches from manager - no removal from library by default', () => {
+      managerTest.removeMany([`${IDTestBunch}_1`, `${IDTestBunch}_2`]);
+
+      expect(managerTest.th_get_library().th_get_items().length).toBe(5);
+    });
+
+    test('remove non-existing bunches - nothing happen', () => {
+      managerTest.removeMany([`${IDTestBunch}_5`, `${IDTestBunch}_7`]);
+
+      const newItems = managerTest.th_get_items();
+      expect(Object.keys(newItems).length).toBe(3);
+      expect(Object.keys(newItems)).toStrictEqual([`${IDTestBunch}_1`, `${IDTestBunch}_2`, `${IDTestBunch}_3`]);
+    });
+
+    test('remove multiple bunches from manager - deleteFromLibrary option', () => {
+      managerTest.removeMany([`${IDTestBunch}_1`, `${IDTestBunch}_2`]);
+
+      const newItems = managerTest.th_get_items();
+      expect(Object.keys(newItems).length).toBe(1);
+      expect(Object.keys(newItems)).toStrictEqual([`${IDTestBunch}_3`]);
+      expect(managerTest.th_get_library().th_get_items().length).toBe(0);
+    });
+  });
 
   // TODO
   describe('removeAll()', () => {});
 
-  // TODO
   describe('find()', () => {
+    test('find items using DYOFinder - empty case', () => {
+      managerTest.find({});
 
+      expect((managerTest.th_get_finder() as any).execute.mock.calls.length).toBe(1);
+      expect((managerTest.th_get_finder() as any).execute.mock.calls[0][0]).toStrictEqual({});
+    });
+
+    test('find items using DYOFinder', () => {
+      const testFilters = { id: { $eq: 'id_bunch' }, key: { $ne: 'key_test' } };
+      managerTest.find(testFilters);
+
+      expect((managerTest.th_get_finder() as any).execute.mock.calls.length).toBe(1);
+      expect((managerTest.th_get_finder() as any).execute.mock.calls[0][0]).toStrictEqual(testFilters);
+    });
   });
 
-  // TODO
+  // TODO : Useless ?
   describe('updateLibrary()', () => {});
 
-  // TODO
+  // TODO : Useless ?
   describe('reloadLibrary()', () => {});
+
+  // TODO : for finder
+  describe('getFinderConfiguration()', () => {});
 
   // TODO
   describe('toObject()', () => {});

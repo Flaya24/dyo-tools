@@ -4,8 +4,9 @@ import {
   defaultOptions,
   DTBunchStubLibrary, DTBunchTest, generateMockedElements, IDTest as IDTestBunch,
 } from './DTBunch.double';
-import { DTManagerItemsType } from '../../src/types';
-import DYOFinder from "../../src/libs/DYOFinder";
+import { DTManagerItemsType, DTManagerOptions } from '../../src/types';
+import DYOFinder from '../../src/libs/DYOFinder';
+import Mock = jest.Mock;
 
 /** ****************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
@@ -60,10 +61,6 @@ export class DTManagerTest extends DTManager {
     this._scopes = scopes;
   }
 
-  th_get_actions(): any {
-    return this._actions;
-  }
-
   th_get_library(): any {
     return this._library;
   }
@@ -81,6 +78,10 @@ export class DTManagerTest extends DTManager {
 
   th_get_finder(): DYOFinder {
     return this._finder;
+  }
+
+  th_get_options(): DTManagerOptions {
+    return this._options;
   }
 }
 

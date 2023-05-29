@@ -1,5 +1,5 @@
 import { DTBunch, DTComponent } from '../../src';
-import { defaultOptions as DTBunchDefaultOptions } from '../../src/core/DTBunch';
+import { bunchDefaultOptions as DTBunchDefaultOptions } from '../../src/constants';
 import {
   HaileiMetaData,
   IldressMetaData,

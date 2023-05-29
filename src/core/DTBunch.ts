@@ -2,8 +2,8 @@ import DYOToolsElement from './DTElement';
 import {
   DTAcceptedMetaData,
   DTBunchFilters,
-  DTBunchFilterWithBaseOperator,
-  DTBunchFilterWithMetaOperator,
+  DYOFinderFilterOperatorBase,
+  DYOFinderFilterOperatorAdvanced,
   DTBunchOptions,
   DTBunchToObject,
   FilterOperatorType,
@@ -13,15 +13,7 @@ import DYOToolsPlayer from './DTPlayer';
 import DYOToolsError from './DTError';
 import { validFiltersForItem } from '../utils/filters';
 import DYOToolsComponentPhysical from './DTComponentPhysical';
-
-// Default Options for class
-export const defaultOptions: DTBunchOptions = {
-  errors: false,
-  uniqueKey: false,
-  inheritOwner: false,
-  replaceIndex: false,
-  virtualContext: false,
-};
+import { bunchDefaultOptions as defaultOptions } from '../constants';
 
 export default class DYOToolsBunch<
     IBunchItem extends DYOToolsElement<DTAcceptedMetaData>,
@@ -422,7 +414,7 @@ export default class DYOToolsBunch<
     ];
     const checkAllValidFiltersForProp = (
       itemProp: StandardPrimitiveType,
-      operators: Partial<DTBunchFilterWithBaseOperator>,
+      operators: Partial<DYOFinderFilterOperatorBase>,
       validOperators: FilterOperatorType[],
     ) => {
       if (Object.keys(operators).length) {
@@ -466,9 +458,9 @@ export default class DYOToolsBunch<
       if (filters.meta) {
         if (Object.keys(filters.meta).length) {
           const itemMeta = item.getManyMeta();
-          for (const [meta, filter] of Object.entries(filters.meta as Record<string, Partial<DTBunchFilterWithMetaOperator>>)) {
+          for (const [meta, filter] of Object.entries(filters.meta)) {
             const metaValue = Object.prototype.hasOwnProperty.call(itemMeta, meta) ? itemMeta[meta] : null;
-            if (!checkAllValidFiltersForProp(metaValue as StandardPrimitiveType, filter, validOperatorsMeta)) {
+            if (!checkAllValidFiltersForProp(metaValue as StandardPrimitiveType, filter as any, validOperatorsMeta)) {
               validItem = false;
               break;
             }
@@ -555,8 +547,5 @@ export default class DYOToolsBunch<
     }
 
     return `Component ${this._key} - Type: Bunch${ownerKey} - Items: ${this._items.length}`;
-  }
-
-  do(): void {
   }
 }

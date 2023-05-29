@@ -1,28 +1,13 @@
 import DYOToolsComponent from './DTComponent';
 import DYOToolsBunch from './DTBunch';
 import DYOToolsError from './DTError';
-import {DTComponentOptions, DTManagerItemsType, DYOFinderConfiguration, FilterOperatorType} from '../types';
-import DYOFinder from "../libs/DYOFinder";
+import {
+ DTComponentOptions, DTManagerFindFilters, DTManagerItemsType, DTManagerOptions
+} from '../types';
+import DYOFinder from '../libs/DYOFinder';
+import { componentManagerDefaultFinderConfiguration, managerDefaultOptions as defaultOptions } from '../constants';
 
-const baseOperators = [
-  FilterOperatorType.EQ,
-  FilterOperatorType.IN,
-  FilterOperatorType.NIN,
-  FilterOperatorType.NE,
-];
-
-export const finderConfiguration: DYOFinderConfiguration = {
-  id: {
-    operators: baseOperators,
-    getValue: (item: any) => item.getId(),
-  },
-  key: {
-    operators: baseOperators,
-    getValue: (item: any) => item.getKey(),
-  }
-}
-
-export default class DYOToolsManager extends DYOToolsComponent {
+export default class DYOToolsManager extends DYOToolsComponent<DTManagerOptions> {
   /**
    * Defining component type to "manager".
    */
@@ -38,8 +23,8 @@ export default class DYOToolsManager extends DYOToolsComponent {
 
   protected _finder: DYOFinder;
 
-  constructor(key?: string, elements: any[] = [], scopes: string[] = []) {
-    super(key);
+  constructor(key?: string, elements: any[] = [], scopes: string[] = [], options: Partial<DTManagerOptions> = {}) {
+    super(key, { ...defaultOptions, ...options });
     // Use default _domain as _key
     this._key = !key ? (this.getDomain() || this._id) : key;
 
@@ -51,6 +36,7 @@ export default class DYOToolsManager extends DYOToolsComponent {
     ];
     this._actions = {};
     this._library = new DYOToolsBunch('library', elements, { virtualContext: true });
+    this._finder = new DYOFinder(this, componentManagerDefaultFinderConfiguration);
   }
 
   getLibrary(): any {
@@ -153,10 +139,6 @@ export default class DYOToolsManager extends DYOToolsComponent {
     this._items[bunchId].scope = targetScope;
   }
 
-  remove(id: string): void {
-
-  }
-
   get(id: string): any {
     return this._items[id]?.item ?? undefined;
   }
@@ -172,8 +154,22 @@ export default class DYOToolsManager extends DYOToolsComponent {
     return finalItems;
   }
 
-  getActions(): any {
-    return this._actions;
+  getScope(id: string): string | undefined {
+    return this._items[id] && this._items[id].scope;
+  }
+
+  remove(id: string): void {
+    this.removeMany([id]);
+  }
+
+  removeMany(ids: string[]): void {
+    ids.forEach((id: string) => {
+      delete this._items[id];
+    });
+  }
+
+  find(filters: Partial<DTManagerFindFilters>): DYOToolsBunch<any, any>[] {
+    return this._finder.execute(filters);
   }
 
   toString(): string {

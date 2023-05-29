@@ -17,22 +17,27 @@ export const DefaultConfiguration: DYOFinderConfiguration = {
   propString: {
     operators: baseOperators,
     getValue: (item: any) => item.getPropString(),
+    objectSearch: false,
   },
   propArray: {
     operators: [...baseOperators, FilterOperatorType.CONTAINS, FilterOperatorType.NCONTAINS],
     getValue: (item: any) => item.getPropArray(),
+    objectSearch: false,
   },
   propNumber: {
     operators: [...baseOperators, FilterOperatorType.LTE, FilterOperatorType.GTE],
     getValue: (item: any) => item.getPropNumber(),
+    objectSearch: false,
   },
   propBoolean: {
     operators: baseOperators,
     getValue: (item: any) => item.getPropBoolean(),
+    objectSearch: false,
   },
   propObject: {
     operators: baseOperators,
     getValue: (item: any) => item.getPropObject(),
+    objectSearch: false,
   },
   propMeta: {
     operators: baseOperators,

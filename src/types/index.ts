@@ -1,4 +1,4 @@
-import { DTBunch } from '../index';
+import { DTBunch, DTComponent, DTComponentPhysical } from '../index';
 
 /** Constants Enum * */
 export enum FilterOperatorType {
@@ -12,6 +12,46 @@ export enum FilterOperatorType {
   NCONTAINS = '$ncontains',
 }
 
+/** Common Types * */
+export type StandardPrimitiveType = string | number | boolean | null | undefined;
+export type StandardPrimitiveTypeWithArray = string | number | boolean | Array<string | number | boolean> | null | undefined;
+
+/** DYO Finder interfaces * */
+export type DYOFinderConfiguration = Record<string, DYOFinderConfigurationProp>;
+export type DYOFinderComponentType = DTComponent & {
+  getAll: () => DTComponent[],
+};
+
+export interface DYOFinderConfigurationPropDefault {
+  operators: FilterOperatorType[],
+  getValue: (item: any) => StandardPrimitiveType,
+  objectSearch: false,
+}
+
+export interface DYOFinderConfigurationPropObjectSearch {
+  operators: FilterOperatorType[],
+  getValue: (item: any) => Record<string, StandardPrimitiveTypeWithArray>,
+  objectSearch: true,
+}
+export type DYOFinderConfigurationProp = DYOFinderConfigurationPropDefault | DYOFinderConfigurationPropObjectSearch;
+
+export interface DYOFinderFilterOperatorBase {
+  [FilterOperatorType.EQ]: StandardPrimitiveType
+  [FilterOperatorType.IN]: Array<StandardPrimitiveType>
+  [FilterOperatorType.NIN]: Array<StandardPrimitiveType>
+  [FilterOperatorType.NE]: StandardPrimitiveType
+}
+export interface DYOFinderFilterOperatorAdvanced {
+  [FilterOperatorType.LTE]: number
+  [FilterOperatorType.GTE]: number
+  [FilterOperatorType.CONTAINS]: StandardPrimitiveType
+  [FilterOperatorType.NCONTAINS]: StandardPrimitiveType
+}
+
+export type DYOFinderFilterOperator = DYOFinderFilterOperatorBase & DYOFinderFilterOperatorAdvanced;
+export type DYOFinderFilterOperatorArgument = Partial<DYOFinderFilterOperator | Record<string, Partial<DYOFinderFilterOperator>>>;
+export type DYOFinderFilters = Record<string, DYOFinderFilterOperatorArgument>;
+
 /** DTComponent interfaces * */
 export interface DTComponentOptions {
   errors: boolean
@@ -24,10 +64,9 @@ export interface DTComponentToObject {
 }
 
 /** DTComponentWithMeta interfaces * */
-export type DTAcceptedMetaDataValue = string | number | boolean | Array<string | number | boolean> | undefined;
 export type DTAcceptedMetaData = Record<
 string,
-DTAcceptedMetaDataValue
+StandardPrimitiveTypeWithArray
 >;
 
 /** DTElement interfaces * */
@@ -50,24 +89,12 @@ export interface DTBunchToObject<IComponentMeta> extends DTComponentToObject {
   meta?: Partial<IComponentMeta>
 }
 
-export type DTBunchFilterWithBaseOperator = {
-  [FilterOperatorType.EQ]: StandardPrimitiveType
-  [FilterOperatorType.IN]: Array<StandardPrimitiveType>
-  [FilterOperatorType.NIN]: Array<StandardPrimitiveType>
-  [FilterOperatorType.NE]: StandardPrimitiveType
-};
-export interface DTBunchFilterWithMetaOperator extends DTBunchFilterWithBaseOperator {
-  [FilterOperatorType.LTE]: number
-  [FilterOperatorType.GTE]: number
-  [FilterOperatorType.CONTAINS]: StandardPrimitiveType
-  [FilterOperatorType.NCONTAINS]: StandardPrimitiveType
-}
 export interface DTBunchFilters {
-  id: Partial<DTBunchFilterWithBaseOperator>
-  key: Partial<DTBunchFilterWithBaseOperator>
-  context: Partial<DTBunchFilterWithBaseOperator>
-  owner: Partial<DTBunchFilterWithBaseOperator>
-  meta: Record<string, Partial<DTBunchFilterWithMetaOperator>>
+  id: Partial<DYOFinderFilterOperatorBase>
+  key: Partial<DYOFinderFilterOperatorBase>
+  context: Partial<DYOFinderFilterOperatorBase>
+  owner: Partial<DYOFinderFilterOperatorBase>
+  meta: Record<string, Partial<DYOFinderFilterOperatorAdvanced>>
 }
 
 /** DTPlayer interfaces * */
@@ -82,25 +109,14 @@ export type DTManagerItemType = {
   item: DTBunch<any, any>,
 };
 
-/** DYO Finder interfaces * */
-
-export type StandardPrimitiveType = string | number | boolean | null;
-export type DYOFinderConfiguration = Record<string, DYOFinderConfigurationProp>;
-
-export interface DYOFinderConfigurationProp {
-  operators: FilterOperatorType[],
-  getValue: (item: any) => StandardPrimitiveType,
-  objectSearch?: boolean,
+export interface DTManagerFindFilters extends DYOFinderFilters {
+  id: Partial<DYOFinderFilterOperatorBase>
+  key: Partial<DYOFinderFilterOperatorBase>
+  owner: Partial<DYOFinderFilterOperatorBase>
+  scope: Partial<DYOFinderFilterOperatorBase>
+  meta: Record<string, Partial<DYOFinderFilterOperatorAdvanced>>
 }
 
-export interface DYOFinderFilterOperator {
-  [FilterOperatorType.EQ]: StandardPrimitiveType
-  [FilterOperatorType.IN]: Array<StandardPrimitiveType>
-  [FilterOperatorType.NIN]: Array<StandardPrimitiveType>
-  [FilterOperatorType.NE]: StandardPrimitiveType
-  [FilterOperatorType.LTE]: number
-  [FilterOperatorType.GTE]: number
-  [FilterOperatorType.CONTAINS]: StandardPrimitiveType
-  [FilterOperatorType.NCONTAINS]: StandardPrimitiveType
+export interface DTManagerOptions extends DTComponentOptions {
+  libraryDeletion: boolean,
 }
-export type DYOFinderFilters = Record<string, Partial<DYOFinderFilterOperator |  Record<string, Partial<DYOFinderFilterOperator>>>>;

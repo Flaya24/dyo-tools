@@ -6,7 +6,7 @@ import {
   DTBunchTest,
   generateMockedElements,
   IDTest,
-  KeyTest
+  KeyTest,
 } from './DTBunch.double';
 import {
   HaileiIdTest,
@@ -23,12 +23,12 @@ import {
   MeldrineToObjectTest,
   YssaliaIdTest,
   YssaliaKeyTest,
-  YssaliaToObjectTest
+  YssaliaToObjectTest,
 } from './DTElement.double';
-import {DTBunch, DTComponentPhysical} from '../../src';
+import { DTBunch, DTComponentPhysical } from '../../src';
 import DYOToolsElement from '../../src/core/DTElement';
 import { BunchMetaData, IMetaDataTest } from './DTComponentWithMeta.double';
-import { DTAcceptedMetaDataValue, DTBunchOptions } from '../../src/types';
+import { StandardPrimitiveTypeWithArray as DTAcceptedMetaDataValue, DTBunchOptions } from '../../src/types';
 import {
   DTPlayerStub,
   IDTest as IDPlayerTest,
@@ -40,12 +40,12 @@ import { validFiltersForItem } from '../../src/utils/filters';
 import { DTComponentStub, IDTest as IDContextTest } from './DTComponent.double';
 import Mocked = jest.Mocked;
 import MockedFunction = jest.MockedFunction;
-import DYOToolsError from "../../src/core/DTError";
-import {mockOverriddenMethods} from "./DTComponentPhysical.double";
+import DYOToolsError from '../../src/core/DTError';
+import { mockOverriddenMethods } from './DTComponentPhysical.double';
 
-/******************** MOCK DEPENDENCIES
+/** ****************** MOCK DEPENDENCIES
  * All Dependencies used by the component are mocked with Jest
- * *****/
+ * **** */
 jest.mock('../../src/core/DTElement');
 jest.mock('../../src/core/DTError');
 jest.mock('../../src/utils/filters');
@@ -55,7 +55,7 @@ jest.mock('../../src/core/DTComponentPhysical');
 // Add specific mock for inherited methods to have a basic implementation
 mockOverriddenMethods(DTComponentPhysical);
 
-/************************* TESTS SUITES *******************************/
+/** *********************** TESTS SUITES ****************************** */
 describe('class DYOToolsBunch', () => {
   let bunchTest: DTBunchTest;
 
@@ -81,11 +81,11 @@ describe('class DYOToolsBunch', () => {
       jest.resetAllMocks();
       addManyImpl = DTBunch.prototype.addMany;
       DTBunch.prototype.addMany = jest.fn();
-    })
+    });
 
     afterEach(() => {
       DTBunch.prototype.addMany = addManyImpl;
-    })
+    });
 
     test('creation simple with key', () => {
       const newBunch = new DTBunchTest(KeyTest);
@@ -136,9 +136,7 @@ describe('class DYOToolsBunch', () => {
 
   describe('setOwner()', () => {
     beforeEach(() => {
-      jest.spyOn(bunchTest, 'getOwner').mockImplementation(function () {
-        return new DTPlayerStub();
-      });
+      jest.spyOn(bunchTest, 'getOwner').mockImplementation(() => new DTPlayerStub());
     });
 
     test('add a new owner - not updating elements owner when inheritOwner = false', () => {
@@ -170,7 +168,6 @@ describe('class DYOToolsBunch', () => {
   });
 
   describe('removeOwner()', () => {
-
     test('remove current Owner - not updating elements owner when inheritOwner = false', () => {
       bunchTest.th_set_options({ inheritOwner: true });
       bunchTest.th_set_items(generateMockedElements(2));
@@ -336,10 +333,10 @@ describe('class DYOToolsBunch', () => {
 
       expect(mockedTriggerError.mock.calls.length).toBe(1);
       checkCallForMockedDTError(
-          'key_conflict',
-          'Element with same key already exists in the bunch',
-          IDTest,
-          objectToAdd.getId(),
+        'key_conflict',
+        'Element with same key already exists in the bunch',
+        IDTest,
+        objectToAdd.getId(),
       );
       expect((bunchTest.find as any).mock.calls.length).toBe(1);
       expect((bunchTest.find as any).mock.calls[0][0]).toStrictEqual({ key: { $eq: objectToAdd.getKey() } });
@@ -483,7 +480,7 @@ describe('class DYOToolsBunch', () => {
     test('errors when adding many items at index - default case - add no items and throw error', () => {
       const indexToAdd = 2;
       let errorThrown: DTErrorStub;
-      jest.spyOn(bunchTest, 'addAtIndex').mockImplementationOnce(function (item, index, options) {
+      jest.spyOn(bunchTest, 'addAtIndex').mockImplementationOnce((item, index, options) => {
         throw new DTErrorStub();
       });
 
@@ -505,10 +502,10 @@ describe('class DYOToolsBunch', () => {
       const indexToAdd = 2;
       const errors = [];
       jest.spyOn(bunchTest, 'addAtIndex')
-        .mockImplementationOnce(function (item, index, options) {
+        .mockImplementationOnce((item, index, options) => {
           errors.push(new DTErrorStub());
         })
-        .mockImplementationOnce(function (item, index, options) {
+        .mockImplementationOnce((item, index, options) => {
           errors.push(new DTErrorStub());
         });
 
@@ -677,7 +674,7 @@ describe('class DYOToolsBunch', () => {
 
   describe('copy()', () => {
     // @see copy.spec.ts for unit tests about copy method
-  })
+  });
 
   // TODO : Tests à revoir ! les assertions sont pas ouf
   describe('find()', () => {
@@ -1000,11 +997,10 @@ describe('class DYOToolsBunch', () => {
   });
 
   describe('toObject()', () => {
-
     beforeEach(() => {
       bunchTest.th_set_id(IDTest);
       bunchTest.th_set_key(KeyTest);
-    })
+    });
 
     test('toObject output standard', () => {
       const toObjectBunch = bunchTest.toObject();
@@ -1056,7 +1052,7 @@ describe('class DYOToolsBunch', () => {
   describe('toString()', () => {
     beforeEach(() => {
       bunchTest.th_set_key(KeyTest);
-    })
+    });
 
     test('string output standard', () => {
       const toStringBunch = bunchTest.toString();

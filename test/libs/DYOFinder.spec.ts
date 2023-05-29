@@ -149,6 +149,7 @@ describe('class DYOFinder', () => {
         propString: {
           operators: [FilterOperatorType.NE],
           getValue: (item: any) => item.getPropString(),
+          objectSearch: false,
         },
       });
 
@@ -176,9 +177,15 @@ describe('class DYOFinder', () => {
     });
 
     test('find items with complex and multiple filters', () => {
+      // Multiple filters
       expect(finderExecutionTestValue(finder.execute(
         { propString: { $eq: 'item_prime' }, propNumber: { $lte: 18 } },
       ))).toStrictEqual([1, [0]]);
+      // Multiple operators
+      expect(finderExecutionTestValue(finder.execute(
+        { propNumber: { $lte: 25, $gte: 15, $ne: 19 } },
+      ))).toStrictEqual([3, [0, 2, 3]]);
+      // Multiple filters and Object search
       expect(finderExecutionTestValue(finder.execute(
         { propString: { $in: ['item_prime', 'item_third'] }, propArray: { $ne: undefined }, propMeta: { meta2: { $ne: undefined } } },
       ))).toStrictEqual([1, [1]]);

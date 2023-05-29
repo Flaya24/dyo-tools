@@ -1,9 +1,9 @@
 import DYOToolsComponent from './DTComponent';
-import {DTAcceptedMetaData, DTComponentOptions} from '../types';
+import { DTAcceptedMetaData, DTComponentOptions } from '../types';
 
 export default abstract class DYOToolsComponentWithMeta<
   IComponentMeta extends DTAcceptedMetaData,
-  IComponentOptions extends DTComponentOptions = DTComponentOptions
+  IComponentOptions extends DTComponentOptions = DTComponentOptions,
   > extends DYOToolsComponent<IComponentOptions> {
   /**
    * Component meta data.
