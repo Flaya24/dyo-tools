@@ -66,7 +66,4 @@ export default class DYOToolsElement<
 
     return `Component ${this._key} - Type: Element${ownerKey}`;
   }
-
-  do(): void {
-  }
 }

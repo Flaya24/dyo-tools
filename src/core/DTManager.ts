@@ -162,10 +162,24 @@ export default class DYOToolsManager extends DYOToolsComponent<DTManagerOptions>
     this.removeMany([id]);
   }
 
-  removeMany(ids: string[]): void {
+  removeMany(ids: string[], options: Partial<DTManagerOptions> = {}): void {
+    const { libraryDeletion } = { ...this._options, ...options };
+
     ids.forEach((id: string) => {
-      delete this._items[id];
+      if (this._items[id]) {
+        if (libraryDeletion) {
+          this._items[id].item.getAll().forEach((item: any) => {
+            this._library.remove(item.getId());
+          });
+        }
+
+        delete this._items[id];
+      }
     });
+  }
+
+  removeAll(): void {
+    this.removeMany(Object.keys(this._items));
   }
 
   find(filters: Partial<DTManagerFindFilters>): DYOToolsBunch<any, any>[] {
