@@ -120,3 +120,7 @@ export interface DTManagerFindFilters extends DYOFinderFilters {
 export interface DTManagerOptions extends DTComponentOptions {
   libraryDeletion: boolean,
 }
+
+export interface DTManagerToObject extends DTComponentToObject {
+  items: Array<DTBunchToObject<any> & { scope: string }>
+}

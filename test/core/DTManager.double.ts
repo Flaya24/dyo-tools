@@ -1,12 +1,19 @@
 import { expect } from '@jest/globals';
 import { DTManager } from '../../src';
 import {
+  bunch1IdTest,
+  bunch1toObjectTest,
+  bunch2IdTest,
+  bunch2toObjectTest,
+  bunch3IdTest,
+  bunch3toObjectTest,
   defaultOptions,
-  DTBunchStubLibrary, DTBunchTest, generateMockedElements, IDTest as IDTestBunch,
+  DTBunchStubLibrary,
+  DTBunchTest,
+  generateMockedElements,
 } from './DTBunch.double';
 import { DTManagerItemsType, DTManagerOptions } from '../../src/types';
 import DYOFinder from '../../src/libs/DYOFinder';
-import Mock = jest.Mock;
 
 /** ****************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
@@ -112,25 +119,28 @@ export function populateManager(manager: DTManagerTest): DTManagerTest {
   // Bunches
   const bunch1 = new DTBunchTest();
   bunch1.th_set_items(mockedElements);
-  bunch1.th_set_id(`${IDTestBunch}_1`);
-  jest.spyOn(bunch1, 'getId').mockImplementation(() => `${IDTestBunch}_1`);
+  bunch1.th_set_id(bunch1IdTest);
+  jest.spyOn(bunch1, 'getId').mockImplementation(() => bunch1IdTest);
   jest.spyOn(bunch1, 'getOptions').mockImplementation(() => ({ ...defaultOptions }));
   jest.spyOn(bunch1, 'getAll').mockImplementation(function () { return this._items; });
+  jest.spyOn(bunch1, 'toObject').mockImplementation(() => bunch1toObjectTest);
 
   const bunch2 = new DTBunchTest();
   bunch2.th_set_items([]);
-  bunch2.th_set_id(`${IDTestBunch}_2`);
-  jest.spyOn(bunch2, 'getId').mockImplementation(() => `${IDTestBunch}_2`);
+  bunch2.th_set_id(bunch2IdTest);
+  jest.spyOn(bunch2, 'getId').mockImplementation(() => bunch2IdTest);
   jest.spyOn(bunch2, 'getOptions').mockImplementation(() => ({ ...defaultOptions }));
   jest.spyOn(bunch2, 'getAll').mockImplementation(function () { return this._items; });
+  jest.spyOn(bunch2, 'toObject').mockImplementation(() => bunch2toObjectTest);
 
   const bunch3 = new DTBunchTest();
   bunch3.th_set_items([]);
-  bunch3.th_set_id(`${IDTestBunch}_3`);
+  bunch3.th_set_id(bunch3IdTest);
   bunch3.th_set_options({ virtualContext: true });
-  jest.spyOn(bunch3, 'getId').mockImplementation(() => `${IDTestBunch}_3`);
+  jest.spyOn(bunch3, 'getId').mockImplementation(() => bunch3IdTest);
   jest.spyOn(bunch3, 'getOptions').mockImplementation(() => ({ ...defaultOptions, virtualContext: true }));
   jest.spyOn(bunch3, 'getAll').mockImplementation(function () { return this._items; });
+  jest.spyOn(bunch3, 'toObject').mockImplementation(() => bunch3toObjectTest);
 
   const items: DTManagerItemsType = {
     [bunch1.th_get_id()]: {

@@ -2,7 +2,11 @@ import DYOToolsComponent from './DTComponent';
 import DYOToolsBunch from './DTBunch';
 import DYOToolsError from './DTError';
 import {
- DTComponentOptions, DTManagerFindFilters, DTManagerItemsType, DTManagerOptions
+  DTComponentOptions,
+  DTManagerFindFilters,
+  DTManagerItemsType,
+  DTManagerOptions,
+  DTManagerToObject, DYOFinderConfiguration,
 } from '../types';
 import DYOFinder from '../libs/DYOFinder';
 import { componentManagerDefaultFinderConfiguration, managerDefaultOptions as defaultOptions } from '../constants';
@@ -37,6 +41,10 @@ export default class DYOToolsManager extends DYOToolsComponent<DTManagerOptions>
     this._actions = {};
     this._library = new DYOToolsBunch('library', elements, { virtualContext: true });
     this._finder = new DYOFinder(this, componentManagerDefaultFinderConfiguration);
+  }
+
+  getFinderConfiguration(): DYOFinderConfiguration {
+    return componentManagerDefaultFinderConfiguration;
   }
 
   getLibrary(): any {
@@ -186,12 +194,28 @@ export default class DYOToolsManager extends DYOToolsComponent<DTManagerOptions>
     return this._finder.execute(filters);
   }
 
-  toString(): string {
-    return '';
+  toObject(): DTManagerToObject {
+    const objectManager: DTManagerToObject = {
+      id: this._id,
+      key: this._key,
+      type: this._componentType,
+      items: [],
+    };
+
+    Object.keys(this._items).forEach((bunchId: string) => {
+      objectManager.items.push({
+        scope: this._items[bunchId].scope,
+        ...this._items[bunchId].item.toObject(),
+      });
+    });
+
+    return objectManager;
   }
 
-  toObject(): unknown {
-    return undefined;
+  toString(): string {
+    const libraryLabel = `Library: ${this._library.getAll().length}`;
+
+    return `Component ${this._key} - Type: Manager - ${libraryLabel} - Items: ${Object.keys(this._items).length}`;
   }
 
   private getErrorDataForScope(targetScope: string, virtualContext = false): { code: string, message: string } {

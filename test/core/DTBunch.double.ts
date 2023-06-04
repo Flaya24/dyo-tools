@@ -31,10 +31,25 @@ import { DTPlayerStub } from './DTPlayer.double';
 /** ****************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
  * **** */
+// Global Bunch constants
 export const IDTest = 'DTBunch-id-1234567';
 export const IDTestLibrary = 'DTBunch-id-library-1234567';
 export const KeyTest = 'DTBunch-key-1234567';
 export const defaultOptions: DTBunchOptions = DTBunchDefaultOptions;
+
+// Specific Bunch constants
+export const bunch1IdTest = `${IDTest}_1`;
+export const bunch1toObjectTest = {
+  id: bunch1IdTest, key: 'bunch1-key-test', type: 'bunch', items: [HaileiToObjectTest],
+};
+export const bunch2IdTest = `${IDTest}_2`;
+export const bunch2toObjectTest = {
+  id: bunch2IdTest, key: 'bunch2-key-test', type: 'bunch', items: [],
+};
+export const bunch3IdTest = `${IDTest}_3`;
+export const bunch3toObjectTest = {
+  id: bunch3IdTest, key: 'bunch3-key-test', type: 'bunch', items: [],
+};
 
 /** ****************** HELPER TEST CLASS
  * Helper test class, inherits the main component
@@ -124,6 +139,10 @@ export class DTBunchStub extends DTBunchTest {
 
   getKey(): string {
     return KeyTest;
+  }
+
+  getAll(): Array<Mocked<DYOToolsElement<IMetaDataTest>>> {
+    return this._items;
   }
 
   getAllKeys(): string[] {

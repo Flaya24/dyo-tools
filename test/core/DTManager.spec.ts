@@ -1,6 +1,4 @@
-import {
-  afterEach, beforeEach, describe, expect, jest, test,
-} from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest, test, } from '@jest/globals';
 import {
   checkManagerItem,
   DomainTest,
@@ -13,6 +11,9 @@ import {
 } from './DTManager.double';
 import DTManager from '../../src/core/DTManager';
 import {
+  bunch1toObjectTest,
+  bunch2toObjectTest,
+  bunch3toObjectTest,
   DTBunchStub,
   DTBunchStubLibrary,
   generateMockedElements,
@@ -25,6 +26,7 @@ import DYOToolsError from '../../src/core/DTError';
 import { checkCallForMockedDTError, DTErrorStub } from './DTError.double';
 import { IMetaDataTest } from './DTComponentWithMeta.double';
 import { componentManagerDefaultFinderConfiguration, managerDefaultOptions } from '../../src/constants';
+import { FilterOperatorType } from '../../src/types';
 import MockedFunction = jest.MockedFunction;
 
 /** ****************** MOCK DEPENDENCIES
@@ -148,6 +150,24 @@ describe('class DYOToolsManager', () => {
       expect(parentConstructorMock.calls.length).toBe(1);
       expect(parentConstructorMock.calls[0][0]).toBe(null);
       expect(parentConstructorMock.calls[0][1]).toStrictEqual(options);
+    });
+  });
+
+  // TODO : WIP
+  describe('getFinderConfiguration()', () => {
+    const baseOperators = [
+      FilterOperatorType.EQ,
+      FilterOperatorType.IN,
+      FilterOperatorType.NIN,
+      FilterOperatorType.NE,
+    ];
+
+    test('check finder configuration for id attribute', () => {
+      const finderConfigurationToCheck = managerTest.getFinderConfiguration().id;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(new DTBunchStub())).toStrictEqual(IDTestBunch);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
     });
   });
 
@@ -715,15 +735,68 @@ describe('class DYOToolsManager', () => {
   // TODO : Useless ?
   describe('reloadLibrary()', () => {});
 
-  // TODO : for finder
-  describe('getFinderConfiguration()', () => {});
-
   // TODO
   describe('transfer()', () => {});
 
-  // TODO
-  describe('toObject()', () => {});
+  describe('toObject()', () => {
+    beforeEach(() => {
+      managerTest.th_set_id(IDTest);
+      managerTest.th_set_key(KeyTest);
+    });
 
-  // TODO
-  describe('toString()', () => {});
+    test('toObject output standard', () => {
+      const toObjectManager = managerTest.toObject();
+
+      expect(Object.keys(toObjectManager)).toStrictEqual(['id', 'key', 'type', 'items']);
+      expect(toObjectManager.id).toBe(IDTest);
+      expect(toObjectManager.key).toBe(KeyTest);
+      expect(toObjectManager.type).toBe('manager');
+      expect(toObjectManager.items.length).toBe(0);
+    });
+
+    test('toObject output with items', () => {
+      populateManager(managerTest);
+
+      const toObjectManager = managerTest.toObject();
+
+      expect(Object.keys(toObjectManager)).toStrictEqual(['id', 'key', 'type', 'items']);
+      expect(toObjectManager.items.length).toBe(3);
+      expect(toObjectManager.items).toStrictEqual([
+        { scope: 'default', ...bunch1toObjectTest },
+        { scope: ScopesTest[0], ...bunch2toObjectTest },
+        { scope: 'virtual', ...bunch3toObjectTest },
+      ]);
+    });
+  });
+
+  describe('toString()', () => {
+    beforeEach(() => {
+      managerTest.th_set_key(KeyTest);
+    });
+
+    test('string output standard', () => {
+      managerTest.th_set_library(new DTBunchStubLibrary());
+
+      const toStringManager = managerTest.toString();
+
+      expect(toStringManager).toBe(`Component ${KeyTest} - Type: Manager - Library: 0 - Items: 0`);
+    });
+
+    test('string output with library', () => {
+      populateManager(managerTest);
+      managerTest.th_set_items({});
+
+      const toStringManager = managerTest.toString();
+
+      expect(toStringManager).toBe(`Component ${KeyTest} - Type: Manager - Library: 5 - Items: 0`);
+    });
+
+    test('string output with library and items', () => {
+      populateManager(managerTest);
+
+      const toStringManager = managerTest.toString();
+
+      expect(toStringManager).toBe(`Component ${KeyTest} - Type: Manager - Library: 5 - Items: 3`);
+    });
+  });
 });
