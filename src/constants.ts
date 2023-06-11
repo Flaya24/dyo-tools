@@ -5,7 +5,7 @@ import {
   FilterOperatorType,
   StandardPrimitiveType,
 } from './types';
-import { DTComponentPhysical, DTManager } from './index';
+import { DTBunch, DTComponentPhysical, DTManager } from './index';
 
 /* ********************** CORE CONSTANTS ********************** */
 /** DTBunch constants * */
@@ -65,8 +65,8 @@ export const componentManagerDefaultFinderConfiguration: DYOFinderConfiguration 
   ...componentPhysicalDefaultFinderConfiguration,
   scope: {
     operators: baseOperators,
-    getValue(item: DTManager): StandardPrimitiveType {
-      return (this.getComponent() as DTManager).getScope(item.getId());
+    getValue(item: DTBunch<any, any>, ctx: DTManager): StandardPrimitiveType {
+      return ctx.getScope(item.getId());
     },
     objectSearch: false,
   },

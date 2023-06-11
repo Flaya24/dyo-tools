@@ -5,8 +5,10 @@ import {
   DTComponentOptions,
   DTManagerFindFilters,
   DTManagerItemsType,
+  DTManagerItemType,
   DTManagerOptions,
-  DTManagerToObject, DYOFinderConfiguration,
+  DTManagerToObject,
+  DYOFinderConfiguration,
 } from '../types';
 import DYOFinder from '../libs/DYOFinder';
 import { componentManagerDefaultFinderConfiguration, managerDefaultOptions as defaultOptions } from '../constants';
@@ -192,6 +194,18 @@ export default class DYOToolsManager extends DYOToolsComponent<DTManagerOptions>
 
   find(filters: Partial<DTManagerFindFilters>): DYOToolsBunch<any, any>[] {
     return this._finder.execute(filters);
+  }
+
+  reloadLibrary(): void {
+    this._library.removeAll();
+
+    Object.values(this._items).forEach((item: DTManagerItemType) => {
+      item.item.getAll().forEach((element: any) => {
+        if (!this._library.get(element.getId())) {
+          this._library.add(element);
+        }
+      });
+    });
   }
 
   toObject(): DTManagerToObject {

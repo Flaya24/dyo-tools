@@ -1,4 +1,6 @@
-import { afterEach, beforeEach, describe, expect, jest, test, } from '@jest/globals';
+import {
+  afterEach, beforeEach, describe, expect, jest, test,
+} from '@jest/globals';
 import {
   checkManagerItem,
   DomainTest,
@@ -19,14 +21,17 @@ import {
   generateMockedElements,
   IDTest as IDTestBunch,
   IDTestLibrary,
+  KeyTest as KeyTestBunch,
+  bunch1IdTest,
 } from './DTBunch.double';
 import { mockOverriddenMethods } from './DTComponent.double';
 import { DTComponent, DTComponentPhysical, DTElement } from '../../src';
 import DYOToolsError from '../../src/core/DTError';
 import { checkCallForMockedDTError, DTErrorStub } from './DTError.double';
-import { IMetaDataTest } from './DTComponentWithMeta.double';
+import { BunchMetaData, IMetaDataTest } from './DTComponentWithMeta.double';
 import { componentManagerDefaultFinderConfiguration, managerDefaultOptions } from '../../src/constants';
 import { FilterOperatorType } from '../../src/types';
+import { DTPlayerStub, IDTest as IDTestPlayer } from './DTPlayer.double';
 import MockedFunction = jest.MockedFunction;
 
 /** ****************** MOCK DEPENDENCIES
@@ -153,7 +158,6 @@ describe('class DYOToolsManager', () => {
     });
   });
 
-  // TODO : WIP
   describe('getFinderConfiguration()', () => {
     const baseOperators = [
       FilterOperatorType.EQ,
@@ -161,12 +165,71 @@ describe('class DYOToolsManager', () => {
       FilterOperatorType.NIN,
       FilterOperatorType.NE,
     ];
+    const advancedOperators = [
+      ...baseOperators,
+      FilterOperatorType.GTE,
+      FilterOperatorType.LTE,
+      FilterOperatorType.CONTAINS,
+      FilterOperatorType.NCONTAINS,
+    ];
 
     test('check finder configuration for id attribute', () => {
       const finderConfigurationToCheck = managerTest.getFinderConfiguration().id;
 
       expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
-      expect(finderConfigurationToCheck.getValue(new DTBunchStub())).toStrictEqual(IDTestBunch);
+      expect(finderConfigurationToCheck.getValue(new DTBunchStub())).toBe(IDTestBunch);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for key attribute', () => {
+      const finderConfigurationToCheck = managerTest.getFinderConfiguration().key;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(new DTBunchStub())).toBe(KeyTestBunch);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for owner attribute - empty owner', () => {
+      const bunch = new DTBunchStub();
+      jest.spyOn(bunch, 'getOwner').mockImplementation(() => undefined);
+
+      const finderConfigurationToCheck = managerTest.getFinderConfiguration().owner;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(bunch)).toBeNull();
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for owner attribute - with owner', () => {
+      const bunch = new DTBunchStub();
+      jest.spyOn(bunch, 'getOwner').mockImplementation(() => new DTPlayerStub());
+
+      const finderConfigurationToCheck = managerTest.getFinderConfiguration().owner;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(bunch)).toBe(IDTestPlayer);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for meta attribute', () => {
+      const bunch = new DTBunchStub();
+      jest.spyOn(bunch, 'getManyMeta').mockImplementation(() => BunchMetaData);
+
+      const finderConfigurationToCheck = managerTest.getFinderConfiguration().meta;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(advancedOperators);
+      expect(finderConfigurationToCheck.getValue(bunch)).toStrictEqual(BunchMetaData);
+      expect(finderConfigurationToCheck.objectSearch).toBe(true);
+    });
+
+    test('check finder configuration for scope attribute', () => {
+      const bunch = new DTBunchStub();
+      jest.spyOn(managerTest, 'getScope').mockImplementation(() => ScopesTest[0]);
+
+      const finderConfigurationToCheck = managerTest.getFinderConfiguration().scope;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(bunch, managerTest)).toStrictEqual(ScopesTest[0]);
       expect(finderConfigurationToCheck.objectSearch).toBe(false);
     });
   });
@@ -732,8 +795,24 @@ describe('class DYOToolsManager', () => {
     });
   });
 
-  // TODO : Useless ?
-  describe('reloadLibrary()', () => {});
+  // TODO : WIP
+  describe('reloadLibrary()', () => {
+    beforeEach(() => {
+      populateManager(managerTest);
+    });
+
+    const extractIdsFromLibraryAddCalls = () => (managerTest.th_get_library().add as any).mock.calls.map((call) => call[0].getId());
+
+    test('synchronize bunches items into an empty library - one bunch with items', () => {
+      managerTest.th_get_library().th_set_items([]);
+      const expectedAddedItemIds = managerTest.th_get_single_item(bunch1IdTest).item.th_get_items()
+        .map((item) => item.getId());
+
+      managerTest.reloadLibrary();
+
+      expect(extractIdsFromLibraryAddCalls()).toEqual(expectedAddedItemIds);
+    });
+  });
 
   // TODO
   describe('transfer()', () => {});

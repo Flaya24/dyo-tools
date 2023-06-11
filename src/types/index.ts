@@ -24,13 +24,13 @@ export type DYOFinderComponentType = DTComponent & {
 
 export interface DYOFinderConfigurationPropDefault {
   operators: FilterOperatorType[],
-  getValue: (item: any) => StandardPrimitiveType,
+  getValue: (item: any, ctx?: any) => StandardPrimitiveType,
   objectSearch: false,
 }
 
 export interface DYOFinderConfigurationPropObjectSearch {
   operators: FilterOperatorType[],
-  getValue: (item: any) => Record<string, StandardPrimitiveTypeWithArray>,
+  getValue: (item: any, ctx?: any) => Record<string, StandardPrimitiveTypeWithArray>,
   objectSearch: true,
 }
 export type DYOFinderConfigurationProp = DYOFinderConfigurationPropDefault | DYOFinderConfigurationPropObjectSearch;
