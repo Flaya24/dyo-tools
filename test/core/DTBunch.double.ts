@@ -27,6 +27,7 @@ import {
 } from './DTElement.double';
 import { DTErrorStub } from './DTError.double';
 import { DTPlayerStub } from './DTPlayer.double';
+import DYOFinder from '../../src/libs/DYOFinder';
 
 /** ****************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
@@ -117,6 +118,10 @@ export class DTBunchTest extends DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>,
 
   th_set_meta(meta: IMetaDataTest): void {
     this._meta = meta;
+  }
+
+  th_get_finder(): DYOFinder {
+    return this._finder;
   }
 }
 

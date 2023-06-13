@@ -3,7 +3,7 @@ import DYOToolsBunch from './DTBunch';
 import DYOToolsError from './DTError';
 import {
   DTComponentOptions,
-  DTManagerFindFilters,
+  DTManagerFilters,
   DTManagerItemsType,
   DTManagerItemType,
   DTManagerOptions,
@@ -42,7 +42,7 @@ export default class DYOToolsManager extends DYOToolsComponent<DTManagerOptions>
     ];
     this._actions = {};
     this._library = new DYOToolsBunch('library', elements, { virtualContext: true });
-    this._finder = new DYOFinder(this, componentManagerDefaultFinderConfiguration);
+    this._finder = new DYOFinder(this, this.getFinderConfiguration());
   }
 
   getFinderConfiguration(): DYOFinderConfiguration {
@@ -192,7 +192,7 @@ export default class DYOToolsManager extends DYOToolsComponent<DTManagerOptions>
     this.removeMany(Object.keys(this._items));
   }
 
-  find(filters: Partial<DTManagerFindFilters>): DYOToolsBunch<any, any>[] {
+  find(filters: Partial<DTManagerFilters>): DYOToolsBunch<any, any>[] {
     return this._finder.execute(filters);
   }
 

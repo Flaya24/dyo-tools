@@ -1,20 +1,15 @@
+import { afterEach, beforeEach, describe, expect, jest, test, } from '@jest/globals';
+import { defaultOptions, DTBunchStub, DTBunchTest, generateMockedElements, IDTest, KeyTest, } from './DTBunch.double';
 import {
-  afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, test,
-} from '@jest/globals';
-import {
-  defaultOptions,
-  DTBunchTest,
-  generateMockedElements,
-  IDTest,
-  KeyTest,
-} from './DTBunch.double';
-import {
+  DTElementStub,
   HaileiIdTest,
   HaileiKeyTest,
   HaileiToObjectTest,
+  IDTest as IDElementTest,
   IldressIdTest,
   IldressKeyTest,
   IldressToObjectTest,
+  KeyTest as KeyElementTest,
   MaydenaIdTest,
   MaydenaKeyTest,
   MaydenaToObjectTest,
@@ -27,31 +22,33 @@ import {
 } from './DTElement.double';
 import { DTBunch, DTComponentPhysical } from '../../src';
 import DYOToolsElement from '../../src/core/DTElement';
-import { BunchMetaData, IMetaDataTest } from './DTComponentWithMeta.double';
-import { StandardPrimitiveTypeWithArray as DTAcceptedMetaDataValue, DTBunchOptions } from '../../src/types';
+import { BunchMetaData, HaileiMetaData, IMetaDataTest } from './DTComponentWithMeta.double';
+import { DTBunchOptions, FilterOperatorType } from '../../src/types';
 import {
   DTPlayerStub,
+  IDTest as IDTestPlayer,
   IDTest as IDPlayerTest,
   KeyTest as KeyPlayerTest,
   toStringTest as toStringPlayerTest,
 } from './DTPlayer.double';
-import { checkCallForMockedDTError, DTErrorStub, CodeTest as DTErrorCodeTest } from './DTError.double';
-import { validFiltersForItem } from '../../src/utils/filters';
-import { DTComponentStub, IDTest as IDContextTest } from './DTComponent.double';
-import Mocked = jest.Mocked;
-import MockedFunction = jest.MockedFunction;
+import { checkCallForMockedDTError, CodeTest as DTErrorCodeTest, DTErrorStub } from './DTError.double';
 import DYOToolsError from '../../src/core/DTError';
 import { mockOverriddenMethods } from './DTComponentPhysical.double';
+import { DTManagerStub } from './DTManager.double';
+import { componentBunchDefaultFinderConfiguration } from '../../src/constants';
+import Mocked = jest.Mocked;
+import MockedFunction = jest.MockedFunction;
 
 /** ****************** MOCK DEPENDENCIES
  * All Dependencies used by the component are mocked with Jest
  * **** */
 jest.mock('../../src/core/DTElement');
+jest.mock('../../src/core/DTManager');
 jest.mock('../../src/core/DTError');
-jest.mock('../../src/utils/filters');
 jest.mock('../../src/core/DTComponent');
 jest.mock('../../src/core/DTComponentWithMeta');
 jest.mock('../../src/core/DTComponentPhysical');
+jest.mock('../../src/libs/DYOFinder');
 // Add specific mock for inherited methods to have a basic implementation
 mockOverriddenMethods(DTComponentPhysical);
 
@@ -94,6 +91,11 @@ describe('class DYOToolsBunch', () => {
       expect(parentConstructorMock.calls[0][0]).toBe(KeyTest);
       expect(parentConstructorMock.calls[0][1]).toStrictEqual(defaultOptions);
       expect(newBunch.th_get_items()).toStrictEqual([]);
+
+      // Finder initialization
+      expect((newBunch.th_get_finder() as any).constructor.mock.calls.length).toBe(1);
+      expect((newBunch.th_get_finder() as any).constructor.mock.calls[0][0]).toStrictEqual(newBunch);
+      expect((newBunch.th_get_finder() as any).constructor.mock.calls[0][1]).toStrictEqual(componentBunchDefaultFinderConfiguration);
     });
 
     test('creation with items', () => {
@@ -131,6 +133,95 @@ describe('class DYOToolsBunch', () => {
   describe('_componentType', () => {
     test('componentType must be "bunch"', () => {
       expect(bunchTest.th_get_componentType()).toBe('bunch');
+    });
+  });
+
+  describe('getFinderConfiguration()', () => {
+    const baseOperators = [
+      FilterOperatorType.EQ,
+      FilterOperatorType.IN,
+      FilterOperatorType.NIN,
+      FilterOperatorType.NE,
+    ];
+    const advancedOperators = [
+      ...baseOperators,
+      FilterOperatorType.GTE,
+      FilterOperatorType.LTE,
+      FilterOperatorType.CONTAINS,
+      FilterOperatorType.NCONTAINS,
+    ];
+
+    test('check finder configuration for id attribute', () => {
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().id;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(new DTElementStub())).toBe(IDElementTest);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for key attribute', () => {
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().key;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(new DTElementStub())).toBe(KeyElementTest);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for owner attribute - empty owner', () => {
+      const element = new DTElementStub();
+      jest.spyOn(element, 'getOwner').mockImplementation(() => undefined);
+
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().owner;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(element)).toBeNull();
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for owner attribute - with owner', () => {
+      const element = new DTElementStub();
+      jest.spyOn(element, 'getOwner').mockImplementation(() => new DTPlayerStub());
+
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().owner;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(element)).toBe(IDTestPlayer);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for context attribute - empty context', () => {
+      const element = new DTElementStub();
+      jest.spyOn(element, 'getContext').mockImplementation(() => undefined);
+
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().context;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(element)).toBeNull();
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for context attribute - with context', () => {
+      const element = new DTElementStub();
+      const bunch = new DTBunchStub();
+      jest.spyOn(bunch, 'getId').mockImplementation(() => `${IDTest}_other_context`);
+      jest.spyOn(element, 'getContext').mockImplementation(() => bunch);
+
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().context;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(element)).toBe(`${IDTest}_other_context`);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for meta attribute', () => {
+      const element = new DTElementStub();
+      jest.spyOn(element, 'getManyMeta').mockImplementation(() => HaileiMetaData);
+
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().meta;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(advancedOperators);
+      expect(finderConfigurationToCheck.getValue(element)).toStrictEqual(HaileiMetaData);
+      expect(finderConfigurationToCheck.objectSearch).toBe(true);
     });
   });
 
@@ -249,6 +340,7 @@ describe('class DYOToolsBunch', () => {
     });
   });
 
+  // TODO : Add test cases for updating Library from manager
   describe('addAtIndex()', () => {
     let objectToAdd;
     let objectsToAdd;
@@ -407,6 +499,18 @@ describe('class DYOToolsBunch', () => {
 
       expect(bunchTest.th_get_items()[2].setContext.mock.calls.length).toBe(0);
       expect((bunchTestOld.remove as any).mock.calls.length).toBe(0);
+    });
+
+    test('manager context - add item into the manager library', () => {
+      const managerTest = new DTManagerStub();
+      jest.spyOn(bunchTest, 'getContext').mockImplementation(
+        (contextType) => contextType === 'manager' && managerTest,
+      );
+
+      bunchTest.addAtIndex(objectToAdd, 5);
+
+      expect((managerTest.th_get_library().add as any).mock.calls.length).toBe(1);
+      expect((managerTest.th_get_library().add as any).mock.calls[0][0]).toStrictEqual(objectToAdd);
     });
   });
 
@@ -676,323 +780,20 @@ describe('class DYOToolsBunch', () => {
     // @see copy.spec.ts for unit tests about copy method
   });
 
-  // TODO : Tests à revoir ! les assertions sont pas ouf
   describe('find()', () => {
-    const validFiltersForItemMockFn = validFiltersForItem as MockedFunction<typeof validFiltersForItem>;
-    const checkItemFound = (items) => {
-      expect(items.length).toBe(3);
-      expect(items[0].getId()).toBe(`${HaileiIdTest}-0`);
-      expect(items[1].getId()).toBe(`${MaydenaIdTest}-2`);
-      expect(items[2].getId()).toBe(`${YssaliaIdTest}-4`);
-    };
-    const generateFiltersCallsResponse = (filters): any => {
-      const items = generateMockedElements(5);
-      let nbCalls = 0;
-      let itemCount = 0;
-      let inversion = false;
-      const response = { nbCalls: 0, callsData: [] };
-      validFiltersForItemMockFn.mockReturnValue(true);
+    test('find items using DYOFinder - empty case', () => {
+      bunchTest.find({});
 
-      for (const item of items) {
-        for (const prop of Object.keys(filters)) {
-          let itemProp: DTAcceptedMetaDataValue = '';
-          let operators = { fake: filters[prop] };
-          if (prop === 'id') {
-            itemProp = item.getId();
-          } else if (prop === 'key') {
-            itemProp = item.getKey();
-          } else if (prop === 'owner') {
-            itemProp = itemCount % 2 ? null : IDPlayerTest;
-          } else if (prop === 'context') {
-            itemProp = itemCount % 2 ? IDContextTest : null;
-          } else if (prop === 'meta') {
-            operators = filters[prop];
-          }
-
-          let metaBreakerLoop = false;
-          for (const metaKey of Object.keys(operators)) {
-            if (prop === 'meta') {
-              itemProp = item.getManyMeta()[metaKey];
-            }
-            if (metaBreakerLoop) {
-              break;
-            }
-
-            for (const operator of Object.keys(operators[metaKey])) {
-              response.callsData.push([
-                itemProp, filters[prop][operator], operator,
-              ]);
-
-              if (!(itemCount % 2)) {
-                validFiltersForItemMockFn.mockReturnValueOnce(true);
-              } else {
-                validFiltersForItemMockFn.mockReturnValueOnce(inversion);
-                if (inversion === false) {
-                  if (prop === 'meta') {
-                    metaBreakerLoop = true;
-                  }
-                  break;
-                }
-                inversion = !inversion;
-              }
-              nbCalls++;
-            }
-          }
-        }
-
-        itemCount++;
-        inversion = false;
-      }
-
-      response.nbCalls = nbCalls;
-      return response;
-    };
-
-    beforeEach(() => {
-      bunchTest.th_set_items(generateMockedElements(5));
-
-      bunchTest.th_get_items()[0].setOwner(new DTPlayerStub());
-      bunchTest.th_get_items()[1].setContext(new DTComponentStub());
-      bunchTest.th_get_items()[2].setOwner(new DTPlayerStub());
-      bunchTest.th_get_items()[3].setContext(new DTComponentStub());
-      bunchTest.th_get_items()[4].setOwner(new DTPlayerStub());
+      expect((bunchTest.th_get_finder() as any).execute.mock.calls.length).toBe(1);
+      expect((bunchTest.th_get_finder() as any).execute.mock.calls[0][0]).toStrictEqual({});
     });
 
-    afterEach(() => {
-      validFiltersForItemMockFn.mockReset();
-    });
+    test('find items using DYOFinder', () => {
+      const testFilters = { id: { $eq: 'id_bunch' }, key: { $ne: 'key_test' } };
+      bunchTest.find(testFilters);
 
-    test('find items by id - $eq case', () => {
-      const filters = { id: { $eq: 'filter-id' } };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by id - all valid operators', () => {
-      const filters = {
-        id: {
-          $eq: 'filter-id',
-          $in: ['filter-id', '12345'],
-          $nin: [false, 12345],
-          $ne: 'filter-id',
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by key - one operator $eq', () => {
-      const filters = { key: { $eq: 'filter-key' } };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by key - all valid operators', () => {
-      const filters = {
-        key: {
-          $eq: 'filter-key',
-          $in: ['filter-key', '12345'],
-          $nin: [false, 12345],
-          $ne: 'filter-key',
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by owner - $eq case', () => {
-      const filters = { owner: { $eq: 'filter-owner-id' } };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by owner - all valid operators', () => {
-      const filters = {
-        owner: {
-          $eq: 'filter-owner-id',
-          $in: ['filter-owner-id', '12345'],
-          $nin: [null, 12345],
-          $ne: 'filter-owner-id',
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by context - $eq case', () => {
-      const filters = { id: { $eq: 'filter-context-id' } };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by context - all valid operators', () => {
-      const filters = {
-        context: {
-          $eq: 'filter-context-id',
-          $in: ['filter-context-id', '12345'],
-          $nin: [null, 12345],
-          $ne: 'filter-context-id',
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - one meta with one operator $eq', () => {
-      const filters = { meta: { name: { $eq: 'filter-meta-name' } } };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - several meta with one operator $eq', () => {
-      const filters = {
-        meta: {
-          name: { $eq: 'filter-meta-name' },
-          queen: { $eq: false },
-          rank: { $eq: 13 },
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - one meta with all valid operators', () => {
-      const filters = {
-        meta: {
-          rank: {
-            $eq: 5,
-            $in: [5, 11],
-            $nin: [2, 3],
-            $ne: 11,
-            $lte: 17,
-            $gte: 3,
-            $contains: 5,
-            $ncontains: 11,
-          },
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - several meta with several operators', () => {
-      const filters = {
-        meta: {
-          name: {
-            $eq: 'filter-meta-name',
-            $in: ['filter-meta-name', '12345'],
-            $ne: null,
-          },
-          kd: {
-            $contains: 0,
-            $ncontains: 53,
-          },
-          rank: {
-            $lte: 17,
-            $gte: 3,
-          },
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - all props with several operators', () => {
-      const filters = {
-        id: {
-          $eq: 'filter-id',
-        },
-        key: {
-          $eq: 'filter-key',
-          $in: ['filter-key', '12345'],
-        },
-        owner: {
-          $nin: [null, 12345],
-          $ne: 'filter-owner-id',
-        },
-        context: {
-          $in: ['filter-context-id', '12345'],
-          $nin: [null, 12345],
-          $ne: 'filter-context-id',
-        },
-        meta: {
-          name: {
-            $eq: 'filter-meta-name',
-            $in: ['filter-meta-name', '12345'],
-            $ne: null,
-          },
-          kd: {
-            $contains: 0,
-            $ncontains: 53,
-          },
-          rank: {
-            $lte: 17,
-            $gte: 3,
-          },
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchTest.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - empty filters (return empty array)', () => {
-      const filters = {};
-      const itemsFound = bunchTest.find(filters);
-
-      expect(itemsFound.length).toBe(0);
-      expect(validFiltersForItemMockFn.mock.calls.length).toBe(0);
-
-      validFiltersForItemMockFn.mockReset();
-      const filters2 = {
-        id: {},
-        key: {},
-        owner: {},
-        context: {},
-        meta: {},
-      };
-      const itemsFound2 = bunchTest.find(filters2);
-
-      expect(itemsFound2.length).toBe(0);
-      expect(validFiltersForItemMockFn.mock.calls.length).toBe(0);
+      expect((bunchTest.th_get_finder() as any).execute.mock.calls.length).toBe(1);
+      expect((bunchTest.th_get_finder() as any).execute.mock.calls[0][0]).toStrictEqual(testFilters);
     });
   });
 

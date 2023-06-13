@@ -71,8 +71,17 @@ export class DTElementStub extends DTElement<IMetaDataTest> {
 
   constructor(index = 0) {
     super();
+    this._id = IDTest;
     this._key = KeyTest;
     this.parentIndex = index;
+  }
+
+  getId(): string {
+    return IDTest;
+  }
+
+  getKey(): string {
+    return KeyTest;
   }
 }
 export class DTElementStubExtended extends DTElementStub {

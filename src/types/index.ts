@@ -109,7 +109,7 @@ export type DTManagerItemType = {
   item: DTBunch<any, any>,
 };
 
-export interface DTManagerFindFilters extends DYOFinderFilters {
+export interface DTManagerFilters extends DYOFinderFilters {
   id: Partial<DYOFinderFilterOperatorBase>
   key: Partial<DYOFinderFilterOperatorBase>
   owner: Partial<DYOFinderFilterOperatorBase>

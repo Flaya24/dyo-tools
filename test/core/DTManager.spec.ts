@@ -1,6 +1,4 @@
-import {
-  afterEach, beforeEach, describe, expect, jest, test,
-} from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest, test, } from '@jest/globals';
 import {
   checkManagerItem,
   DomainTest,
@@ -13,7 +11,9 @@ import {
 } from './DTManager.double';
 import DTManager from '../../src/core/DTManager';
 import {
+  bunch1IdTest,
   bunch1toObjectTest,
+  bunch2IdTest,
   bunch2toObjectTest,
   bunch3toObjectTest,
   DTBunchStub,
@@ -22,7 +22,6 @@ import {
   IDTest as IDTestBunch,
   IDTestLibrary,
   KeyTest as KeyTestBunch,
-  bunch1IdTest,
 } from './DTBunch.double';
 import { mockOverriddenMethods } from './DTComponent.double';
 import { DTComponent, DTComponentPhysical, DTElement } from '../../src';
@@ -795,7 +794,6 @@ describe('class DYOToolsManager', () => {
     });
   });
 
-  // TODO : WIP
   describe('reloadLibrary()', () => {
     beforeEach(() => {
       populateManager(managerTest);
@@ -804,18 +802,41 @@ describe('class DYOToolsManager', () => {
     const extractIdsFromLibraryAddCalls = () => (managerTest.th_get_library().add as any).mock.calls.map((call) => call[0].getId());
 
     test('synchronize bunches items into an empty library - one bunch with items', () => {
+      const items = managerTest.th_get_library().th_get_items();
       managerTest.th_get_library().th_set_items([]);
-      const expectedAddedItemIds = managerTest.th_get_single_item(bunch1IdTest).item.th_get_items()
-        .map((item) => item.getId());
+      const expectedAddedItemIds = items.map((item: any) => item.getId());
+
+      managerTest.reloadLibrary();
+
+      expect(extractIdsFromLibraryAddCalls()).toEqual(expectedAddedItemIds);
+    });
+
+    test('synchronize bunches items into an empty library - multiple bunches with items', () => {
+      const items = managerTest.th_get_library().th_get_items();
+      managerTest.th_get_library().th_set_items([]);
+      managerTest.th_get_single_item(bunch1IdTest).item.th_set_items([items[0], items[1], items[2]]);
+      managerTest.th_get_single_item(bunch2IdTest).item.th_set_items([items[3], items[4]]);
+      const expectedAddedItemIds = items.map((item: any) => item.getId());
+
+      managerTest.reloadLibrary();
+
+      expect(extractIdsFromLibraryAddCalls()).toEqual(expectedAddedItemIds);
+    });
+
+    test('synchronize bunches items into an empty library - pass already existing ids', () => {
+      jest.spyOn(managerTest.th_get_library(), 'removeAll').mockImplementation(function () {
+        this._items = [];
+      });
+      const items = managerTest.th_get_library().th_get_items();
+      managerTest.th_get_library().th_set_items([items[0], items[1], items[2]]);
+      managerTest.th_get_single_item(bunch1IdTest).item.th_set_items(items);
+      const expectedAddedItemIds = items.map((item: any) => item.getId());
 
       managerTest.reloadLibrary();
 
       expect(extractIdsFromLibraryAddCalls()).toEqual(expectedAddedItemIds);
     });
   });
-
-  // TODO
-  describe('transfer()', () => {});
 
   describe('toObject()', () => {
     beforeEach(() => {

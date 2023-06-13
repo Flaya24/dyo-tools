@@ -1,19 +1,10 @@
 import DYOToolsElement from './DTElement';
-import {
-  DTAcceptedMetaData,
-  DTBunchFilters,
-  DYOFinderFilterOperatorBase,
-  DYOFinderFilterOperatorAdvanced,
-  DTBunchOptions,
-  DTBunchToObject,
-  FilterOperatorType,
-  StandardPrimitiveType,
-} from '../types';
+import { DTAcceptedMetaData, DTBunchFilters, DTBunchOptions, DTBunchToObject, DYOFinderConfiguration, } from '../types';
 import DYOToolsPlayer from './DTPlayer';
 import DYOToolsError from './DTError';
-import { validFiltersForItem } from '../utils/filters';
 import DYOToolsComponentPhysical from './DTComponentPhysical';
-import { bunchDefaultOptions as defaultOptions } from '../constants';
+import { bunchDefaultOptions as defaultOptions, componentBunchDefaultFinderConfiguration } from '../constants';
+import DYOFinder from '../libs/DYOFinder';
 
 export default class DYOToolsBunch<
     IBunchItem extends DYOToolsElement<DTAcceptedMetaData>,
@@ -55,6 +46,8 @@ export default class DYOToolsBunch<
    */
   protected _errors: DYOToolsError[];
 
+  protected _finder: DYOFinder;
+
   /**
    * Applying the parent constructor, and execute following process steps :
    * * Add **items** to the bunch instance (using adding specifications).
@@ -72,6 +65,12 @@ export default class DYOToolsBunch<
     if (items && items.length > 0) {
       this.addMany(items);
     }
+
+    this._finder = new DYOFinder(this, this.getFinderConfiguration());
+  }
+
+  getFinderConfiguration(): DYOFinderConfiguration {
+    return componentBunchDefaultFinderConfiguration;
   }
 
   /**
@@ -395,85 +394,7 @@ export default class DYOToolsBunch<
    * @returns Array of DTElement instance corresponding to the filters. Empty if no filter or invalid ones are passed.
    */
   find(filters: Partial<DTBunchFilters>): IBunchItem[] {
-    const filteredItems : IBunchItem[] = [];
-    const validOperatorsBase: FilterOperatorType[] = [
-      FilterOperatorType.EQ,
-      FilterOperatorType.IN,
-      FilterOperatorType.NIN,
-      FilterOperatorType.NE,
-    ];
-    const validOperatorsMeta: FilterOperatorType[] = [
-      FilterOperatorType.EQ,
-      FilterOperatorType.IN,
-      FilterOperatorType.NIN,
-      FilterOperatorType.NE,
-      FilterOperatorType.LTE,
-      FilterOperatorType.GTE,
-      FilterOperatorType.CONTAINS,
-      FilterOperatorType.NCONTAINS,
-    ];
-    const checkAllValidFiltersForProp = (
-      itemProp: StandardPrimitiveType,
-      operators: Partial<DYOFinderFilterOperatorBase>,
-      validOperators: FilterOperatorType[],
-    ) => {
-      if (Object.keys(operators).length) {
-        for (const operator of Object.keys(operators)) {
-          if (!validOperators.includes(operator as FilterOperatorType)
-            || !validFiltersForItem(itemProp, operators[operator], operator as FilterOperatorType.EQ)) {
-            return false;
-          }
-        }
-        return true;
-      }
-      return false;
-    };
-
-    for (const item of this._items) {
-      let validItem = !!(Object.keys(filters).length);
-
-      // id Filter
-      if (filters.id && !checkAllValidFiltersForProp(item.getId(), filters.id, validOperatorsBase)) {
-        validItem = false;
-      }
-
-      // key Filter
-      if (filters.key && !checkAllValidFiltersForProp(item.getKey(), filters.key, validOperatorsBase)) {
-        validItem = false;
-      }
-
-      // context Filter
-      const itemContext = item.getContext() ? item.getContext().getId() : null;
-      if (filters.context && !checkAllValidFiltersForProp(itemContext, filters.context, validOperatorsBase)) {
-        validItem = false;
-      }
-
-      // owner Filter
-      const itemOwner = item.getOwner() ? item.getOwner().getId() : null;
-      if (filters.owner && !checkAllValidFiltersForProp(itemOwner, filters.owner, validOperatorsBase)) {
-        validItem = false;
-      }
-
-      // meta Filter
-      if (filters.meta) {
-        if (Object.keys(filters.meta).length) {
-          const itemMeta = item.getManyMeta();
-          for (const [meta, filter] of Object.entries(filters.meta)) {
-            const metaValue = Object.prototype.hasOwnProperty.call(itemMeta, meta) ? itemMeta[meta] : null;
-            if (!checkAllValidFiltersForProp(metaValue as StandardPrimitiveType, filter as any, validOperatorsMeta)) {
-              validItem = false;
-              break;
-            }
-          }
-        }
-      }
-
-      if (validItem) {
-        filteredItems.push(item);
-      }
-    }
-
-    return filteredItems;
+    return this._finder.execute(filters);
   }
 
   /**

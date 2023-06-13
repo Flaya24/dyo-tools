@@ -71,3 +71,12 @@ export const componentManagerDefaultFinderConfiguration: DYOFinderConfiguration 
     objectSearch: false,
   },
 };
+
+export const componentBunchDefaultFinderConfiguration: DYOFinderConfiguration = {
+  ...componentPhysicalDefaultFinderConfiguration,
+  context: {
+    operators: baseOperators,
+    getValue: (item: DTComponentPhysical<any>) => (item.getContext() ? item.getContext().getId() : null),
+    objectSearch: false,
+  },
+};

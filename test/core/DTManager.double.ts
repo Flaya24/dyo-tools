@@ -95,6 +95,29 @@ export class DTManagerTest extends DTManager {
 /** ****************** STUB CLASS
  * Stub class, for using in other component
  * **** */
+export class DTManagerStub extends DTManagerTest {
+  constructor() {
+    super();
+    this._id = IDTest;
+    this._key = KeyTest;
+    this._errors = [];
+    this._library = new DTBunchStubLibrary();
+    this._scopes = [
+      'default',
+      'virtual',
+      ...ScopesTest,
+    ];
+  }
+
+  getId(): string {
+    return IDTest;
+  }
+
+  getKey(): string {
+    return KeyTest;
+  }
+}
+
 export class DTManagerStubDomain extends DTManagerTest {
   protected _domain = DomainTest;
 
