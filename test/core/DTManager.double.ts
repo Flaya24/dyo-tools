@@ -12,8 +12,9 @@ import {
   DTBunchTest,
   generateMockedElements,
 } from './DTBunch.double';
-import { DTManagerItemsType, DTManagerOptions } from '../../src/types';
+import { DTAcceptedMetaData, DTManagerItemsType, DTManagerOptions } from '../../src/types';
 import DYOFinder from '../../src/libs/DYOFinder';
+import DYOToolsElement from '../../src/core/DTElement';
 
 /** ****************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
@@ -27,7 +28,7 @@ export const ScopesTest = ['DTManager-scope-test1', 'DTManager-scope-test2'];
  * Helper test class, inherits the main component
  * Providing methods to property access and other facilities, in order to avoid using class methods
  * **** */
-export class DTManagerTest extends DTManager {
+export class DTManagerTest extends DTManager<DYOToolsElement<DTAcceptedMetaData>> {
   th_get_id(): string {
     return this._id;
   }

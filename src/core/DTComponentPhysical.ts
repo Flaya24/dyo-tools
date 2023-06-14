@@ -2,8 +2,6 @@ import { DTAcceptedMetaData, DTComponentOptions } from '../types';
 import DYOToolsComponentWithMeta from './DTComponentWithMeta';
 import DYOToolsPlayer from './DTPlayer';
 
-
-
 export default abstract class DYOToolsComponentPhysical<
   IComponentMeta extends DTAcceptedMetaData,
   IComponentOptions extends DTComponentOptions = DTComponentOptions,

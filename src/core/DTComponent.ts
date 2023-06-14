@@ -1,6 +1,6 @@
 import * as uuid from 'uuid';
-import DYOToolsError from "./DTError";
-import {DTComponentOptions} from "../types";
+import DYOToolsError from './DTError';
+import { DTComponentOptions } from '../types';
 
 export default abstract class DYOToolsComponent<IComponentOptions extends DTComponentOptions = DTComponentOptions> {
   /**
@@ -65,12 +65,12 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
     this._errors = [];
 
     const defaultOptions: DTComponentOptions = {
-      errors: false
+      errors: false,
     };
     this._options = {
       ...defaultOptions,
-      ...options
-    } as IComponentOptions
+      ...options,
+    } as IComponentOptions;
   }
 
   /**
@@ -147,9 +147,8 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
   getErrors(): DYOToolsError[] {
     if (this.getContext()) {
       return this.getContext().getErrors();
-    } else {
-      return this._errors;
     }
+    return this._errors;
   }
 
   /**
@@ -158,9 +157,8 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
   getLastError(): DYOToolsError | undefined {
     if (this.getContext()) {
       return this.getContext().getLastError();
-    } else {
-      return this._errors.length > 0 ? this._errors[this._errors.length - 1] : undefined;
     }
+    return this._errors.length > 0 ? this._errors[this._errors.length - 1] : undefined;
   }
 
   /*
@@ -170,12 +168,10 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
     const { errors = false } = this._options;
     if (this.getContext()) {
       this.getContext().triggerError(error);
+    } else if (!errors) {
+      throw error;
     } else {
-      if (!errors) {
-        throw error;
-      } else {
-        this._errors.push(error);
-      }
+      this._errors.push(error);
     }
   }
 

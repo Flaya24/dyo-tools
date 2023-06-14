@@ -1,4 +1,5 @@
-import { DTBunch, DTComponent, DTComponentPhysical } from '../index';
+import { DTBunch, DTComponent } from '../index';
+import DYOToolsElement from '../core/DTElement';
 
 /** Constants Enum * */
 export enum FilterOperatorType {
@@ -103,10 +104,10 @@ export interface DTPlayerToObject<IComponentMeta> extends DTComponentToObject {
 }
 
 /** DTManager interfaces * */
-export type DTManagerItemsType = Record<string, DTManagerItemType>;
-export type DTManagerItemType = {
+export type DTManagerItemsType<IBunchItem extends DYOToolsElement<DTAcceptedMetaData>> = Record<string, DTManagerItemType<IBunchItem>>;
+export type DTManagerItemType<IBunchItem extends DYOToolsElement<DTAcceptedMetaData>> = {
   scope: string,
-  item: DTBunch<any, any>,
+  item: DTBunch<IBunchItem>,
 };
 
 export interface DTManagerFilters extends DYOFinderFilters {

@@ -1,5 +1,8 @@
 import DYOToolsElement from './DTElement';
-import { DTAcceptedMetaData, DTBunchFilters, DTBunchOptions, DTBunchToObject, DYOFinderConfiguration, } from '../types';
+import DYOToolsManager from './DTManager';
+import {
+  DTAcceptedMetaData, DTBunchFilters, DTBunchOptions, DTBunchToObject, DYOFinderConfiguration,
+} from '../types';
 import DYOToolsPlayer from './DTPlayer';
 import DYOToolsError from './DTError';
 import DYOToolsComponentPhysical from './DTComponentPhysical';
@@ -8,7 +11,7 @@ import DYOFinder from '../libs/DYOFinder';
 
 export default class DYOToolsBunch<
     IBunchItem extends DYOToolsElement<DTAcceptedMetaData>,
-    IComponentMeta extends DTAcceptedMetaData,
+    IComponentMeta extends DTAcceptedMetaData = Record<string, never>,
   > extends DYOToolsComponentPhysical<IComponentMeta, DTBunchOptions> {
   /**
    * Defining component type to "bunch".
@@ -189,6 +192,14 @@ export default class DYOToolsBunch<
       // Update Owner
       if (inheritOwner) {
         item.setOwner(this._owner);
+      }
+
+      // Update Manager library
+      if (this.getContext('manager')) {
+        const manager: DYOToolsManager<IBunchItem> = this.getContext('manager') as DYOToolsManager<IBunchItem>;
+        if (!manager.getLibrary().get(item.getId())) {
+          manager.getLibrary().add(item);
+        }
       }
 
       // Add the new Item

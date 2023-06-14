@@ -506,11 +506,27 @@ describe('class DYOToolsBunch', () => {
       jest.spyOn(bunchTest, 'getContext').mockImplementation(
         (contextType) => contextType === 'manager' && managerTest,
       );
+      jest.spyOn(managerTest, 'getLibrary').mockImplementation(() => managerTest.th_get_library());
+      jest.spyOn(managerTest.th_get_library(), 'add');
 
       bunchTest.addAtIndex(objectToAdd, 5);
 
       expect((managerTest.th_get_library().add as any).mock.calls.length).toBe(1);
       expect((managerTest.th_get_library().add as any).mock.calls[0][0]).toStrictEqual(objectToAdd);
+    });
+
+    test('manager context - not add existing item into the manager library', () => {
+      const managerTest = new DTManagerStub();
+      jest.spyOn(bunchTest, 'getContext').mockImplementation(
+        (contextType) => contextType === 'manager' && managerTest,
+      );
+      jest.spyOn(managerTest, 'getLibrary').mockImplementation(() => managerTest.th_get_library());
+      jest.spyOn(managerTest.th_get_library(), 'add');
+      managerTest.th_get_library().th_set_items([objectToAdd]);
+
+      bunchTest.addAtIndex(objectToAdd, 5);
+
+      expect((managerTest.th_get_library().add as any).mock.calls.length).toBe(0);
     });
   });
 

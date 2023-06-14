@@ -1,5 +1,5 @@
 import { DTAcceptedMetaData, DTElementToObject } from '../types';
-import DYOToolsComponentPhysical from "./DTComponentPhysical";
+import DYOToolsComponentPhysical from './DTComponentPhysical';
 
 export default class DYOToolsElement<
   IComponentMeta extends DTAcceptedMetaData,
