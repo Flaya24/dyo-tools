@@ -17,7 +17,7 @@ import {
   bunch2toObjectTest,
   bunch3toObjectTest,
   DTBunchStub,
-  DTBunchStubLibrary,
+  DTBunchStubLibrary, DTBunchTest,
   generateMockedElements,
   IDTest as IDTestBunch,
   IDTestLibrary,
@@ -237,7 +237,7 @@ describe('class DYOToolsManager', () => {
     test('return current manager Library', () => {
       managerTest.th_set_library(new DTBunchStubLibrary());
 
-      const library: DTBunchStubLibrary = managerTest.getLibrary();
+      const library: DTBunchStubLibrary = managerTest.getLibrary() as DTBunchStubLibrary;
       expect(library).toBeTruthy();
       expect(library.getId()).toBe(IDTestLibrary);
     });
@@ -631,7 +631,7 @@ describe('class DYOToolsManager', () => {
     });
 
     test('return a bunch by its id', () => {
-      const bunch = managerTest.get(`${IDTestBunch}_1`);
+      const bunch = managerTest.get(`${IDTestBunch}_1`) as DTBunchTest;
 
       expect(bunch).toBeDefined();
       expect(bunch.th_get_id()).toBe(`${IDTestBunch}_1`);
@@ -650,7 +650,7 @@ describe('class DYOToolsManager', () => {
     });
 
     test('return all bunch items', () => {
-      const bunches = managerTest.getAll();
+      const bunches = managerTest.getAll() as DTBunchTest[];
 
       const bunchesIds = bunches.map((bunch) => bunch.th_get_id());
       expect(bunchesIds.length).toBe(3);
@@ -668,7 +668,7 @@ describe('class DYOToolsManager', () => {
     });
 
     test('scope argument : return only bunches into the scope', () => {
-      const bunches = managerTest.getAll(ScopesTest[0]);
+      const bunches = managerTest.getAll(ScopesTest[0]) as DTBunchTest[];
 
       const bunchesIds = bunches.map((bunch) => bunch.th_get_id());
       expect(bunchesIds.length).toBe(1);

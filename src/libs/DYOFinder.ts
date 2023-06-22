@@ -22,7 +22,7 @@ export default class DYOFinder {
     return this._component;
   }
 
-  execute(filters: DYOFinderFilters): any[] {
+  execute<ITEM>(filters: DYOFinderFilters): ITEM[] {
     const items = this._component.getAll();
     const filteredItems = [];
 

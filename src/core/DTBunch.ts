@@ -11,7 +11,7 @@ import DYOFinder from '../libs/DYOFinder';
 
 export default class DYOToolsBunch<
     IBunchItem extends DYOToolsElement<DTAcceptedMetaData>,
-    IComponentMeta extends DTAcceptedMetaData = Record<string, never>,
+    IComponentMeta extends DTAcceptedMetaData = DTAcceptedMetaData,
   > extends DYOToolsComponentPhysical<IComponentMeta, DTBunchOptions> {
   /**
    * Defining component type to "bunch".
@@ -405,7 +405,7 @@ export default class DYOToolsBunch<
    * @returns Array of DTElement instance corresponding to the filters. Empty if no filter or invalid ones are passed.
    */
   find(filters: Partial<DTBunchFilters>): IBunchItem[] {
-    return this._finder.execute(filters);
+    return this._finder.execute<IBunchItem>(filters);
   }
 
   /**

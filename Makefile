@@ -16,7 +16,7 @@ clean: distclean
 	rm -Rf node_modules/
 
 dist: node_modules distclean
-	npm run-script build
+	npm run-script build:prod
 
 .PHONY: distclean
 distclean:

@@ -194,7 +194,7 @@ export default class DYOToolsManager<
   }
 
   find(filters: Partial<DTManagerFilters>): DYOToolsBunch<IBunchItem>[] {
-    return this._finder.execute(filters);
+    return this._finder.execute<DYOToolsBunch<IBunchItem>>(filters);
   }
 
   reloadLibrary(): void {

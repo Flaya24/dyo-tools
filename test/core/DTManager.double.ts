@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals';
-import { DTManager } from '../../src';
+import { DTManager, DTElement } from '../../src';
 import {
   bunch1IdTest,
   bunch1toObjectTest,
@@ -14,7 +14,6 @@ import {
 } from './DTBunch.double';
 import { DTAcceptedMetaData, DTManagerItemsType, DTManagerOptions } from '../../src/types';
 import DYOFinder from '../../src/libs/DYOFinder';
-import DYOToolsElement from '../../src/core/DTElement';
 
 /** ****************** STUB PROPERTIES CONSTANTS
  * Fixed properties to use with double classes, avoid auto generated and easy checking on test
@@ -28,7 +27,7 @@ export const ScopesTest = ['DTManager-scope-test1', 'DTManager-scope-test2'];
  * Helper test class, inherits the main component
  * Providing methods to property access and other facilities, in order to avoid using class methods
  * **** */
-export class DTManagerTest extends DTManager<DYOToolsElement<DTAcceptedMetaData>> {
+export class DTManagerTest extends DTManager<DTElement<DTAcceptedMetaData>> {
   th_get_id(): string {
     return this._id;
   }
@@ -53,7 +52,7 @@ export class DTManagerTest extends DTManager<DYOToolsElement<DTAcceptedMetaData>
     return this._items;
   }
 
-  th_set_items(items: DTManagerItemsType): void {
+  th_set_items(items: DTManagerItemsType<DTElement<DTAcceptedMetaData>>): void {
     this._items = items;
   }
 
@@ -166,7 +165,7 @@ export function populateManager(manager: DTManagerTest): DTManagerTest {
   jest.spyOn(bunch3, 'getAll').mockImplementation(function () { return this._items; });
   jest.spyOn(bunch3, 'toObject').mockImplementation(() => bunch3toObjectTest);
 
-  const items: DTManagerItemsType = {
+  const items: DTManagerItemsType<DTElement<DTAcceptedMetaData>> = {
     [bunch1.th_get_id()]: {
       scope: 'default',
       item: bunch1,
