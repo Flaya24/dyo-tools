@@ -54,7 +54,14 @@ export type DYOFinderFilterOperatorArgument = Partial<DYOFinderFilterOperator | 
 export type DYOFinderFilters = Record<string, DYOFinderFilterOperatorArgument>;
 
 /** DTComponent interfaces * */
+/**
+ * DTComponent default options configuration.
+ */
 export interface DTComponentOptions {
+  /**
+   * Default *false*. If *true*, no exception is thrown when an error occurred, a new DTError instance is
+   * added to the _errors property array instead. If *false*, throw the exception with a DTError instance.
+   */
   errors: boolean
 }
 
@@ -77,10 +84,31 @@ export interface DTElementToObject<IComponentMeta> extends DTComponentToObject {
 }
 
 /** DTBunch interfaces * */
+/**
+ * DTBunch option configuration.
+ */
 export interface DTBunchOptions extends DTComponentOptions {
+  /**
+   * Default *false*. If *true*, an error occurred when adding a new DTElement with the same key of an
+   * existing element into the bunch.
+   */
   uniqueKey: boolean
+  /**
+   * Default *false*. If *true*, when a new DTElement is added, the owner of this element becomes
+   * automatically the current bunch owner.
+   */
   replaceIndex: boolean
+  /**
+   * Default *false*. If *true*, the context is not changed when a new DTElement is added.
+   * If *false*, when a new DTElement is added, the context of this element becomes automatically the current bunch instance
+   * and the element is removed from the old context Component (if defined).
+   */
   inheritOwner: boolean
+  /**
+   * Default *false*. If *true*, when a new DTElement is added at existing index (using **addAtIndex**
+   * or **addManyAtIndex** method), this component replaces the old one. If *false*, this component is added at the specified
+   * index and other existing component are reindexed with the following index.
+   */
   virtualContext: boolean
 }
 
@@ -118,7 +146,14 @@ export interface DTManagerFilters extends DYOFinderFilters {
   meta: Record<string, Partial<DYOFinderFilterOperatorAdvanced>>
 }
 
+/**
+ * DTManager option configuration.
+ */
 export interface DTManagerOptions extends DTComponentOptions {
+  /**
+   * Default *false*. If *true*, when a bunch instance is removed from the Manager _items, the process performs also
+   * a removal from the Manager Library of all DTElement instances of the bunch.
+   */
   libraryDeletion: boolean,
 }
 

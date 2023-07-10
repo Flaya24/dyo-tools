@@ -13,7 +13,8 @@
     "test": "jest",
     "test:coverage": "c8 --check-coverage npm test",
     "test:coverage:verify": "c8 --check-coverage --lines 97 --functions 97 --branches 97 --statements 97 npm test",
-    "e2e": "cucumber-js --config cucumber.js"
+    "e2e": "cucumber-js --config cucumber.js",
+    "typedoc": "typedoc --tsconfig tsconfig.dev.json src/**/*.ts"
   },
   "repository": {
     "type": "git",

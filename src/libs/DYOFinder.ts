@@ -9,19 +9,61 @@ import {
 } from '../types';
 
 export default class DYOFinder {
+  /**
+   * Current DTComponent associated to the Finder.
+   */
   protected _component: DYOFinderComponentType;
 
+  /**
+   * Current DYOFinder configuration applied.
+   */
   protected _configuration: DYOFinderConfiguration;
 
+  /**
+   * Set _component and _configuration properties.
+   *
+   * @param component
+   * @param configuration
+   */
   constructor(component: DYOFinderComponentType, configuration: DYOFinderConfiguration) {
     this._component = component;
     this._configuration = configuration;
   }
 
+  /**
+   * Getter for _component property.
+   */
   getComponent(): DYOFinderComponentType {
     return this._component;
   }
 
+  /**
+   * Return an array of DTComponent from *_component* **_items** property filtered with a **filters** argument.
+   *
+   * Search filters can be applied on properties depending on the current _configuration provided.
+   *
+   * For each search filter provided, an object of specific operators is applied :
+   * * **BASIC OPERATORS**
+   * * **$eq** : The property must be strict equal to the filter value.
+   * * **$in** : The property must be included into the filter array.
+   * * **$nin** : The property must not be included into the filter array.
+   * * **$ne** : The property must be different to the filter value.
+   * * **EXTENDED OPERATORS** (meta only)
+   * * **$lte** : Number property only. The property must be lower or equal than the filter value.
+   * * **$gte** : Number property only. The property must be higher or equal than the filter array.
+   * * **$contains** : Array property only. The property must contain the filter value.
+   * * **$ncontains** : Array property only. The property must not contain the filter value.
+   *
+   * If many operators and / or many properties are passed into the **filters** argument, the logic operator applied is
+   * **AND**.
+   *
+   * @param filters Filters Object. The format is :
+   * { [property_1] : { [operator_1] : filter_value, [operator_2] : filter_value_2, ... }, [property_2] : { ... }, ... }
+   *
+   * For **objectSearch** properties, you have to pass the object key before the operator :
+   * { [property_1]: { [object_key1] : { [operator_1] : filter_value_1, ... }, [object_key2] : { ... }, ...  }, ... }
+   * @returns Array of DTComponent instance corresponding to the filters. Empty if no filter or invalid ones are passed.
+   */
   execute<ITEM>(filters: DYOFinderFilters): ITEM[] {
     const items = this._component.getAll();
     const filteredItems = [];

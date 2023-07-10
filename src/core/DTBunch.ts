@@ -24,37 +24,17 @@ export default class DYOToolsBunch<
   protected _items: IBunchItem[];
 
   /**
-   * All global option configuration for the current bunch.
+   * Current DYOFinder instance.
    *
-   * Options can be :
-   * * **errors** : Default *false*. If *true*, no exception is thrown when an error occurred, a new DTError instance is
-   * added to the _errors property array instead. If *false*, throw the exception with a DTError instance.
-   * * **uniqueKey** : Default *false*. If *true*, an error occurred when adding a new DTElement with the same key of an
-   * existing element into the bunch.
-   * * **inheritOwner** : Default *false*. If *true*, when a new DTElement is added, the owner of this element becomes
-   * automatically the current bunch owner.
-   * * **virtualContext** : Default *false*. If *true*, the context is not changed when a new DTElement is added.
-   * If *false*, when a new DTElement is added, the context of this element becomes automatically the current bunch instance
-   * and the element is removed from the old context Component (if defined).
-   * * **replaceIndex** : Default *false*. If *true*, when a new DTElement is added at existing index (using **addAtIndex**
-   * or **addManyAtIndex** method), this component replaces the old one. If *false*, this component is added at the specified
-   * index and other existing component are reindexed with the following index.
-   *
+   * This instance offers advanced methods to manipulate items, like searching.
    */
-  // protected _globalOptions: DTBunchOptionsConstructor;
-
-  /**
-   * Array of DTError occurred during bunch instance execution, ordered by time.
-   * Only set if **errors** option is true.
-   */
-  protected _errors: DYOToolsError[];
-
   protected _finder: DYOFinder;
 
   /**
    * Applying the parent constructor, and execute following process steps :
    * * Add **items** to the bunch instance (using adding specifications).
-   * * Merge specific **options** configuration with default in _globalOptions.
+   * * Merge specific **options** configuration with default in _options.
+   * * Initialize *DYOFinder* with **getFinderConfiguration** method.
    *
    * @see [addAtIndex](#addAtIndex) method for adding specifications.
    * @param key
@@ -72,13 +52,21 @@ export default class DYOToolsBunch<
     this._finder = new DYOFinder(this, this.getFinderConfiguration());
   }
 
+  /**
+   * Returns DYOFinder configuration for standard DTBunch instance.
+   *
+   * This method can be overridden to extend the configuration.
+   *
+   * @returns DYOFinderConfiguration standard configuration.
+   */
   getFinderConfiguration(): DYOFinderConfiguration {
     return componentBunchDefaultFinderConfiguration;
   }
 
   /**
    * Setter for _owner property.
-   * TODO : TSDOC Must be updated
+   *
+   * If **inheritOwner** is *true*, apply new **owner** to each item.
    */
   setOwner(value: DYOToolsPlayer<DTAcceptedMetaData>): void {
     super.setOwner(value);
@@ -92,7 +80,8 @@ export default class DYOToolsBunch<
 
   /**
    * Remove the current owner of bunch.
-   * TODO : TSDOC Must be updated
+   *
+   * If **inheritOwner** is *true*, remove current owner to each item.
    */
   removeOwner(): void {
     super.removeOwner();
@@ -110,7 +99,7 @@ export default class DYOToolsBunch<
    * @see [addAtIndex](#addAtIndex) method for adding specifications.
    * @param item A DTElement instance to add into the bunch.
    * @param options Optional Bunch option configuration object to apply only for this method execution. Options are not
-   * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
+   * saved in current _options property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
   add(item: IBunchItem, options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
@@ -120,7 +109,7 @@ export default class DYOToolsBunch<
   /**
    * Add an element **item** at specified **index** into _items property array.
    *
-   * The adding process has following specifications :
+   * The adding process has the following specifications :
    * * If the added item has the same _id than existing item, an error occurred (depending on **errors** option).
    * * Option **uniqueKey** = *true*. If the added item has the same _key than existing item,
    * an error occurred (depending on **errors** option).
@@ -130,12 +119,14 @@ export default class DYOToolsBunch<
    * * If an item already exists at the specified index, the new item is added at the index, and following items are
    * automatically affected at next indexes. If **replaceIndex** option is *true*, the new item replaces the former one
    * at the index instead.
+   * * If the bunch has a parent **Manager**, the added item is also added to the **Manager library**, only if this one
+   * doesn't already exist in the library.
    *
    * @param item A DTElement instance to add into the bunch.
    * @param index Index value where the item might be added. Must be a number between 0 and the current _items length.
    * If not, the provided argument is automatically changed to 0 or current _items length.
    * @param options Optional Bunch option configuration object to apply only for this method execution. Options are not
-   * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
+   * saved in current _options property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
   addAtIndex(item: IBunchItem, index: number, options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
@@ -220,7 +211,7 @@ export default class DYOToolsBunch<
    * @see [addAtIndex](#addAtIndex) method for adding specifications.
    * @param items An array of DTElement instances to add into the bunch.
    * @param options Optional Bunch option configuration object to apply only for this method execution. Options are not
-   * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
+   * saved in current _options property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
   addMany(items: IBunchItem[], options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
@@ -237,7 +228,7 @@ export default class DYOToolsBunch<
    * @param index Index value where the item might be added. Must be a number between 0 and the current _items length.
    * If not, the provided argument is automatically changed to 0 or current _items length.
    * @param options Optional Bunch option configuration object to apply only for this method execution. Options are not
-   * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
+   * saved in current _options property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
   addManyAtIndex(items: IBunchItem[], index: number, options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
@@ -367,34 +358,20 @@ export default class DYOToolsBunch<
   /**
    * Return an array of DTElement from _items property filtered with a **filters** argument.
    *
-   * Search filters can be apply on following DTElement properties :
+   * This method use the DYOFinder instance **execute** method.
+   *
+   * Search filters can be applied on following DTElement properties :
    * * **id** : property _id. Basic operators only.
    * * **key** : property _key. Basic operators only.
    * * **context** : property _id of current _context instance. Basic operators only.
    * * **owner** : property _id of current _owner instance. Basic operators only.
    * * **meta** : each meta Key of _meta property. Extended operators can be used.
    *
-   * For each search filter provided, an object of specific operators is applied :
-   * * **BASIC OPERATORS**
-   * * **$eq** : The property must be strict equal to the filter value.
-   * * **$in** : The property must be included into the filter array.
-   * * **$nin** : The property must not be included into the filter array.
-   * * **$ne** : The property must be different to the filter value.
-   * * **EXTENDED OPERATORS** (meta only)
-   * * **$lte** : Number property only. The property must be lower or equal than the filter value.
-   * * **$gte** : Number property only. The property must be higher or equal than the filter array.
-   * * **$contains** : Array property only. The property must contain the filter value.
-   * * **$ncontains** : Array property only. The property must not contain the filter value.
-   *
-   * If many operators and / or many properties are passed into the **filters** argument, the logic operator applied is
-   * **AND**. For **owner** and **context** properties, you can pass *null* to filter elements with no owner or context
-   * defined.
-   *
    * Examples of **filters** argument :
    * * { key: { $eq: "key_1" } } : Return all DTElement instance into _items with *key_1* as _key property.
    * * { context: { $in: [null, "bunch_1"] } } : Return all DTElement instance into _items having no context or a
    * bunch context with *bunch_1* as _id property.
-   * * { key: { $ne: "key_1" }, meta: { score: { $gte: 50, $lte: 50 } } } : Return all DTElement instance into _items
+   * * { key: { $ne: "key_1" }, meta: { score: { $gte: 50, $lte: 100 } } } : Return all DTElement instance into _items
    * with _key property different than *key_1*, and meta key *score* value from _meta property between 50 and 100.
    *
    * @param filters Filters Object. The format is :
@@ -403,6 +380,7 @@ export default class DYOToolsBunch<
    * For **meta**, you have to pass the meta key before the operator :
    * { meta: { [meta_key1] : { [operator_1] : filter_value_1, ... }, [meta_key2] : { ... }, ...  }, ... }
    * @returns Array of DTElement instance corresponding to the filters. Empty if no filter or invalid ones are passed.
+   * @see DYOFinder
    */
   find(filters: Partial<DTBunchFilters>): IBunchItem[] {
     return this._finder.execute<IBunchItem>(filters);

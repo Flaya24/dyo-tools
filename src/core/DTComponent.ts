@@ -2,6 +2,9 @@ import * as uuid from 'uuid';
 import DYOToolsError from './DTError';
 import { DTComponentOptions } from '../types';
 
+/**
+ * @template {string} DTComponentOptions
+ */
 export default abstract class DYOToolsComponent<IComponentOptions extends DTComponentOptions = DTComponentOptions> {
   /**
    * Component unique ID. Use uuid v4 generator.
@@ -19,7 +22,7 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
    *
    * A component can have only one *physical context*, and be managed by a parent Component.
    */
-  protected _context?: DYOToolsComponent<DTComponentOptions>;
+  protected _context?: DYOToolsComponent;
 
   /**
    * Higher Level Component category.
@@ -43,21 +46,27 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
   protected _subKind?: string;
 
   /**
-   * TODO : Update JSDOC
+   * Array of current errors for the Component.
+   *
+   * Errors are only available if the **errors** option is enabled.
    */
   protected _errors: DYOToolsError[];
 
   /**
-   * TODO : Update JSDOC
+   * Component options configuration.
+   * Defined by generic type IComponentOptions.
+   *
+   * For all component, global option can be :
+   * * **errors** : Default *false*. If *true*, no exception is thrown when an error occurred, a new DTError instance is
+   * added to the _errors property array instead. If *false*, throw the exception with a DTError instance.
    */
   protected _options: IComponentOptions;
 
   /**
-   * TODO UPDATE
    * Set automatic unique _id and _key.
    *
    * @param key Optional Key to set. If not provided, set the _key with the _id value.
-   * @param options TODO
+   * @param options Specific options configuration for the instance. Default empty object.
    */
   constructor(key?: string, options: Partial<IComponentOptions> = {}) {
     this._id = uuid.v4();
@@ -114,7 +123,7 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
   }
 
   /**
-   * Remove the current context of component
+   * Remove the current context of component.
    */
   removeContext(): void {
     this._context = undefined;
@@ -143,6 +152,8 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
 
   /**
    * Getter for _errors property.
+   *
+   * Note : Errors are always provided by the higher order component, defined into the _context property.
    */
   getErrors(): DYOToolsError[] {
     if (this.getContext()) {
@@ -153,6 +164,8 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
 
   /**
    * Return the last error (most recent) of the current component. Undefined if _errors is empty.
+   *
+   * Note : Errors are always provided by the higher order component, defined into the _context property.
    */
   getLastError(): DYOToolsError | undefined {
     if (this.getContext()) {
@@ -161,8 +174,14 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
     return this._errors.length > 0 ? this._errors[this._errors.length - 1] : undefined;
   }
 
-  /*
-  * TODO
+  /**
+   * Generic method to trigger an error, depending on the **errors** option :
+   * * if the option is set to *false*, throw the DTError instance passed as an argument.
+   * * if the option is set to *true*, add DTError instance passed as an argument in the _errors array.
+   *
+   * Note : Errors are always stored into the higher order component, defined into the _context property.
+   *
+   * @param error DYOToolsError instance to trigger
    */
   triggerError(error: DYOToolsError): void {
     const { errors = false } = this._options;
@@ -175,9 +194,11 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
     }
   }
 
-  /*
-* TODO
- */
+  /**
+   * Clear all current errors.
+   *
+   * Note : Errors are always stored into the higher order component, defined into the _context property.
+   */
   clearErrors(): void {
     if (this.getContext()) {
       this.getContext().clearErrors();
@@ -186,7 +207,7 @@ export default abstract class DYOToolsComponent<IComponentOptions extends DTComp
   }
 
   /**
-   * TODO
+   * Getter for _options property.
    */
   getOptions(): IComponentOptions {
     return this._options;
