@@ -1,40 +1,13 @@
-import DYOToolsComponentWithMeta from './DTComponentWithMeta';
-import DYOToolsPlayer from './DTPlayer';
 import { DTAcceptedMetaData, DTElementToObject } from '../types';
+import DYOToolsComponentPhysical from './DTComponentPhysical';
 
 export default class DYOToolsElement<
   IComponentMeta extends DTAcceptedMetaData,
-  > extends DYOToolsComponentWithMeta<IComponentMeta> {
+  > extends DYOToolsComponentPhysical<IComponentMeta> {
   /**
    * Defining component type to "element".
    */
   protected _componentType = 'element';
-
-  /**
-   * DTPlayer instance who owns the current element
-   */
-  private _owner?: DYOToolsPlayer<DTAcceptedMetaData>;
-
-  /**
-   * Getter for _owner property.
-   */
-  getOwner(): DYOToolsPlayer<DTAcceptedMetaData> {
-    return this._owner;
-  }
-
-  /**
-   * Setter for _owner property.
-   */
-  setOwner(value: DYOToolsPlayer<DTAcceptedMetaData>): void {
-    this._owner = value;
-  }
-
-  /**
-   * Remove the current owner of element.
-   */
-  removeOwner(): void {
-    this._owner = undefined;
-  }
 
   /**
    * Create and return a new DTElement instance by applying from current instance :
@@ -44,7 +17,7 @@ export default class DYOToolsElement<
    * @returns New DTElement instance copied.
    */
   copy(): DYOToolsElement<IComponentMeta> {
-    const copyElement = new DYOToolsElement<IComponentMeta>(this._key);
+    const copyElement = new DYOToolsElement<IComponentMeta>(this._key, this._options);
     copyElement.setManyMeta({ ...this.getManyMeta() });
 
     return copyElement;
