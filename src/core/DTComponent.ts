@@ -1,6 +1,11 @@
 import * as uuid from 'uuid';
+import DYOToolsError from './DTError';
+import { DTComponentOptions } from '../types';
 
-export default abstract class DYOToolsComponent {
+/**
+ * @template {string} DTComponentOptions
+ */
+export default abstract class DYOToolsComponent<IComponentOptions extends DTComponentOptions = DTComponentOptions> {
   /**
    * Component unique ID. Use uuid v4 generator.
    */
@@ -41,13 +46,40 @@ export default abstract class DYOToolsComponent {
   protected _subKind?: string;
 
   /**
+   * Array of current errors for the Component.
+   *
+   * Errors are only available if the **errors** option is enabled.
+   */
+  protected _errors: DYOToolsError[];
+
+  /**
+   * Component options configuration.
+   * Defined by generic type IComponentOptions.
+   *
+   * For all component, global option can be :
+   * * **errors** : Default *false*. If *true*, no exception is thrown when an error occurred, a new DTError instance is
+   * added to the _errors property array instead. If *false*, throw the exception with a DTError instance.
+   */
+  protected _options: IComponentOptions;
+
+  /**
    * Set automatic unique _id and _key.
    *
    * @param key Optional Key to set. If not provided, set the _key with the _id value.
+   * @param options Specific options configuration for the instance. Default empty object.
    */
-  constructor(key?: string) {
+  constructor(key?: string, options: Partial<IComponentOptions> = {}) {
     this._id = uuid.v4();
     this._key = key || this._id;
+    this._errors = [];
+
+    const defaultOptions: DTComponentOptions = {
+      errors: false,
+    };
+    this._options = {
+      ...defaultOptions,
+      ...options,
+    } as IComponentOptions;
   }
 
   /**
@@ -73,10 +105,10 @@ export default abstract class DYOToolsComponent {
    * @returns Direct parent Component or higher level Component if filtered with **contextType**.
    * Returns undefined if context doesn't exist.
    */
-  getContext(contextType?: string): DYOToolsComponent | undefined {
+  getContext<IContext extends DYOToolsComponent = DYOToolsComponent>(contextType?: string): IContext | undefined {
     if (this._context) {
       if (!contextType || this._context.getComponentType() === contextType) {
-        return this._context;
+        return this._context as IContext;
       }
       return this._context.getContext(contextType);
     }
@@ -86,12 +118,12 @@ export default abstract class DYOToolsComponent {
   /**
    * Setter for _context property.
    */
-  setContext(value: DYOToolsComponent): void {
+  setContext<IContext extends DYOToolsComponent = DYOToolsComponent>(value: IContext): void {
     this._context = value;
   }
 
   /**
-   * Remove the current context of component
+   * Remove the current context of component.
    */
   removeContext(): void {
     this._context = undefined;
@@ -119,9 +151,67 @@ export default abstract class DYOToolsComponent {
   }
 
   /**
-   * Abstract method for copying the Component and returning it.
+   * Getter for _errors property.
+   *
+   * Note : Errors are always provided by the higher order component, defined into the _context property.
    */
-  abstract copy(): DYOToolsComponent;
+  getErrors(): DYOToolsError[] {
+    if (this.getContext()) {
+      return this.getContext().getErrors();
+    }
+    return this._errors;
+  }
+
+  /**
+   * Return the last error (most recent) of the current component. Undefined if _errors is empty.
+   *
+   * Note : Errors are always provided by the higher order component, defined into the _context property.
+   */
+  getLastError(): DYOToolsError | undefined {
+    if (this.getContext()) {
+      return this.getContext().getLastError();
+    }
+    return this._errors.length > 0 ? this._errors[this._errors.length - 1] : undefined;
+  }
+
+  /**
+   * Generic method to trigger an error, depending on the **errors** option :
+   * * if the option is set to *false*, throw the DTError instance passed as an argument.
+   * * if the option is set to *true*, add DTError instance passed as an argument in the _errors array.
+   *
+   * Note : Errors are always stored into the higher order component, defined into the _context property.
+   *
+   * @param error DYOToolsError instance to trigger
+   */
+  triggerError(error: DYOToolsError): void {
+    const { errors = false } = this._options;
+    if (this.getContext()) {
+      this.getContext().triggerError(error);
+    } else if (!errors) {
+      throw error;
+    } else {
+      this._errors.push(error);
+    }
+  }
+
+  /**
+   * Clear all current errors.
+   *
+   * Note : Errors are always stored into the higher order component, defined into the _context property.
+   */
+  clearErrors(): void {
+    if (this.getContext()) {
+      this.getContext().clearErrors();
+    }
+    this._errors = [];
+  }
+
+  /**
+   * Getter for _options property.
+   */
+  getOptions(): IComponentOptions {
+    return this._options;
+  }
 
   /**
    * Abstract method for JSON Object representation of the component and returning it.

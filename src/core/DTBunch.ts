@@ -1,30 +1,22 @@
-import DYOToolsComponentWithMeta from './DTComponentWithMeta';
 import DYOToolsElement from './DTElement';
+import DYOToolsManager from './DTManager';
 import {
-  DTAcceptedMetaData,
-  DTBunchFilters, DTBunchFilterWithBaseOperator, DTBunchFilterWithMetaOperator,
-  DTBunchOptionsConstructor,
-  DTBunchOptionsEditable,
-  DTBunchToObject,
-  FilterOperatorType, StandardPrimitiveType,
+  DTAcceptedMetaData, DTBunchFilters, DTBunchOptions, DTBunchToObject, DYOFinderConfiguration,
 } from '../types';
 import DYOToolsPlayer from './DTPlayer';
 import DYOToolsError from './DTError';
-import { validFiltersForItem } from '../utils/filters';
+import DYOToolsComponentPhysical from './DTComponentPhysical';
+import { bunchDefaultOptions as defaultOptions, componentBunchDefaultFinderConfiguration } from '../constants';
+import DYOFinder from '../libs/DYOFinder';
 
 export default class DYOToolsBunch<
     IBunchItem extends DYOToolsElement<DTAcceptedMetaData>,
-    IComponentMeta extends DTAcceptedMetaData,
-  > extends DYOToolsComponentWithMeta<IComponentMeta> {
+    IComponentMeta extends DTAcceptedMetaData = DTAcceptedMetaData,
+  > extends DYOToolsComponentPhysical<IComponentMeta, DTBunchOptions> {
   /**
    * Defining component type to "bunch".
    */
   protected _componentType = 'bunch';
-
-  /**
-   * DTPlayer instance who owns the current bunch.
-   */
-  protected _owner?: DYOToolsPlayer<DTAcceptedMetaData>;
 
   /**
    * Ordered Array of DTElement instance managed by the bunch.
@@ -32,75 +24,55 @@ export default class DYOToolsBunch<
   protected _items: IBunchItem[];
 
   /**
-   * All global option configuration for the current bunch.
+   * Current DYOFinder instance.
    *
-   * Options can be :
-   * * **errors** : Default *false*. If *true*, no exception is thrown when an error occurred, a new DTError instance is
-   * added to the _errors property array instead. If *false*, throw the exception with a DTError instance.
-   * * **uniqueKey** : Default *false*. If *true*, an error occurred when adding a new DTElement with the same key of an
-   * existing element into the bunch.
-   * * **inheritOwner** : Default *false*. If *true*, when a new DTElement is added, the owner of this element becomes
-   * automatically the current bunch owner.
-   * * **virtualContext** : Default *false*. If *true*, the context is not changed when a new DTElement is added.
-   * If *false*, when a new DTElement is added, the context of this element becomes automatically the current bunch instance
-   * and the element is removed from the old context Component (if defined).
-   * * **replaceIndex** : Default *false*. If *true*, when a new DTElement is added at existing index (using **addAtIndex**
-   * or **addManyAtIndex** method), this component replaces the old one. If *false*, this component is added at the specified
-   * index and other existing component are reindexed with the following index.
-   *
+   * This instance offers advanced methods to manipulate items, like searching.
    */
-  protected _globalOptions: DTBunchOptionsConstructor;
-
-  /**
-   * Array of DTError occurred during bunch instance execution, ordered by time.
-   * Only set if **errors** option is true.
-   */
-  protected _errors: DYOToolsError[];
+  protected _finder: DYOFinder;
 
   /**
    * Applying the parent constructor, and execute following process steps :
    * * Add **items** to the bunch instance (using adding specifications).
-   * * Merge specific **options** configuration with default in _globalOptions.
+   * * Merge specific **options** configuration with default in _options.
+   * * Initialize *DYOFinder* with **getFinderConfiguration** method.
    *
    * @see [addAtIndex](#addAtIndex) method for adding specifications.
    * @param key
    * @param items Array of DTElement instance to add. Default empty array.
    * @param options Specific options configuration for the instance. Default empty object.
    */
-  constructor(key?: string, items: IBunchItem[] = [], options: Partial<DTBunchOptionsConstructor> = {}) {
-    super(key);
-
-    const defaultOptions: DTBunchOptionsConstructor = {
-      errors: false,
-      uniqueKey: false,
-      inheritOwner: false,
-      replaceIndex: false,
-      virtualContext: false,
-    };
-    this._globalOptions = { ...defaultOptions, ...options };
-    this._errors = [];
+  constructor(key?: string, items: IBunchItem[] = [], options: Partial<DTBunchOptions> = {}) {
+    super(key, { ...defaultOptions, ...options });
 
     this._items = [];
     if (items && items.length > 0) {
       this.addMany(items);
     }
+
+    this._finder = new DYOFinder(this, this.getFinderConfiguration());
   }
 
   /**
-   * Getter for _owner property.
+   * Returns DYOFinder configuration for standard DTBunch instance.
+   *
+   * This method can be overridden to extend the configuration.
+   *
+   * @returns DYOFinderConfiguration standard configuration.
    */
-  getOwner(): DYOToolsPlayer<DTAcceptedMetaData> {
-    return this._owner;
+  getFinderConfiguration(): DYOFinderConfiguration {
+    return componentBunchDefaultFinderConfiguration;
   }
 
   /**
    * Setter for _owner property.
+   *
+   * If **inheritOwner** is *true*, apply new **owner** to each item.
    */
   setOwner(value: DYOToolsPlayer<DTAcceptedMetaData>): void {
-    this._owner = value;
+    super.setOwner(value);
 
     // Update owner elements
-    const { inheritOwner } = this._globalOptions;
+    const { inheritOwner } = this._options;
     if (inheritOwner) {
       this._items.forEach((item) => { item.setOwner(this.getOwner()); });
     }
@@ -108,29 +80,17 @@ export default class DYOToolsBunch<
 
   /**
    * Remove the current owner of bunch.
+   *
+   * If **inheritOwner** is *true*, remove current owner to each item.
    */
   removeOwner(): void {
-    this._owner = undefined;
+    super.removeOwner();
 
     // Update owner elements
-    const { inheritOwner } = this._globalOptions;
+    const { inheritOwner } = this._options;
     if (inheritOwner) {
       this._items.forEach((item) => { item.removeOwner(); });
     }
-  }
-
-  /**
-   * Getter for _errors property.
-   */
-  getErrors(): DYOToolsError[] {
-    return this._errors;
-  }
-
-  /**
-   * Return the last error (most recent) of the current bunch. Undefined if _errors is empty.
-   */
-  getLastError(): DYOToolsError | undefined {
-    return this._errors.length > 0 ? this._errors[this._errors.length - 1] : undefined;
   }
 
   /**
@@ -139,17 +99,17 @@ export default class DYOToolsBunch<
    * @see [addAtIndex](#addAtIndex) method for adding specifications.
    * @param item A DTElement instance to add into the bunch.
    * @param options Optional Bunch option configuration object to apply only for this method execution. Options are not
-   * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
+   * saved in current _options property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
-  add(item: IBunchItem, options: Partial<DTBunchOptionsEditable> = {}): void {
+  add(item: IBunchItem, options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
     this.addAtIndex(item, this._items.length, options);
   }
 
   /**
    * Add an element **item** at specified **index** into _items property array.
    *
-   * The adding process has following specifications :
+   * The adding process has the following specifications :
    * * If the added item has the same _id than existing item, an error occurred (depending on **errors** option).
    * * Option **uniqueKey** = *true*. If the added item has the same _key than existing item,
    * an error occurred (depending on **errors** option).
@@ -159,18 +119,20 @@ export default class DYOToolsBunch<
    * * If an item already exists at the specified index, the new item is added at the index, and following items are
    * automatically affected at next indexes. If **replaceIndex** option is *true*, the new item replaces the former one
    * at the index instead.
+   * * If the bunch has a parent **Manager**, the added item is also added to the **Manager library**, only if this one
+   * doesn't already exist in the library.
    *
    * @param item A DTElement instance to add into the bunch.
    * @param index Index value where the item might be added. Must be a number between 0 and the current _items length.
    * If not, the provided argument is automatically changed to 0 or current _items length.
    * @param options Optional Bunch option configuration object to apply only for this method execution. Options are not
-   * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
+   * saved in current _options property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
-  addAtIndex(item: IBunchItem, index: number, options: Partial<DTBunchOptionsEditable> = {}): void {
+  addAtIndex(item: IBunchItem, index: number, options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
     const {
-      errors, uniqueKey, replaceIndex, inheritOwner,
-    } = { ...this._globalOptions, ...options };
+      uniqueKey, replaceIndex, inheritOwner, virtualContext,
+    }: Partial<DTBunchOptions> = { ...this._options, ...options };
     let hasError = false;
     let finalIndex = index;
 
@@ -178,21 +140,12 @@ export default class DYOToolsBunch<
     const existingItem = this.get(item.getId());
     if (existingItem) {
       hasError = true;
-      if (errors) {
-        this._errors.push(new DYOToolsError(
-          'id_conflict',
-          'Element with same id already exists in the bunch',
-          this,
-          item,
-        ));
-      } else {
-        throw new DYOToolsError(
-          'id_conflict',
-          'Element with same id already exists in the bunch',
-          this,
-          item,
-        );
-      }
+      this.triggerError(new DYOToolsError(
+        'id_conflict',
+        'Element with same id already exists in the bunch',
+        this,
+        item,
+      ));
     }
 
     // Handle Key conflicts
@@ -200,21 +153,12 @@ export default class DYOToolsBunch<
       const existingItemByKey = this.find({ key: { $eq: item.getKey() } });
       if (existingItemByKey) {
         hasError = true;
-        if (errors) {
-          this._errors.push(new DYOToolsError(
-            'key_conflict',
-            'Element with same key already exists in the bunch',
-            this,
-            item,
-          ));
-        } else {
-          throw new DYOToolsError(
-            'key_conflict',
-            'Element with same key already exists in the bunch',
-            this,
-            item,
-          );
-        }
+        this.triggerError(new DYOToolsError(
+          'key_conflict',
+          'Element with same key already exists in the bunch',
+          this,
+          item,
+        ));
       }
     }
 
@@ -228,7 +172,7 @@ export default class DYOToolsBunch<
       }
 
       // Update Context
-      if (!this._globalOptions.virtualContext) {
+      if (!virtualContext) {
         const oldContext = item.getContext();
         if (oldContext && oldContext.getComponentType() === 'bunch') {
           (oldContext as DYOToolsBunch<IBunchItem, DTAcceptedMetaData>).remove(item.getId());
@@ -239,6 +183,14 @@ export default class DYOToolsBunch<
       // Update Owner
       if (inheritOwner) {
         item.setOwner(this._owner);
+      }
+
+      // Update Manager library
+      if (this.getContext('manager')) {
+        const manager: DYOToolsManager<IBunchItem> = this.getContext('manager') as DYOToolsManager<IBunchItem>;
+        if (!manager.getLibrary().get(item.getId())) {
+          manager.getLibrary().add(item);
+        }
       }
 
       // Add the new Item
@@ -259,10 +211,10 @@ export default class DYOToolsBunch<
    * @see [addAtIndex](#addAtIndex) method for adding specifications.
    * @param items An array of DTElement instances to add into the bunch.
    * @param options Optional Bunch option configuration object to apply only for this method execution. Options are not
-   * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
+   * saved in current _options property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
-  addMany(items: IBunchItem[], options: Partial<DTBunchOptionsEditable> = {}): void {
+  addMany(items: IBunchItem[], options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
     this.addManyAtIndex(items, this._items.length, options);
   }
 
@@ -276,12 +228,12 @@ export default class DYOToolsBunch<
    * @param index Index value where the item might be added. Must be a number between 0 and the current _items length.
    * If not, the provided argument is automatically changed to 0 or current _items length.
    * @param options Optional Bunch option configuration object to apply only for this method execution. Options are not
-   * saved in current _globalOptions property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
+   * saved in current _options property. Available Options are : **uniqueKey**, **inheritOwner**, **replaceIndex**
    * and **errors**.
    */
-  addManyAtIndex(items: IBunchItem[], index: number, options: Partial<DTBunchOptionsEditable> = {}): void {
+  addManyAtIndex(items: IBunchItem[], index: number, options: Partial<Omit<DTBunchOptions, 'virtualContext'>> = {}): void {
     const previousItems = this._items;
-    const { errors } = { ...this._globalOptions, ...options };
+    const { errors }: Partial<DTBunchOptions> = { ...this._options, ...options };
     let currentIndex = index;
 
     if (index < 0) {
@@ -374,7 +326,7 @@ export default class DYOToolsBunch<
    * @param indexes Number Array index values or String Array _id values.
    */
   removeMany(indexes: string[] | number[]): void {
-    const { virtualContext } = this._globalOptions;
+    const { virtualContext } = this._options;
     const newItems = [];
     for (let i = 0; i < this._items.length; i += 1) {
       if (typeof indexes[0] === 'number') {
@@ -406,34 +358,20 @@ export default class DYOToolsBunch<
   /**
    * Return an array of DTElement from _items property filtered with a **filters** argument.
    *
-   * Search filters can be apply on following DTElement properties :
+   * This method use the DYOFinder instance **execute** method.
+   *
+   * Search filters can be applied on following DTElement properties :
    * * **id** : property _id. Basic operators only.
    * * **key** : property _key. Basic operators only.
    * * **context** : property _id of current _context instance. Basic operators only.
    * * **owner** : property _id of current _owner instance. Basic operators only.
    * * **meta** : each meta Key of _meta property. Extended operators can be used.
    *
-   * For each search filter provided, an object of specific operators is applied :
-   * * **BASIC OPERATORS**
-   * * **$eq** : The property must be strict equal to the filter value.
-   * * **$in** : The property must be included into the filter array.
-   * * **$nin** : The property must not be included into the filter array.
-   * * **$ne** : The property must be different to the filter value.
-   * * **EXTENDED OPERATORS** (meta only)
-   * * **$lte** : Number property only. The property must be lower or equal than the filter value.
-   * * **$gte** : Number property only. The property must be higher or equal than the filter array.
-   * * **$contains** : Array property only. The property must contain the filter value.
-   * * **$ncontains** : Array property only. The property must not contain the filter value.
-   *
-   * If many operators and / or many properties are passed into the **filters** argument, the logic operator applied is
-   * **AND**. For **owner** and **context** properties, you can pass *null* to filter elements with no owner or context
-   * defined.
-   *
    * Examples of **filters** argument :
    * * { key: { $eq: "key_1" } } : Return all DTElement instance into _items with *key_1* as _key property.
    * * { context: { $in: [null, "bunch_1"] } } : Return all DTElement instance into _items having no context or a
    * bunch context with *bunch_1* as _id property.
-   * * { key: { $ne: "key_1" }, meta: { score: { $gte: 50, $lte: 50 } } } : Return all DTElement instance into _items
+   * * { key: { $ne: "key_1" }, meta: { score: { $gte: 50, $lte: 100 } } } : Return all DTElement instance into _items
    * with _key property different than *key_1*, and meta key *score* value from _meta property between 50 and 100.
    *
    * @param filters Filters Object. The format is :
@@ -442,87 +380,10 @@ export default class DYOToolsBunch<
    * For **meta**, you have to pass the meta key before the operator :
    * { meta: { [meta_key1] : { [operator_1] : filter_value_1, ... }, [meta_key2] : { ... }, ...  }, ... }
    * @returns Array of DTElement instance corresponding to the filters. Empty if no filter or invalid ones are passed.
+   * @see DYOFinder
    */
   find(filters: Partial<DTBunchFilters>): IBunchItem[] {
-    const filteredItems : IBunchItem[] = [];
-    const validOperatorsBase: FilterOperatorType[] = [
-      FilterOperatorType.EQ,
-      FilterOperatorType.IN,
-      FilterOperatorType.NIN,
-      FilterOperatorType.NE,
-    ];
-    const validOperatorsMeta: FilterOperatorType[] = [
-      FilterOperatorType.EQ,
-      FilterOperatorType.IN,
-      FilterOperatorType.NIN,
-      FilterOperatorType.NE,
-      FilterOperatorType.LTE,
-      FilterOperatorType.GTE,
-      FilterOperatorType.CONTAINS,
-      FilterOperatorType.NCONTAINS,
-    ];
-    const checkAllValidFiltersForProp = (
-      itemProp: StandardPrimitiveType,
-      operators: Partial<DTBunchFilterWithBaseOperator>,
-      validOperators: FilterOperatorType[],
-    ) => {
-      if (Object.keys(operators).length) {
-        for (const operator of Object.keys(operators)) {
-          if (!validOperators.includes(operator as FilterOperatorType)
-            || !validFiltersForItem(itemProp, operators[operator], operator as FilterOperatorType.EQ)) {
-            return false;
-          }
-        }
-        return true;
-      }
-      return false;
-    };
-
-    for (const item of this._items) {
-      let validItem = !!(Object.keys(filters).length);
-
-      // id Filter
-      if (filters.id && !checkAllValidFiltersForProp(item.getId(), filters.id, validOperatorsBase)) {
-        validItem = false;
-      }
-
-      // key Filter
-      if (filters.key && !checkAllValidFiltersForProp(item.getKey(), filters.key, validOperatorsBase)) {
-        validItem = false;
-      }
-
-      // context Filter
-      const itemContext = item.getContext() ? item.getContext().getId() : null;
-      if (filters.context && !checkAllValidFiltersForProp(itemContext, filters.context, validOperatorsBase)) {
-        validItem = false;
-      }
-
-      // owner Filter
-      const itemOwner = item.getOwner() ? item.getOwner().getId() : null;
-      if (filters.owner && !checkAllValidFiltersForProp(itemOwner, filters.owner, validOperatorsBase)) {
-        validItem = false;
-      }
-
-      // meta Filter
-      if (filters.meta) {
-        if (Object.keys(filters.meta).length) {
-          const itemMeta = item.getManyMeta();
-          for (const [meta, filter] of Object.entries(filters.meta as Record<string, Partial<DTBunchFilterWithMetaOperator>>)) {
-            const metaValue = Object.prototype.hasOwnProperty.call(itemMeta, meta) ? itemMeta[meta] : null;
-            if (!checkAllValidFiltersForProp(metaValue as StandardPrimitiveType, filter, validOperatorsMeta)) {
-              validItem = false;
-              break;
-            }
-          }
-        }
-      }
-
-      if (validItem) {
-        filteredItems.push(item);
-      }
-    }
-
-    return filteredItems;
+    return this._finder.execute<IBunchItem>(filters);
   }
 
   /**
@@ -536,13 +397,13 @@ export default class DYOToolsBunch<
    */
   copy(): DYOToolsBunch<IBunchItem, IComponentMeta> {
     let copyItems;
-    if (this._globalOptions.virtualContext) {
+    if (this._options.virtualContext) {
       copyItems = this._items;
     } else {
       copyItems = this._items.length === 0 ? [] : this._items.map((item) => item.copy() as IBunchItem);
     }
 
-    const copyBunch = new DYOToolsBunch<IBunchItem, IComponentMeta>(this._key, copyItems, this._globalOptions);
+    const copyBunch = new DYOToolsBunch<IBunchItem, IComponentMeta>(this._key, copyItems, this._options);
     copyBunch.setManyMeta({ ...this.getManyMeta() });
 
     return copyBunch;

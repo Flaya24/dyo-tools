@@ -1,18 +1,15 @@
+import { afterEach, beforeEach, describe, expect, jest, test, } from '@jest/globals';
+import { defaultOptions, DTBunchStub, DTBunchTest, generateMockedElements, IDTest, KeyTest, } from './DTBunch.double';
 import {
-  afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, test,
-} from '@jest/globals';
-import {
-  defaultOptions,
-  DTBunchMock,
-  generateMockedElements,
+  DTElementStub,
   HaileiIdTest,
   HaileiKeyTest,
   HaileiToObjectTest,
-  IDTest,
+  IDTest as IDElementTest,
   IldressIdTest,
   IldressKeyTest,
   IldressToObjectTest,
-  KeyTest,
+  KeyTest as KeyElementTest,
   MaydenaIdTest,
   MaydenaKeyTest,
   MaydenaToObjectTest,
@@ -22,88 +19,89 @@ import {
   YssaliaIdTest,
   YssaliaKeyTest,
   YssaliaToObjectTest,
-} from './DTBunch.double';
-import { DTBunch, DTError } from '../../src';
+} from './DTElement.double';
+import { DTBunch, DTComponentPhysical } from '../../src';
 import DYOToolsElement from '../../src/core/DTElement';
-import { BunchMetaData, IMetaDataTest } from './DTComponentWithMeta.double';
-import { DTAcceptedMetaDataValue, DTBunchOptionsConstructor } from '../../src/types';
+import { BunchMetaData, HaileiMetaData, IMetaDataTest } from './DTComponentWithMeta.double';
+import { DTBunchOptions, FilterOperatorType } from '../../src/types';
 import {
   DTPlayerStub,
+  IDTest as IDTestPlayer,
   IDTest as IDPlayerTest,
   KeyTest as KeyPlayerTest,
   toStringTest as toStringPlayerTest,
 } from './DTPlayer.double';
-import { DTErrorStub } from './DTError.double';
-import { validFiltersForItem } from '../../src/utils/filters';
-import { DTComponentTestMock, IDTest as IDContextTest } from './DTComponent.double';
+import { checkCallForMockedDTError, CodeTest as DTErrorCodeTest, DTErrorStub } from './DTError.double';
+import DYOToolsError from '../../src/core/DTError';
+import { mockOverriddenMethods } from './DTComponentPhysical.double';
+import { DTManagerStub } from './DTManager.double';
+import { componentBunchDefaultFinderConfiguration } from '../../src/constants';
 import Mocked = jest.Mocked;
 import MockedFunction = jest.MockedFunction;
 
+/** ****************** MOCK DEPENDENCIES
+ * All Dependencies used by the component are mocked with Jest
+ * **** */
+jest.mock('../../src/core/DTElement');
+jest.mock('../../src/core/DTManager');
+jest.mock('../../src/core/DTError');
+jest.mock('../../src/core/DTComponent');
+jest.mock('../../src/core/DTComponentWithMeta');
+jest.mock('../../src/core/DTComponentPhysical');
+jest.mock('../../src/libs/DYOFinder');
+// Add specific mock for inherited methods to have a basic implementation
+mockOverriddenMethods(DTComponentPhysical);
+
+/** *********************** TESTS SUITES ****************************** */
 describe('class DYOToolsBunch', () => {
-  let bunchMock: DTBunchMock;
+  let bunchTest: DTBunchTest;
 
   beforeEach(() => {
-    bunchMock = new DTBunchMock();
+    bunchTest = new DTBunchTest();
+    bunchTest.th_set_options(defaultOptions);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    jest.resetAllMocks();
+  });
+
+  describe('inheritance', () => {
+    test('check good inheritance for class', () => {
+      expect(DTBunch.prototype instanceof DTComponentPhysical).toBeTruthy();
+    });
   });
 
   describe('constructor()', () => {
-    let mockedAddMany; let
-      originalAddMany;
+    let addManyImpl;
 
-    beforeAll(() => {
-      originalAddMany = DTBunch.prototype.addMany;
+    beforeEach(() => {
+      jest.resetAllMocks();
+      addManyImpl = DTBunch.prototype.addMany;
       DTBunch.prototype.addMany = jest.fn();
-      mockedAddMany = DTBunch.prototype.addMany as MockedFunction<(items: Array<Mocked<DYOToolsElement<IMetaDataTest>>>) => void>;
     });
 
-    afterAll(() => {
-      DTBunch.prototype.addMany = originalAddMany;
+    afterEach(() => {
+      DTBunch.prototype.addMany = addManyImpl;
     });
 
     test('creation simple with key', () => {
-      const newBunch = new DTBunch(KeyTest);
-      jest.spyOn(newBunch, 'getId').mockImplementation(function () {
-        return this._id;
-      });
-      jest.spyOn(newBunch, 'getKey').mockImplementation(function () {
-        return this._key;
-      });
-      jest.spyOn(newBunch, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
-      jest.spyOn(newBunch, 'get').mockImplementation(function (key) {
-        return key === 'options' ? this._globalOptions : undefined;
-      });
-      jest.spyOn(newBunch, 'getAll').mockImplementation(function () {
-        return this._items;
-      });
+      const newBunch = new DTBunchTest(KeyTest);
+      const parentConstructorMock = (DTComponentPhysical.prototype.constructor as MockedFunction<(key: string, options: any) => void>).mock;
 
-      expect(newBunch.getId()).toBeDefined();
-      expect(newBunch.getKey()).toBe(KeyTest);
-      expect(newBunch.getErrors()).toStrictEqual([]);
-      expect(newBunch.get('options')).toStrictEqual(defaultOptions);
-      expect(newBunch.getAll()).toStrictEqual([]);
+      expect(parentConstructorMock.calls[0][0]).toBe(KeyTest);
+      expect(parentConstructorMock.calls[0][1]).toStrictEqual(defaultOptions);
+      expect(newBunch.th_get_items()).toStrictEqual([]);
+
+      // Finder initialization
+      expect((newBunch.th_get_finder() as any).constructor.mock.calls.length).toBe(1);
+      expect((newBunch.th_get_finder() as any).constructor.mock.calls[0][0]).toStrictEqual(newBunch);
+      expect((newBunch.th_get_finder() as any).constructor.mock.calls[0][1]).toStrictEqual(componentBunchDefaultFinderConfiguration);
     });
 
     test('creation with items', () => {
-      const newBunch = new DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>, {}>(KeyTest, generateMockedElements(3));
-      jest.spyOn(newBunch, 'getKey').mockImplementation(function () {
-        return this._key;
-      });
-      jest.spyOn(newBunch, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
-      jest.spyOn(newBunch, 'getAll').mockImplementation(function () {
-        return this._items;
-      });
+      new DTBunchTest(KeyTest, generateMockedElements(3));
+      const mockedAddMany = DTBunch.prototype.addMany as MockedFunction<(items: Array<Mocked<DYOToolsElement<IMetaDataTest>>>) => void>;
 
-      expect(newBunch.getKey()).toBe(KeyTest);
-      expect(newBunch.getErrors()).toStrictEqual([]);
-      expect(newBunch.getAll()).toStrictEqual([]);
       expect(mockedAddMany.mock.calls.length).toBe(1);
       expect(mockedAddMany.mock.calls[0][0].length).toBe(3);
       expect(mockedAddMany.mock.calls[0][0][0].getKey()).toBe(HaileiKeyTest);
@@ -112,459 +110,423 @@ describe('class DYOToolsBunch', () => {
     });
 
     test('creations with options', () => {
-      const testOptions: Partial<DTBunchOptionsConstructor> = {
+      const testOptions: Partial<DTBunchOptions> = {
         errors: true,
         uniqueKey: true,
         inheritOwner: true,
       };
-      const newBunch = new DTBunch<Mocked<DYOToolsElement<IMetaDataTest>>, {}>(KeyTest, [], testOptions);
-      jest.spyOn(newBunch, 'get').mockImplementation(function (key) {
-        return key === 'options' ? this._globalOptions : undefined;
-      });
-      jest.spyOn(newBunch, 'getAll').mockImplementation(function () {
-        return this._items;
-      });
-      jest.spyOn(newBunch, 'getKey').mockImplementation(function () {
-        return this._key;
-      });
-      jest.spyOn(newBunch, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
+      const newBunch = new DTBunchTest(KeyTest, [], testOptions);
+      const parentConstructorMock = (DTComponentPhysical.prototype.constructor as MockedFunction<(key: string, options: any) => void>).mock;
 
-      expect(newBunch.getKey()).toBe(KeyTest);
-      expect(newBunch.getErrors()).toStrictEqual([]);
-      expect(newBunch.get('options')).toStrictEqual({
+      expect(parentConstructorMock.calls[0][0]).toBe(KeyTest);
+      expect(parentConstructorMock.calls[0][1]).toStrictEqual({
         errors: true,
         uniqueKey: true,
         inheritOwner: true,
         replaceIndex: false,
         virtualContext: false,
       });
-      expect(newBunch.getAll()).toStrictEqual([]);
+      expect(newBunch.th_get_items()).toStrictEqual([]);
     });
   });
 
   describe('_componentType', () => {
     test('componentType must be "bunch"', () => {
-      expect(bunchMock.getComponentType()).toBe('bunch');
+      expect(bunchTest.th_get_componentType()).toBe('bunch');
     });
   });
 
-  describe('getOwner()', () => {
-    test('return empty owner by default', () => {
-      expect(bunchMock.getOwner()).toBeUndefined();
+  describe('getFinderConfiguration()', () => {
+    const baseOperators = [
+      FilterOperatorType.EQ,
+      FilterOperatorType.IN,
+      FilterOperatorType.NIN,
+      FilterOperatorType.NE,
+    ];
+    const advancedOperators = [
+      ...baseOperators,
+      FilterOperatorType.GTE,
+      FilterOperatorType.LTE,
+      FilterOperatorType.CONTAINS,
+      FilterOperatorType.NCONTAINS,
+    ];
+
+    test('check finder configuration for id attribute', () => {
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().id;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(new DTElementStub())).toBe(IDElementTest);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
     });
 
-    test('return owner when set', () => {
-      const owner = new DTPlayerStub();
-      jest.spyOn(bunchMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-      bunchMock.setOwner(owner);
+    test('check finder configuration for key attribute', () => {
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().key;
 
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(new DTElementStub())).toBe(KeyElementTest);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for owner attribute - empty owner', () => {
+      const element = new DTElementStub();
+      jest.spyOn(element, 'getOwner').mockImplementation(() => undefined);
+
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().owner;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(element)).toBeNull();
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for owner attribute - with owner', () => {
+      const element = new DTElementStub();
+      jest.spyOn(element, 'getOwner').mockImplementation(() => new DTPlayerStub());
+
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().owner;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(element)).toBe(IDTestPlayer);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for context attribute - empty context', () => {
+      const element = new DTElementStub();
+      jest.spyOn(element, 'getContext').mockImplementation(() => undefined);
+
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().context;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(element)).toBeNull();
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for context attribute - with context', () => {
+      const element = new DTElementStub();
+      const bunch = new DTBunchStub();
+      jest.spyOn(bunch, 'getId').mockImplementation(() => `${IDTest}_other_context`);
+      jest.spyOn(element, 'getContext').mockImplementation(() => bunch);
+
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().context;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(baseOperators);
+      expect(finderConfigurationToCheck.getValue(element)).toBe(`${IDTest}_other_context`);
+      expect(finderConfigurationToCheck.objectSearch).toBe(false);
+    });
+
+    test('check finder configuration for meta attribute', () => {
+      const element = new DTElementStub();
+      jest.spyOn(element, 'getManyMeta').mockImplementation(() => HaileiMetaData);
+
+      const finderConfigurationToCheck = bunchTest.getFinderConfiguration().meta;
+
+      expect(finderConfigurationToCheck.operators).toStrictEqual(advancedOperators);
+      expect(finderConfigurationToCheck.getValue(element)).toStrictEqual(HaileiMetaData);
+      expect(finderConfigurationToCheck.objectSearch).toBe(true);
     });
   });
 
   describe('setOwner()', () => {
     beforeEach(() => {
-      jest.spyOn(bunchMock, 'getOwner').mockImplementation(function () {
-        return this._owner;
-      });
-    });
-
-    test('add a new owner', () => {
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
+      jest.spyOn(bunchTest, 'getOwner').mockImplementation(() => new DTPlayerStub());
     });
 
     test('add a new owner - not updating elements owner when inheritOwner = false', () => {
-      bunchMock.mockDefineOptions({ inheritOwner: false });
-      bunchMock.mockDefineItems(3);
+      bunchTest.th_set_options({ inheritOwner: false });
+      bunchTest.th_set_items(generateMockedElements(3));
 
       const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
+      bunchTest.setOwner(owner);
 
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
-      expect(bunchMock.mockItemGetter(0).setOwner.mock.calls.length).toBe(0);
-      expect(bunchMock.mockItemGetter(1).setOwner.mock.calls.length).toBe(0);
-      expect(bunchMock.mockItemGetter(2).setOwner.mock.calls.length).toBe(0);
+      expect(bunchTest.th_get_items()[0].setOwner.mock.calls.length).toBe(0);
+      expect(bunchTest.th_get_items()[1].setOwner.mock.calls.length).toBe(0);
+      expect(bunchTest.th_get_items()[2].setOwner.mock.calls.length).toBe(0);
     });
 
     test('add a new owner - updating elements owner when inheritOwner = true', () => {
-      bunchMock.mockDefineOptions({ inheritOwner: true });
-      bunchMock.mockDefineItems(3);
+      bunchTest.th_set_options({ inheritOwner: true });
+      bunchTest.th_set_items(generateMockedElements(3));
 
       const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
+      bunchTest.setOwner(owner);
 
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
-      expect(bunchMock.mockItemGetter(0).setOwner.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(0).setOwner.mock.calls[0][0].getId()).toBe(IDPlayerTest);
-      expect(bunchMock.mockItemGetter(1).setOwner.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(1).setOwner.mock.calls[0][0].getId()).toBe(IDPlayerTest);
-      expect(bunchMock.mockItemGetter(2).setOwner.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(2).setOwner.mock.calls[0][0].getId()).toBe(IDPlayerTest);
+      expect(bunchTest.th_get_items()[0].setOwner.mock.calls.length).toBe(1);
+      expect(bunchTest.th_get_items()[0].setOwner.mock.calls[0][0].getId()).toBe(IDPlayerTest);
+      expect(bunchTest.th_get_items()[1].setOwner.mock.calls.length).toBe(1);
+      expect(bunchTest.th_get_items()[1].setOwner.mock.calls[0][0].getId()).toBe(IDPlayerTest);
+      expect(bunchTest.th_get_items()[2].setOwner.mock.calls.length).toBe(1);
+      expect(bunchTest.th_get_items()[2].setOwner.mock.calls[0][0].getId()).toBe(IDPlayerTest);
     });
   });
 
   describe('removeOwner()', () => {
-    beforeEach(() => {
-      jest.spyOn(bunchMock, 'getOwner').mockImplementation(function () {
-        return this._owner;
-      });
-      jest.spyOn(bunchMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-    });
-
-    test('remove current Owner', () => {
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-      bunchMock.removeOwner();
-
-      expect(bunchMock.getOwner()).toBeUndefined();
-    });
-
     test('remove current Owner - not updating elements owner when inheritOwner = false', () => {
-      bunchMock.mockDefineOptions({ inheritOwner: true });
-      bunchMock.mockDefineItems(2);
+      bunchTest.th_set_options({ inheritOwner: true });
+      bunchTest.th_set_items(generateMockedElements(2));
 
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
+      bunchTest.th_set_options({ inheritOwner: false });
+      bunchTest.removeOwner();
 
-      bunchMock.mockDefineOptions({ inheritOwner: false });
-      bunchMock.removeOwner();
-
-      expect(bunchMock.getOwner()).toBeUndefined();
-      expect(bunchMock.mockItemGetter(0).removeOwner.mock.calls.length).toBe(0);
-      expect(bunchMock.mockItemGetter(1).removeOwner.mock.calls.length).toBe(0);
+      expect(bunchTest.th_get_items()[0].removeOwner.mock.calls.length).toBe(0);
+      expect(bunchTest.th_get_items()[1].removeOwner.mock.calls.length).toBe(0);
     });
 
     test('remove current Owner - updating elements owner when inheritOwner = true', () => {
-      bunchMock.mockDefineOptions({ inheritOwner: true });
-      bunchMock.mockDefineItems(2);
+      bunchTest.th_set_options({ inheritOwner: true });
+      bunchTest.th_set_items(generateMockedElements(2));
 
-      const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
+      bunchTest.removeOwner();
 
-      bunchMock.removeOwner();
-
-      expect(bunchMock.getOwner()).toBeUndefined();
-      expect(bunchMock.mockItemGetter(0).removeOwner.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(1).removeOwner.mock.calls.length).toBe(1);
-    });
-  });
-
-  describe('getErrors()', () => {
-    test('return empty errors by default', () => {
-      expect(bunchMock.getErrors()).toStrictEqual([]);
-    });
-
-    test('return array of errors if defined', () => {
-      const errors = [new DTErrorStub(), new DTErrorStub()];
-      bunchMock.mockDefineErrors(errors);
-
-      expect(bunchMock.getErrors()).toStrictEqual(errors);
-    });
-  });
-
-  describe('getLastError()', () => {
-    test('return undefined if the bunch has no errors', () => {
-      expect(bunchMock.getLastError()).toBeUndefined();
-    });
-
-    test('return the last error', () => {
-      const lastError = new DTErrorStub();
-      const errors = [new DTErrorStub(), new DTErrorStub(), lastError];
-      bunchMock.mockDefineErrors(errors);
-
-      expect(bunchMock.getLastError().getTimestamp().toString()).toStrictEqual(lastError.getTimestamp().toString());
+      expect(bunchTest.th_get_items()[0].removeOwner.mock.calls.length).toBe(1);
+      expect(bunchTest.th_get_items()[1].removeOwner.mock.calls.length).toBe(1);
     });
   });
 
   describe('get()', () => {
     beforeEach(() => {
-      bunchMock.mockDefineItems(5);
+      bunchTest.th_set_items(generateMockedElements(5));
     });
 
     test('return an item by its id', () => {
-      expect(bunchMock.get(`${MaydenaIdTest}-2`).getKey()).toBe(MaydenaKeyTest);
-      expect(bunchMock.get(`${YssaliaIdTest}-4`).getKey()).toBe(YssaliaKeyTest);
+      expect(bunchTest.get(`${MaydenaIdTest}-2`).getKey()).toBe(MaydenaKeyTest);
+      expect(bunchTest.get(`${YssaliaIdTest}-4`).getKey()).toBe(YssaliaKeyTest);
     });
 
     test('return an item by its index', () => {
-      expect(bunchMock.get(2).getKey()).toBe(MaydenaKeyTest);
-      expect(bunchMock.get(4).getKey()).toBe(YssaliaKeyTest);
+      expect(bunchTest.get(2).getKey()).toBe(MaydenaKeyTest);
+      expect(bunchTest.get(4).getKey()).toBe(YssaliaKeyTest);
     });
 
     test('return undefined if item not found by id', () => {
-      expect(bunchMock.get('id-123456')).toBeUndefined();
+      expect(bunchTest.get('id-123456')).toBeUndefined();
     });
 
     test('return undefined if item not found by index', () => {
-      expect(bunchMock.get(11)).toBeUndefined();
+      expect(bunchTest.get(11)).toBeUndefined();
     });
 
     test('return undefined if item not found by index - incoherent index', () => {
-      expect(bunchMock.get(-11)).toBeUndefined();
+      expect(bunchTest.get(-11)).toBeUndefined();
     });
   });
 
   describe('getAll()', () => {
     test('return empty array if no items', () => {
-      expect(bunchMock.getAll()).toStrictEqual([]);
+      expect(bunchTest.getAll()).toStrictEqual([]);
     });
 
     test('return all items array', () => {
-      bunchMock.mockDefineItems(5);
+      bunchTest.th_set_items(generateMockedElements(5));
 
-      expect(bunchMock.getAll()[0].getKey()).toBe(HaileiKeyTest);
-      expect(bunchMock.getAll()[1].getKey()).toBe(MeldrineKeyTest);
-      expect(bunchMock.getAll()[2].getKey()).toBe(MaydenaKeyTest);
-      expect(bunchMock.getAll()[3].getKey()).toBe(IldressKeyTest);
-      expect(bunchMock.getAll()[4].getKey()).toBe(YssaliaKeyTest);
+      expect(bunchTest.getAll()[0].getKey()).toBe(HaileiKeyTest);
+      expect(bunchTest.getAll()[1].getKey()).toBe(MeldrineKeyTest);
+      expect(bunchTest.getAll()[2].getKey()).toBe(MaydenaKeyTest);
+      expect(bunchTest.getAll()[3].getKey()).toBe(IldressKeyTest);
+      expect(bunchTest.getAll()[4].getKey()).toBe(YssaliaKeyTest);
     });
   });
 
   describe('indexOf()', () => {
     beforeEach(() => {
-      bunchMock.mockDefineItems(5);
+      bunchTest.th_set_items(generateMockedElements(5));
     });
 
     test('return index of an item by id', () => {
-      expect(bunchMock.indexOf(`${MaydenaIdTest}-2`)).toBe(2);
-      expect(bunchMock.indexOf(`${YssaliaIdTest}-4`)).toBe(4);
+      expect(bunchTest.indexOf(`${MaydenaIdTest}-2`)).toBe(2);
+      expect(bunchTest.indexOf(`${YssaliaIdTest}-4`)).toBe(4);
     });
 
     test('return -1 if id is not found', () => {
-      expect(bunchMock.indexOf('id-123456')).toBe(-1);
+      expect(bunchTest.indexOf('id-123456')).toBe(-1);
     });
   });
 
+  // TODO : Add test cases for updating Library from manager
   describe('addAtIndex()', () => {
     let objectToAdd;
     let objectsToAdd;
 
-    const checkErrorCall = (code, message, initiatorId, convictedId) => {
-      expect(DTError).toHaveBeenCalled();
-      expect((DTError as any).mock.calls.length).toBe(1);
-      expect((DTError as any).mock.calls[0][0]).toBe(code);
-      expect((DTError as any).mock.calls[0][1]).toBe(message);
-      expect((DTError as any).mock.calls[0][2].getId()).toBe(initiatorId);
-      expect((DTError as any).mock.calls[0][3].getId()).toBe(convictedId);
-    };
-
     beforeEach(() => {
-      (DTError as any).mockReset();
-      jest.spyOn(bunchMock, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
-      jest.spyOn(bunchMock, 'getOwner').mockImplementation(function () {
-        return this._owner;
-      });
-      jest.spyOn(bunchMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
+      jest.spyOn(bunchTest, 'getId').mockReturnValue(IDTest);
 
-      bunchMock.mockDefineItems(5);
-      bunchMock.mockDefineOptions({
-        replaceIndex: false,
-        errors: false,
-        uniqueKey: false,
-        virtualContext: false,
-        inheritOwner: false,
-      });
+      bunchTest.th_set_items(generateMockedElements(5));
 
       objectsToAdd = generateMockedElements(6);
       objectToAdd = objectsToAdd[5];
-      jest.spyOn(bunchMock, 'find').mockReturnValue([objectToAdd]);
+      jest.spyOn(bunchTest, 'find').mockReturnValue([objectToAdd]);
     });
 
     test('add a new item at last index - simple case', () => {
-      bunchMock.addAtIndex(objectToAdd, 5);
-      expect(bunchMock.mockItemGetter(5).getId()).toBe(objectToAdd.getId());
+      bunchTest.addAtIndex(objectToAdd, 5);
+
+      expect(bunchTest.th_get_items()[5].getId()).toBe(objectToAdd.getId());
     });
 
     test('add a new item at specified index and reindex - default case', () => {
-      bunchMock.addAtIndex(objectToAdd, 2);
+      bunchTest.addAtIndex(objectToAdd, 2);
 
-      expect(bunchMock.mockItemGetter(2).getId()).toBe(objectToAdd.getId());
-      expect(bunchMock.mockItemGetter(3).getId()).toBe(`${MaydenaIdTest}-2`);
-      expect(bunchMock.mockItemGetter(4).getId()).toBe(`${IldressIdTest}-3`);
-      expect(bunchMock.mockItemGetter(5).getId()).toBe(`${YssaliaIdTest}-4`);
+      expect(bunchTest.th_get_items()[2].getId()).toBe(objectToAdd.getId());
+      expect(bunchTest.th_get_items()[3].getId()).toBe(`${MaydenaIdTest}-2`);
+      expect(bunchTest.th_get_items()[4].getId()).toBe(`${IldressIdTest}-3`);
+      expect(bunchTest.th_get_items()[5].getId()).toBe(`${YssaliaIdTest}-4`);
     });
 
     test('add a new item at specified index and replace - replace option', () => {
-      bunchMock.addAtIndex(objectToAdd, 2, { replaceIndex: true });
-      expect(bunchMock.mockItemGetter(2).getId()).toBe(objectToAdd.getId());
-      expect(bunchMock.mockItemGetter(3).getId()).toBe(`${IldressIdTest}-3`);
-      expect(bunchMock.mockItemGetter(4).getId()).toBe(`${YssaliaIdTest}-4`);
-      expect(bunchMock.mockItemGetter(5)).toBeUndefined();
+      bunchTest.addAtIndex(objectToAdd, 2, { replaceIndex: true });
+
+      expect(bunchTest.th_get_items()[2].getId()).toBe(objectToAdd.getId());
+      expect(bunchTest.th_get_items()[3].getId()).toBe(`${IldressIdTest}-3`);
+      expect(bunchTest.th_get_items()[4].getId()).toBe(`${YssaliaIdTest}-4`);
+      expect(bunchTest.th_get_items()[5]).toBeUndefined();
     });
 
     test('add a new item at lower index', () => {
-      bunchMock.addAtIndex(objectToAdd, -11);
-      expect(bunchMock.mockItemGetter(0).getId()).toBe(objectToAdd.getId());
-      expect(bunchMock.mockItemGetter(1).getId()).toBe(`${HaileiIdTest}-0`);
+      bunchTest.addAtIndex(objectToAdd, -11);
+
+      expect(bunchTest.th_get_items()[0].getId()).toBe(objectToAdd.getId());
+      expect(bunchTest.th_get_items()[1].getId()).toBe(`${HaileiIdTest}-0`);
     });
 
     test('add a new item at greater index', () => {
-      bunchMock.addAtIndex(objectToAdd, 11);
-      expect(bunchMock.mockItemGetter(5).getId()).toBe(objectToAdd.getId());
-      expect(bunchMock.mockItemGetter(6)).toBeUndefined();
+      bunchTest.addAtIndex(objectToAdd, 11);
+
+      expect(bunchTest.th_get_items()[5].getId()).toBe(objectToAdd.getId());
+      expect(bunchTest.th_get_items()[6]).toBeUndefined();
     });
 
-    test('trigger conflict when adding two same ids - default exception errors', () => {
-      let errorThrown;
-      try {
-        bunchMock.addAtIndex(objectsToAdd[0], 2);
-      } catch (error) {
-        errorThrown = error;
-      }
+    test('trigger conflict when adding two same ids - parent triggerError', () => {
+      const mockedTriggerError = DTBunch.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
 
-      expect(errorThrown).toBeDefined();
-      checkErrorCall(
+      bunchTest.addAtIndex(objectsToAdd[0], 2);
+
+      expect(mockedTriggerError.mock.calls.length).toBe(1);
+      checkCallForMockedDTError(
         'id_conflict',
         'Element with same id already exists in the bunch',
         IDTest,
         objectsToAdd[0].getId(),
       );
-      expect(bunchMock.mockItemGetter(2).getId()).toBe(`${MaydenaIdTest}-2`);
-    });
-
-    test('trigger conflict when adding two same ids - stack errors', () => {
-      jest.spyOn(bunchMock, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
-
-      bunchMock.addAtIndex(objectsToAdd[0], 2, { errors: true });
-      const errors = bunchMock.getErrors();
-
-      expect(errors.length).toBe(1);
-      checkErrorCall(
-        'id_conflict',
-        'Element with same id already exists in the bunch',
-        IDTest,
-        objectsToAdd[0].getId(),
-      );
-      expect(bunchMock.mockItemGetter(2).getId()).toBe(`${MaydenaIdTest}-2`);
     });
 
     test('no conflict when adding two same keys - default case', () => {
-      let errorThrown;
-      try {
-        bunchMock.addAtIndex(objectToAdd, 2);
-      } catch (error) {
-        errorThrown = error;
-      }
+      const mockedTriggerError = DTBunch.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
 
-      expect(errorThrown).toBeUndefined();
-      expect((bunchMock.find as any).mock.calls.length).toBe(0);
-      expect(bunchMock.mockItemGetter(0).getKey()).toBe(HaileiKeyTest);
-      expect(bunchMock.mockItemGetter(2).getKey()).toBe(HaileiKeyTest);
+      bunchTest.addAtIndex(objectToAdd, 2);
+
+      expect(mockedTriggerError.mock.calls.length).toBe(0);
+      expect((bunchTest.find as any).mock.calls.length).toBe(0);
+      expect(bunchTest.th_get_items()[0].getKey()).toBe(HaileiKeyTest);
+      expect(bunchTest.th_get_items()[2].getKey()).toBe(HaileiKeyTest);
     });
 
-    test('trigger conflict when adding two same keys - uniqueKey option and exception errors', () => {
-      let errorThrown;
-      try {
-        bunchMock.addAtIndex(objectToAdd, 2, { uniqueKey: true });
-      } catch (error) {
-        errorThrown = error;
-      }
+    test('trigger conflict when adding two same keys - uniqueKey option and parent triggerError', () => {
+      const mockedTriggerError = DTBunch.prototype.triggerError as MockedFunction<(error: DYOToolsError) => void>;
 
-      expect(errorThrown).toBeDefined();
-      checkErrorCall(
+      bunchTest.addAtIndex(objectToAdd, 2, { uniqueKey: true });
+
+      expect(mockedTriggerError.mock.calls.length).toBe(1);
+      checkCallForMockedDTError(
         'key_conflict',
         'Element with same key already exists in the bunch',
         IDTest,
         objectToAdd.getId(),
       );
-      expect((bunchMock.find as any).mock.calls.length).toBe(1);
-      expect((bunchMock.find as any).mock.calls[0][0]).toStrictEqual({ key: { $eq: objectToAdd.getKey() } });
-      expect(bunchMock.mockItemGetter(2).getId()).toBe(`${MaydenaIdTest}-2`);
-    });
-
-    test('trigger conflict when adding two same keys - uniqueKey option and stack errors', () => {
-      bunchMock.addAtIndex(objectToAdd, 2, { errors: true, uniqueKey: true });
-      jest.spyOn(bunchMock, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
-
-      const errors = bunchMock.getErrors();
-
-      expect(errors.length).toBe(1);
-      checkErrorCall(
-        'key_conflict',
-        'Element with same key already exists in the bunch',
-        IDTest,
-        objectToAdd.getId(),
-      );
-      expect(bunchMock.mockItemGetter(2).getId()).toBe(`${MaydenaIdTest}-2`);
+      expect((bunchTest.find as any).mock.calls.length).toBe(1);
+      expect((bunchTest.find as any).mock.calls[0][0]).toStrictEqual({ key: { $eq: objectToAdd.getKey() } });
+      expect(bunchTest.th_get_items()[2].getId()).toBe(`${MaydenaIdTest}-2`);
     });
 
     test('not inherit owner when adding an item - default case', () => {
       const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-      bunchMock.addAtIndex(objectToAdd, 2);
+      bunchTest.th_set_owner(owner);
 
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
+      bunchTest.addAtIndex(objectToAdd, 2);
+
+      expect(bunchTest.th_get_owner().getId()).toBe(IDPlayerTest);
       expect(objectToAdd.setOwner.mock.calls.length).toBe(0);
     });
 
     test('inherit owner when adding an item - inheritOwner option', () => {
       const owner = new DTPlayerStub();
-      bunchMock.setOwner(owner);
-      bunchMock.addAtIndex(objectToAdd, 2, { inheritOwner: true });
+      bunchTest.th_set_owner(owner);
 
-      expect(bunchMock.getOwner().getId()).toBe(IDPlayerTest);
+      bunchTest.addAtIndex(objectToAdd, 2, { inheritOwner: true });
+
+      expect(bunchTest.th_get_owner().getId()).toBe(IDPlayerTest);
       expect(objectToAdd.setOwner.mock.calls.length).toBe(1);
       expect(objectToAdd.setOwner.mock.calls[0][0].getId()).toBe(IDPlayerTest);
     });
 
     test('set context when adding an item - default case', () => {
-      bunchMock.addAtIndex(objectToAdd, 2);
+      bunchTest.addAtIndex(objectToAdd, 2);
 
-      expect(bunchMock.mockItemGetter(2).setContext.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(2).setContext.mock.calls[0][0].getId()).toBe(IDTest);
+      expect(bunchTest.th_get_items()[2].setContext.mock.calls.length).toBe(1);
+      expect(bunchTest.th_get_items()[2].setContext.mock.calls[0][0].getId()).toBe(IDTest);
     });
 
     test('not set context when adding an item - virtualContext option', () => {
-      bunchMock.mockDefineOptions({ virtualContext: true });
-      bunchMock.addAtIndex(objectToAdd, 2);
+      bunchTest.th_set_options({ virtualContext: true });
 
-      expect(bunchMock.mockItemGetter(2).setContext.mock.calls.length).toBe(0);
+      bunchTest.addAtIndex(objectToAdd, 2);
+
+      expect(bunchTest.th_get_items()[2].setContext.mock.calls.length).toBe(0);
     });
 
     test('set context when adding an item - remove from old bunch', () => {
-      const bunchMockOld = new DTBunchMock();
-      bunchMockOld.mockDefineItems(6);
-      objectToAdd = bunchMockOld.mockItemGetter(5);
-      objectToAdd.setContext(bunchMockOld);
+      const bunchTestOld = new DTBunchTest();
+      bunchTestOld.th_set_items(generateMockedElements(6));
+      objectToAdd = bunchTestOld.th_get_items()[5];
+      objectToAdd.setContext(bunchTestOld);
       objectToAdd.setContext.mockClear();
-      jest.spyOn(bunchMockOld, 'remove').mockImplementation(() => {});
+      jest.spyOn(bunchTestOld, 'remove').mockImplementation(() => {});
+      jest.spyOn(bunchTestOld, 'getComponentType').mockImplementation(() => 'bunch');
 
-      bunchMock.addAtIndex(objectToAdd, 2);
+      bunchTest.addAtIndex(objectToAdd, 2);
 
-      expect(bunchMock.mockItemGetter(2).setContext.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(2).setContext.mock.calls[0][0].getId()).toBe(IDTest);
-      expect((bunchMockOld.remove as any).mock.calls.length).toBe(1);
-      expect((bunchMockOld.remove as any).mock.calls[0][0]).toBe(objectToAdd.getId());
+      expect(bunchTest.th_get_items()[2].setContext.mock.calls.length).toBe(1);
+      expect(bunchTest.th_get_items()[2].setContext.mock.calls[0][0].getId()).toBe(IDTest);
+      expect((bunchTestOld.remove as any).mock.calls.length).toBe(1);
+      expect((bunchTestOld.remove as any).mock.calls[0][0]).toBe(objectToAdd.getId());
     });
 
     test('set context when adding an item - dont remove if virtualContext option', () => {
-      const bunchMockOld = new DTBunchMock();
-      bunchMockOld.mockDefineItems(6);
-      objectToAdd = bunchMockOld.mockItemGetter(5);
-      jest.spyOn(bunchMockOld, 'remove').mockImplementation(() => {});
+      const bunchTestOld = new DTBunchTest();
+      bunchTestOld.th_set_items(generateMockedElements(6));
+      objectToAdd = bunchTestOld.th_get_items()[5];
+      jest.spyOn(bunchTestOld, 'remove').mockImplementation(() => {});
 
-      bunchMock.mockDefineOptions({ virtualContext: true });
-      bunchMock.addAtIndex(objectToAdd, 2);
+      bunchTest.th_set_options({ virtualContext: true });
+      bunchTest.addAtIndex(objectToAdd, 2);
 
-      expect(bunchMock.mockItemGetter(2).setContext.mock.calls.length).toBe(0);
-      expect((bunchMockOld.remove as any).mock.calls.length).toBe(0);
+      expect(bunchTest.th_get_items()[2].setContext.mock.calls.length).toBe(0);
+      expect((bunchTestOld.remove as any).mock.calls.length).toBe(0);
+    });
+
+    test('manager context - add item into the manager library', () => {
+      const managerTest = new DTManagerStub();
+      jest.spyOn(bunchTest, 'getContext').mockImplementation(
+        (contextType) => contextType === 'manager' && managerTest,
+      );
+      jest.spyOn(managerTest, 'getLibrary').mockImplementation(() => managerTest.th_get_library());
+      jest.spyOn(managerTest.th_get_library(), 'add');
+
+      bunchTest.addAtIndex(objectToAdd, 5);
+
+      expect((managerTest.th_get_library().add as any).mock.calls.length).toBe(1);
+      expect((managerTest.th_get_library().add as any).mock.calls[0][0]).toStrictEqual(objectToAdd);
+    });
+
+    test('manager context - not add existing item into the manager library', () => {
+      const managerTest = new DTManagerStub();
+      jest.spyOn(bunchTest, 'getContext').mockImplementation(
+        (contextType) => contextType === 'manager' && managerTest,
+      );
+      jest.spyOn(managerTest, 'getLibrary').mockImplementation(() => managerTest.th_get_library());
+      jest.spyOn(managerTest.th_get_library(), 'add');
+      managerTest.th_get_library().th_set_items([objectToAdd]);
+
+      bunchTest.addAtIndex(objectToAdd, 5);
+
+      expect((managerTest.th_get_library().add as any).mock.calls.length).toBe(0);
     });
   });
 
@@ -573,9 +535,9 @@ describe('class DYOToolsBunch', () => {
     let objectToAdd;
 
     beforeEach(() => {
-      jest.spyOn(bunchMock, 'addAtIndex').mockImplementation(() => {});
+      jest.spyOn(bunchTest, 'addAtIndex').mockImplementation(() => {});
 
-      bunchMock.mockDefineItems(5);
+      bunchTest.th_set_items(generateMockedElements(5));
 
       objectsToAdd = generateMockedElements(6);
       objectToAdd = objectsToAdd[5];
@@ -586,12 +548,12 @@ describe('class DYOToolsBunch', () => {
         replaceIndex: true,
         inheritOwner: true,
       };
-      bunchMock.add(objectToAdd, testBunchOptions);
+      bunchTest.add(objectToAdd, testBunchOptions);
 
-      expect((bunchMock.addAtIndex as any).mock.calls.length).toBe(1);
-      expect((bunchMock.addAtIndex as any).mock.calls[0][0].getId()).toBe(objectToAdd.getId());
-      expect((bunchMock.addAtIndex as any).mock.calls[0][1]).toBe(5);
-      expect((bunchMock.addAtIndex as any).mock.calls[0][2]).toStrictEqual(testBunchOptions);
+      expect((bunchTest.addAtIndex as any).mock.calls.length).toBe(1);
+      expect((bunchTest.addAtIndex as any).mock.calls[0][0].getId()).toBe(objectToAdd.getId());
+      expect((bunchTest.addAtIndex as any).mock.calls[0][1]).toBe(5);
+      expect((bunchTest.addAtIndex as any).mock.calls[0][2]).toStrictEqual(testBunchOptions);
     });
   });
 
@@ -600,10 +562,9 @@ describe('class DYOToolsBunch', () => {
     let itemLibrary;
 
     beforeEach(() => {
-      (DTError as any).mockReset();
-      jest.spyOn(bunchMock, 'addAtIndex').mockImplementation(() => {});
+      jest.spyOn(bunchTest, 'addAtIndex').mockImplementation(() => {});
 
-      bunchMock.mockDefineItems(5);
+      bunchTest.th_set_items(generateMockedElements(5));
 
       itemLibrary = generateMockedElements(8);
       itemsToAdd = [itemLibrary[5], itemLibrary[6], itemLibrary[7]];
@@ -615,77 +576,67 @@ describe('class DYOToolsBunch', () => {
         inheritOwner: true,
       };
       const indexToAdd = 2;
-      bunchMock.addManyAtIndex(itemsToAdd, indexToAdd, testBunchOptions);
+      bunchTest.addManyAtIndex(itemsToAdd, indexToAdd, testBunchOptions);
 
-      expect((bunchMock.addAtIndex as any).mock.calls.length).toBe(3);
+      expect((bunchTest.addAtIndex as any).mock.calls.length).toBe(3);
       for (let i = 0; i < 3; i++) {
-        expect((bunchMock.addAtIndex as any).mock.calls[i][0].getId()).toBe(itemsToAdd[i].getId());
-        expect((bunchMock.addAtIndex as any).mock.calls[i][1]).toBe(i + indexToAdd);
-        expect((bunchMock.addAtIndex as any).mock.calls[i][2]).toStrictEqual(testBunchOptions);
+        expect((bunchTest.addAtIndex as any).mock.calls[i][0].getId()).toBe(itemsToAdd[i].getId());
+        expect((bunchTest.addAtIndex as any).mock.calls[i][1]).toBe(i + indexToAdd);
+        expect((bunchTest.addAtIndex as any).mock.calls[i][2]).toStrictEqual(testBunchOptions);
       }
     });
 
     test('add many items at index using addAtIndex - index lower than 0', () => {
       const indexToAdd = -11;
-      bunchMock.addManyAtIndex(itemsToAdd, indexToAdd);
+      bunchTest.addManyAtIndex(itemsToAdd, indexToAdd);
 
-      expect((bunchMock.addAtIndex as any).mock.calls.length).toBe(3);
+      expect((bunchTest.addAtIndex as any).mock.calls.length).toBe(3);
       for (let i = 0; i < 3; i++) {
-        expect((bunchMock.addAtIndex as any).mock.calls[i][0].getId()).toBe(itemsToAdd[i].getId());
-        expect((bunchMock.addAtIndex as any).mock.calls[i][1]).toBe(i);
+        expect((bunchTest.addAtIndex as any).mock.calls[i][0].getId()).toBe(itemsToAdd[i].getId());
+        expect((bunchTest.addAtIndex as any).mock.calls[i][1]).toBe(i);
       }
     });
 
     test('errors when adding many items at index - default case - add no items and throw error', () => {
       const indexToAdd = 2;
-      let errorThrown;
-      jest.spyOn(bunchMock, 'addAtIndex').mockImplementation(function (item, index, options) {
-        if (item.getKey() !== MeldrineKeyTest) {
-          throw new DTError('test_error', `Item ${item.getId()}`);
-        } else {
-          this._items[index] = item;
-        }
+      let errorThrown: DTErrorStub;
+      jest.spyOn(bunchTest, 'addAtIndex').mockImplementationOnce((item, index, options) => {
+        throw new DTErrorStub();
       });
 
       try {
-        bunchMock.addManyAtIndex(itemsToAdd, indexToAdd);
-      } catch (error) {
-        errorThrown = error;
+        bunchTest.addManyAtIndex(itemsToAdd, indexToAdd);
+      } catch (error: unknown) {
+        errorThrown = error as DTErrorStub;
       }
 
       expect(errorThrown).toBeDefined();
-      expect(DTError).toHaveBeenCalled();
-      expect((DTError as any).mock.calls.length).toBe(1);
-      expect((DTError as any).mock.calls[0][0]).toBe('test_error');
-      expect((DTError as any).mock.calls[0][1]).toBe(`Item ${itemsToAdd[0].getId()}`);
-      expect((bunchMock.addAtIndex as any).mock.calls.length).toBe(1);
-      expect((bunchMock.addAtIndex as any).mock.calls[0][0].getId()).toBe(itemsToAdd[0].getId());
-      expect((bunchMock.addAtIndex as any).mock.calls[0][1]).toBe(indexToAdd);
-      expect(bunchMock.mockItemGetter(2).getKey()).not.toBe(MeldrineKeyTest);
+      expect(DTErrorStub).toHaveBeenCalled();
+      expect(errorThrown.getCode()).toBe(DTErrorCodeTest);
+      expect((bunchTest.addAtIndex as any).mock.calls.length).toBe(1);
+      expect((bunchTest.addAtIndex as any).mock.calls[0][0].getId()).toBe(itemsToAdd[0].getId());
+      expect((bunchTest.addAtIndex as any).mock.calls[0][1]).toBe(indexToAdd);
     });
 
     test('errors when adding many items at index - errors case - add success items and stack errors for others', () => {
       const indexToAdd = 2;
-      jest.spyOn(bunchMock, 'addAtIndex').mockImplementation(function (item, index, options) {
-        if (item.getKey() !== MeldrineKeyTest) {
-          this._errors.push(new DTError('test_error', `Item ${item.getId()}`));
-        }
-      });
-      jest.spyOn(bunchMock, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
+      const errors = [];
+      jest.spyOn(bunchTest, 'addAtIndex')
+        .mockImplementationOnce((item, index, options) => {
+          errors.push(new DTErrorStub());
+        })
+        .mockImplementationOnce((item, index, options) => {
+          errors.push(new DTErrorStub());
+        });
 
-      bunchMock.addManyAtIndex(itemsToAdd, indexToAdd, { errors: true });
-      const errors = bunchMock.getErrors();
+      bunchTest.addManyAtIndex(itemsToAdd, indexToAdd, { errors: true });
 
       expect(errors.length).toBe(2);
-      expect(DTError).toHaveBeenCalled();
-      expect((DTError as any).mock.calls.length).toBe(2);
-      expect((DTError as any).mock.calls[0][0]).toBe('test_error');
-      expect((DTError as any).mock.calls[0][1]).toBe(`Item ${itemsToAdd[0].getId()}`);
-      expect((DTError as any).mock.calls[1][0]).toBe('test_error');
-      expect((DTError as any).mock.calls[1][1]).toBe(`Item ${itemsToAdd[2].getId()}`);
-      expect((bunchMock.addAtIndex as any).mock.calls.length).toBe(3);
+      expect(DTErrorStub).toHaveBeenCalled();
+      expect((bunchTest.addAtIndex as any).mock.calls.length).toBe(3);
+      expect((bunchTest.addAtIndex as any).mock.calls[0][0].getId()).toBe(itemsToAdd[0].getId());
+      expect((bunchTest.addAtIndex as any).mock.calls[1][0].getId()).toBe(itemsToAdd[1].getId());
+      expect((bunchTest.addAtIndex as any).mock.calls[2][0].getId()).toBe(itemsToAdd[2].getId());
     });
   });
 
@@ -694,9 +645,9 @@ describe('class DYOToolsBunch', () => {
     let itemLibrary;
 
     beforeEach(() => {
-      jest.spyOn(bunchMock, 'addManyAtIndex').mockImplementation(() => {});
+      jest.spyOn(bunchTest, 'addManyAtIndex').mockImplementation(() => {});
 
-      bunchMock.mockDefineItems(5);
+      bunchTest.th_set_items(generateMockedElements(5));
 
       itemLibrary = generateMockedElements(8);
       itemsToAdd = [itemLibrary[5], itemLibrary[6], itemLibrary[7]];
@@ -707,78 +658,76 @@ describe('class DYOToolsBunch', () => {
         replaceIndex: true,
         inheritOwner: true,
       };
-      bunchMock.addMany(itemsToAdd, testBunchOptions);
 
-      expect((bunchMock.addManyAtIndex as any).mock.calls.length).toBe(1);
-      expect((bunchMock.addManyAtIndex as any).mock.calls[0][0].length).toBe(3);
-      expect((bunchMock.addManyAtIndex as any).mock.calls[0][0][0].getId()).toBe(`${HaileiIdTest}-5`);
-      expect((bunchMock.addManyAtIndex as any).mock.calls[0][0][1].getId()).toBe(`${MeldrineIdTest}-6`);
-      expect((bunchMock.addManyAtIndex as any).mock.calls[0][0][2].getId()).toBe(`${MaydenaIdTest}-7`);
-      expect((bunchMock.addManyAtIndex as any).mock.calls[0][1]).toBe(5);
-      expect((bunchMock.addManyAtIndex as any).mock.calls[0][2]).toStrictEqual(testBunchOptions);
+      bunchTest.addMany(itemsToAdd, testBunchOptions);
+
+      expect((bunchTest.addManyAtIndex as any).mock.calls.length).toBe(1);
+      expect((bunchTest.addManyAtIndex as any).mock.calls[0][0].length).toBe(3);
+      expect((bunchTest.addManyAtIndex as any).mock.calls[0][0][0].getId()).toBe(`${HaileiIdTest}-5`);
+      expect((bunchTest.addManyAtIndex as any).mock.calls[0][0][1].getId()).toBe(`${MeldrineIdTest}-6`);
+      expect((bunchTest.addManyAtIndex as any).mock.calls[0][0][2].getId()).toBe(`${MaydenaIdTest}-7`);
+      expect((bunchTest.addManyAtIndex as any).mock.calls[0][1]).toBe(5);
+      expect((bunchTest.addManyAtIndex as any).mock.calls[0][2]).toStrictEqual(testBunchOptions);
     });
   });
 
   describe('removeMany()', () => {
-    const checkAllItemsInBunch = (bunch: DTBunchMock, itemRemoved = 3) => {
+    const checkAllItemsInBunch = (bunch: DTBunchTest, itemRemoved = 3) => {
       const sup = itemRemoved;
-      expect(bunchMock.getAll().length).toBe(5 - sup);
-      expect(bunchMock.mockItemGetter(0).getId()).toBe(`${HaileiIdTest}-0`);
-      itemRemoved < 1 && expect(bunchMock.mockItemGetter(1 - sup).getId()).toBe(`${MeldrineIdTest}-1`);
-      itemRemoved < 2 && expect(bunchMock.mockItemGetter(2 - sup).getId()).toBe(`${MaydenaIdTest}-2`);
-      itemRemoved < 3 && expect(bunchMock.mockItemGetter(3 - sup).getId()).toBe(`${IldressIdTest}-3`);
-      expect(bunchMock.mockItemGetter(4 - sup).getId()).toBe(`${YssaliaIdTest}-4`);
+      expect(bunchTest.getAll().length).toBe(5 - sup);
+      expect(bunchTest.th_get_items()[0].getId()).toBe(`${HaileiIdTest}-0`);
+      itemRemoved < 1 && expect(bunchTest.th_get_items()[1 - sup].getId()).toBe(`${MeldrineIdTest}-1`);
+      itemRemoved < 2 && expect(bunchTest.th_get_items()[2 - sup].getId()).toBe(`${MaydenaIdTest}-2`);
+      itemRemoved < 3 && expect(bunchTest.th_get_items()[3 - sup].getId()).toBe(`${IldressIdTest}-3`);
+      expect(bunchTest.th_get_items()[4 - sup].getId()).toBe(`${YssaliaIdTest}-4`);
     };
 
     beforeEach(() => {
-      jest.spyOn(bunchMock, 'getAll').mockImplementation(function () {
-        return this._items;
-      });
-      jest.spyOn(bunchMock, 'removeContext').mockImplementation(() => {});
+      jest.spyOn(bunchTest, 'removeContext').mockImplementation(() => {});
 
-      bunchMock.mockDefineItems(5);
+      bunchTest.th_set_items(generateMockedElements(5));
     });
 
     test('remove many items by ids', () => {
-      bunchMock.removeMany([`${MeldrineIdTest}-1`, `${MaydenaIdTest}-2`, `${IldressIdTest}-3`]);
+      bunchTest.removeMany([`${MeldrineIdTest}-1`, `${MaydenaIdTest}-2`, `${IldressIdTest}-3`]);
 
-      checkAllItemsInBunch(bunchMock);
+      checkAllItemsInBunch(bunchTest);
     });
 
     test('remove many items by indexes', () => {
-      bunchMock.removeMany([1, 2, 3]);
+      bunchTest.removeMany([1, 2, 3]);
 
-      checkAllItemsInBunch(bunchMock);
+      checkAllItemsInBunch(bunchTest);
     });
 
     test('remove only item with corresponding ids', () => {
-      bunchMock.removeMany([`${MeldrineIdTest}-1`, `${MaydenaIdTest}-2`, 'id-12345']);
+      bunchTest.removeMany([`${MeldrineIdTest}-1`, `${MaydenaIdTest}-2`, 'id-12345']);
 
-      checkAllItemsInBunch(bunchMock, 2);
+      checkAllItemsInBunch(bunchTest, 2);
     });
 
     test('remove only item with corresponding indexes', () => {
-      bunchMock.removeMany([1, 2, 11]);
+      bunchTest.removeMany([1, 2, 11]);
 
-      checkAllItemsInBunch(bunchMock, 2);
+      checkAllItemsInBunch(bunchTest, 2);
     });
 
     test('remove only item with corresponding indexes - incoherent index', () => {
-      bunchMock.removeMany([-11, 2, 1, -13]);
+      bunchTest.removeMany([-11, 2, 1, -13]);
 
-      checkAllItemsInBunch(bunchMock, 2);
+      checkAllItemsInBunch(bunchTest, 2);
     });
 
     test('define context at undefined for removed items - default case', () => {
       const items = [
-        bunchMock.mockItemGetter(1),
-        bunchMock.mockItemGetter(2),
+        bunchTest.th_get_items()[1],
+        bunchTest.th_get_items()[2],
       ];
 
-      bunchMock.removeMany([`${MeldrineIdTest}-1`, `${MaydenaIdTest}-2`]);
-      items.push(bunchMock.mockItemGetter(0));
-      items.push(bunchMock.mockItemGetter(1));
-      bunchMock.removeMany([0, 1]);
+      bunchTest.removeMany([`${MeldrineIdTest}-1`, `${MaydenaIdTest}-2`]);
+      items.push(bunchTest.th_get_items()[0]);
+      items.push(bunchTest.th_get_items()[1]);
+      bunchTest.removeMany([0, 1]);
 
       expect(items[0].removeContext.mock.calls.length).toBe(1);
       expect(items[1].removeContext.mock.calls.length).toBe(1);
@@ -788,14 +737,14 @@ describe('class DYOToolsBunch', () => {
 
     test('not change context for removed items - virtual context option', () => {
       const items = [
-        bunchMock.mockItemGetter(1),
-        bunchMock.mockItemGetter(2),
+        bunchTest.th_get_items()[1],
+        bunchTest.th_get_items()[2],
       ];
-      bunchMock.mockDefineOptions({ virtualContext: true });
-      bunchMock.removeMany([`${MeldrineIdTest}-1`, `${MaydenaIdTest}-2`]);
-      items.push(bunchMock.mockItemGetter(0));
-      items.push(bunchMock.mockItemGetter(1));
-      bunchMock.removeMany([0, 1]);
+      bunchTest.th_set_options({ virtualContext: true });
+      bunchTest.removeMany([`${MeldrineIdTest}-1`, `${MaydenaIdTest}-2`]);
+      items.push(bunchTest.th_get_items()[0]);
+      items.push(bunchTest.th_get_items()[1]);
+      bunchTest.removeMany([0, 1]);
 
       expect(items[0].removeContext.mock.calls.length).toBe(0);
       expect(items[1].removeContext.mock.calls.length).toBe(0);
@@ -806,494 +755,72 @@ describe('class DYOToolsBunch', () => {
 
   describe('remove()', () => {
     beforeEach(() => {
-      jest.spyOn(bunchMock, 'removeMany').mockImplementation(() => {
+      jest.spyOn(bunchTest, 'removeMany').mockImplementation(() => {
       });
 
-      bunchMock.mockDefineItems(5);
+      bunchTest.th_set_items(generateMockedElements(5));
     });
 
     test('remove one item by id using removeMany', () => {
-      bunchMock.remove(`${MaydenaIdTest}-2`);
+      bunchTest.remove(`${MaydenaIdTest}-2`);
 
-      expect((bunchMock.removeMany as any).mock.calls.length).toBe(1);
-      expect((bunchMock.removeMany as any).mock.calls[0][0]).toStrictEqual([`${MaydenaIdTest}-2`]);
+      expect((bunchTest.removeMany as any).mock.calls.length).toBe(1);
+      expect((bunchTest.removeMany as any).mock.calls[0][0]).toStrictEqual([`${MaydenaIdTest}-2`]);
     });
 
     test('remove one item by index using removeMany', () => {
-      bunchMock.remove(2);
+      bunchTest.remove(2);
 
-      expect((bunchMock.removeMany as any).mock.calls.length).toBe(1);
-      expect((bunchMock.removeMany as any).mock.calls[0][0]).toStrictEqual([2]);
+      expect((bunchTest.removeMany as any).mock.calls.length).toBe(1);
+      expect((bunchTest.removeMany as any).mock.calls[0][0]).toStrictEqual([2]);
     });
   });
 
   describe('removeAll()', () => {
     beforeEach(() => {
-      jest.spyOn(bunchMock, 'removeMany').mockImplementation(() => {
+      jest.spyOn(bunchTest, 'removeMany').mockImplementation(() => {
       });
 
-      bunchMock.mockDefineItems(5);
+      bunchTest.th_set_items(generateMockedElements(5));
     });
 
     test('remove all items using removeMany', () => {
-      bunchMock.removeAll();
+      bunchTest.removeAll();
 
-      expect((bunchMock.removeMany as any).mock.calls.length).toBe(1);
-      expect((bunchMock.removeMany as any).mock.calls[0][0]).toStrictEqual([0, 1, 2, 3, 4]);
-    });
-  });
-
-  describe('find()', () => {
-    const validFiltersForItemMockFn = validFiltersForItem as MockedFunction<typeof validFiltersForItem>;
-    const checkItemFound = (items) => {
-      expect(items.length).toBe(3);
-      expect(items[0].getId()).toBe(`${HaileiIdTest}-0`);
-      expect(items[1].getId()).toBe(`${MaydenaIdTest}-2`);
-      expect(items[2].getId()).toBe(`${YssaliaIdTest}-4`);
-    };
-    const generateFiltersCallsResponse = (filters): any => {
-      const items = generateMockedElements(5);
-      let nbCalls = 0;
-      let itemCount = 0;
-      let inversion = false;
-      const response = { nbCalls: 0, callsData: [] };
-      validFiltersForItemMockFn.mockReturnValue(true);
-
-      for (const item of items) {
-        for (const prop of Object.keys(filters)) {
-          let itemProp: DTAcceptedMetaDataValue = '';
-          let operators = { fake: filters[prop] };
-          if (prop === 'id') {
-            itemProp = item.getId();
-          } else if (prop === 'key') {
-            itemProp = item.getKey();
-          } else if (prop === 'owner') {
-            itemProp = itemCount % 2 ? null : IDPlayerTest;
-          } else if (prop === 'context') {
-            itemProp = itemCount % 2 ? IDContextTest : null;
-          } else if (prop === 'meta') {
-            operators = filters[prop];
-          }
-
-          let metaBreakerLoop = false;
-          for (const metaKey of Object.keys(operators)) {
-            if (prop === 'meta') {
-              itemProp = item.getManyMeta()[metaKey];
-            }
-            if (metaBreakerLoop) {
-              break;
-            }
-
-            for (const operator of Object.keys(operators[metaKey])) {
-              response.callsData.push([
-                itemProp, filters[prop][operator], operator,
-              ]);
-
-              if (!(itemCount % 2)) {
-                validFiltersForItemMockFn.mockReturnValueOnce(true);
-              } else {
-                validFiltersForItemMockFn.mockReturnValueOnce(inversion);
-                if (inversion === false) {
-                  if (prop === 'meta') {
-                    metaBreakerLoop = true;
-                  }
-                  break;
-                }
-                inversion = !inversion;
-              }
-              nbCalls++;
-            }
-          }
-        }
-
-        itemCount++;
-        inversion = false;
-      }
-
-      response.nbCalls = nbCalls;
-      return response;
-    };
-
-    beforeEach(() => {
-      bunchMock.mockDefineItems(5);
-
-      bunchMock.mockItemGetter(0).setOwner(new DTPlayerStub());
-      bunchMock.mockItemGetter(1).setContext(new DTComponentTestMock());
-      bunchMock.mockItemGetter(2).setOwner(new DTPlayerStub());
-      bunchMock.mockItemGetter(3).setContext(new DTComponentTestMock());
-      bunchMock.mockItemGetter(4).setOwner(new DTPlayerStub());
-    });
-
-    afterEach(() => {
-      validFiltersForItemMockFn.mockReset();
-    });
-
-    test('find items by id - $eq case', () => {
-      const filters = { id: { $eq: 'filter-id' } };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by id - all valid operators', () => {
-      const filters = {
-        id: {
-          $eq: 'filter-id',
-          $in: ['filter-id', '12345'],
-          $nin: [false, 12345],
-          $ne: 'filter-id',
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by key - one operator $eq', () => {
-      const filters = { key: { $eq: 'filter-key' } };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by key - all valid operators', () => {
-      const filters = {
-        key: {
-          $eq: 'filter-key',
-          $in: ['filter-key', '12345'],
-          $nin: [false, 12345],
-          $ne: 'filter-key',
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by owner - $eq case', () => {
-      const filters = { owner: { $eq: 'filter-owner-id' } };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by owner - all valid operators', () => {
-      const filters = {
-        owner: {
-          $eq: 'filter-owner-id',
-          $in: ['filter-owner-id', '12345'],
-          $nin: [null, 12345],
-          $ne: 'filter-owner-id',
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by context - $eq case', () => {
-      const filters = { id: { $eq: 'filter-context-id' } };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by context - all valid operators', () => {
-      const filters = {
-        context: {
-          $eq: 'filter-context-id',
-          $in: ['filter-context-id', '12345'],
-          $nin: [null, 12345],
-          $ne: 'filter-context-id',
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - one meta with one operator $eq', () => {
-      const filters = { meta: { name: { $eq: 'filter-meta-name' } } };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - several meta with one operator $eq', () => {
-      const filters = {
-        meta: {
-          name: { $eq: 'filter-meta-name' },
-          queen: { $eq: false },
-          rank: { $eq: 13 },
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - one meta with all valid operators', () => {
-      const filters = {
-        meta: {
-          rank: {
-            $eq: 5,
-            $in: [5, 11],
-            $nin: [2, 3],
-            $ne: 11,
-            $lte: 17,
-            $gte: 3,
-            $contains: 5,
-            $ncontains: 11,
-          },
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - several meta with several operators', () => {
-      const filters = {
-        meta: {
-          name: {
-            $eq: 'filter-meta-name',
-            $in: ['filter-meta-name', '12345'],
-            $ne: null,
-          },
-          kd: {
-            $contains: 0,
-            $ncontains: 53,
-          },
-          rank: {
-            $lte: 17,
-            $gte: 3,
-          },
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - all props with several operators', () => {
-      const filters = {
-        id: {
-          $eq: 'filter-id',
-        },
-        key: {
-          $eq: 'filter-key',
-          $in: ['filter-key', '12345'],
-        },
-        owner: {
-          $nin: [null, 12345],
-          $ne: 'filter-owner-id',
-        },
-        context: {
-          $in: ['filter-context-id', '12345'],
-          $nin: [null, 12345],
-          $ne: 'filter-context-id',
-        },
-        meta: {
-          name: {
-            $eq: 'filter-meta-name',
-            $in: ['filter-meta-name', '12345'],
-            $ne: null,
-          },
-          kd: {
-            $contains: 0,
-            $ncontains: 53,
-          },
-          rank: {
-            $lte: 17,
-            $gte: 3,
-          },
-        },
-      };
-      const expectedResponseCalls = generateFiltersCallsResponse(filters);
-      const itemsFound = bunchMock.find(filters);
-
-      expect(expectedResponseCalls).toStrictEqual(expectedResponseCalls);
-      checkItemFound(itemsFound);
-    });
-
-    test('find items by meta - empty filters (return empty array)', () => {
-      const filters = {};
-      const itemsFound = bunchMock.find(filters);
-
-      expect(itemsFound.length).toBe(0);
-      expect(validFiltersForItemMockFn.mock.calls.length).toBe(0);
-
-      validFiltersForItemMockFn.mockReset();
-      const filters2 = {
-        id: {},
-        key: {},
-        owner: {},
-        context: {},
-        meta: {},
-      };
-      const itemsFound2 = bunchMock.find(filters2);
-
-      expect(itemsFound2.length).toBe(0);
-      expect(validFiltersForItemMockFn.mock.calls.length).toBe(0);
+      expect((bunchTest.removeMany as any).mock.calls.length).toBe(1);
+      expect((bunchTest.removeMany as any).mock.calls[0][0]).toStrictEqual([0, 1, 2, 3, 4]);
     });
   });
 
   describe('copy()', () => {
-    test('copy a bunch - simple case with id and key', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      const bunchMockCopy = bunchMock.copy();
-      jest.spyOn(bunchMock, 'getId').mockImplementation(function () {
-        return this._id;
-      });
-      jest.spyOn(bunchMockCopy, 'getId').mockImplementation(function () {
-        return this._id;
-      });
-      jest.spyOn(bunchMock, 'getKey').mockImplementation(function () {
-        return this._key;
-      });
-      jest.spyOn(bunchMockCopy, 'getKey').mockImplementation(function () {
-        return this._key;
-      });
+    // @see copy.spec.ts for unit tests about copy method
+  });
 
-      expect(bunchMock.getId() === bunchMockCopy.getId()).toBeFalsy();
-      expect(bunchMock.getKey() === bunchMockCopy.getKey()).toBeTruthy();
+  describe('find()', () => {
+    test('find items using DYOFinder - empty case', () => {
+      bunchTest.find({});
+
+      expect((bunchTest.th_get_finder() as any).execute.mock.calls.length).toBe(1);
+      expect((bunchTest.th_get_finder() as any).execute.mock.calls[0][0]).toStrictEqual({});
     });
 
-    test('copy a bunch - not copy owner and context', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      jest.spyOn(bunchMock, 'setContext').mockImplementation(function (context) {
-        this._context = context;
-      });
-      jest.spyOn(bunchMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
+    test('find items using DYOFinder', () => {
+      const testFilters = { id: { $eq: 'id_bunch' }, key: { $ne: 'key_test' } };
+      bunchTest.find(testFilters);
 
-      bunchMock.setContext(new DTComponentTestMock());
-      bunchMock.setOwner(new DTPlayerStub());
-
-      const bunchMockCopy = bunchMock.copy();
-      jest.spyOn(bunchMockCopy, 'getContext').mockImplementation(function () {
-        return this._context;
-      });
-      jest.spyOn(bunchMockCopy, 'getOwner').mockImplementation(function () {
-        return this._owner;
-      });
-
-      expect(bunchMockCopy.getContext()).toBeUndefined();
-      expect(bunchMockCopy.getOwner()).toBeUndefined();
-    });
-
-    test('copy a bunch - copy meta-data and globalOptions', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      bunchMock.setManyMeta({});
-      const copiedOptions: Partial<DTBunchOptionsConstructor> = {
-        inheritOwner: true,
-        replaceIndex: true,
-        virtualContext: true,
-      };
-      bunchMock.mockDefineOptions(copiedOptions);
-
-      const bunchMockCopy = bunchMock.copy();
-      jest.spyOn(bunchMockCopy, 'getManyMeta').mockImplementation(function () {
-        return this._meta;
-      });
-      jest.spyOn(bunchMockCopy, 'get').mockImplementation(function (key) {
-        return key === 'options' ? this._globalOptions : undefined;
-      });
-
-      expect(bunchMockCopy.getManyMeta()).toStrictEqual(BunchMetaData);
-      expect(bunchMockCopy.get('options')).toStrictEqual({
-        ...defaultOptions,
-        ...copiedOptions,
-      });
-    });
-
-    test('copy a bunch - empty errors', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      const errors = [new DTErrorStub(), new DTErrorStub()];
-      bunchMock.mockDefineErrors(errors);
-
-      const bunchMockCopy = bunchMock.copy();
-      jest.spyOn(bunchMockCopy, 'getErrors').mockImplementation(function () {
-        return this._errors;
-      });
-
-      expect(bunchMockCopy.getErrors().length).toBe(0);
-    });
-
-    test('copy a bunch with items - default case', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      bunchMock.mockDefineItems(5);
-
-      const bunchMockCopy = bunchMock.copy();
-      jest.spyOn(bunchMockCopy, 'getAll').mockImplementation(function () {
-        return this._items;
-      });
-
-      const items = bunchMockCopy.getAll();
-
-      expect(items.length).toBe(5);
-      expect(bunchMock.mockItemGetter(0).copy.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(1).copy.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(2).copy.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(3).copy.mock.calls.length).toBe(1);
-      expect(bunchMock.mockItemGetter(4).copy.mock.calls.length).toBe(1);
-    });
-
-    test('copy a bunch with items - virtual context case', () => {
-      // This test doesn't mock the DOC (Depended-on Component) correctly
-      // Need to change implementation to implement correct testing
-      bunchMock.mockDefineItems(5);
-      bunchMock.mockDefineOptions({ virtualContext: true });
-
-      const bunchMockCopy = bunchMock.copy();
-      jest.spyOn(bunchMockCopy, 'getAll').mockImplementation(function () {
-        return this._items;
-      });
-
-      const items = bunchMockCopy.getAll();
-
-      expect(items.length).toBe(5);
-      expect(bunchMock.mockItemGetter(0).copy.mock.calls.length).toBe(0);
-      expect(bunchMock.mockItemGetter(1).copy.mock.calls.length).toBe(0);
-      expect(bunchMock.mockItemGetter(2).copy.mock.calls.length).toBe(0);
-      expect(bunchMock.mockItemGetter(3).copy.mock.calls.length).toBe(0);
-      expect(bunchMock.mockItemGetter(4).copy.mock.calls.length).toBe(0);
+      expect((bunchTest.th_get_finder() as any).execute.mock.calls.length).toBe(1);
+      expect((bunchTest.th_get_finder() as any).execute.mock.calls[0][0]).toStrictEqual(testFilters);
     });
   });
 
   describe('toObject()', () => {
+    beforeEach(() => {
+      bunchTest.th_set_id(IDTest);
+      bunchTest.th_set_key(KeyTest);
+    });
+
     test('toObject output standard', () => {
-      const toObjectBunch = bunchMock.toObject();
+      const toObjectBunch = bunchTest.toObject();
 
       expect(Object.keys(toObjectBunch)).toStrictEqual(['id', 'key', 'type', 'items']);
       expect(toObjectBunch.id).toBe(IDTest);
@@ -1303,35 +830,29 @@ describe('class DYOToolsBunch', () => {
     });
 
     test('toObject output standard with owner', () => {
-      jest.spyOn(bunchMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-      bunchMock.setOwner(new DTPlayerStub());
+      bunchTest.th_set_owner(new DTPlayerStub());
 
-      const toObjectBunch = bunchMock.toObject();
+      const toObjectBunch = bunchTest.toObject();
       expect(Object.keys(toObjectBunch)).toStrictEqual(['id', 'key', 'type', 'items', 'owner']);
       expect(toObjectBunch.owner.toString()).toBe(toStringPlayerTest);
     });
 
     test('toObject output standard with owner and meta', () => {
-      jest.spyOn(bunchMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
-      jest.spyOn(bunchMock, 'getManyMeta').mockImplementation(function () {
+      jest.spyOn(bunchTest, 'getManyMeta').mockImplementation(function () {
         return this._meta;
       });
 
-      bunchMock.setOwner(new DTPlayerStub());
-      bunchMock.setManyMeta({});
+      bunchTest.th_set_owner(new DTPlayerStub());
+      bunchTest.th_set_meta(BunchMetaData);
 
-      const toObjectBunch = bunchMock.toObject();
+      const toObjectBunch = bunchTest.toObject();
       expect(Object.keys(toObjectBunch)).toStrictEqual(['id', 'key', 'type', 'items', 'owner', 'meta']);
       expect(toObjectBunch.meta).toStrictEqual(BunchMetaData);
     });
 
     test('toObject output standard with items', () => {
-      bunchMock.mockDefineItems(5);
-      const toObjectBunch = bunchMock.toObject();
+      bunchTest.th_set_items(generateMockedElements(5));
+      const toObjectBunch = bunchTest.toObject();
 
       expect(Object.keys(toObjectBunch)).toStrictEqual(['id', 'key', 'type', 'items']);
       expect(toObjectBunch.items.length).toBe(5);
@@ -1346,28 +867,28 @@ describe('class DYOToolsBunch', () => {
   });
 
   describe('toString()', () => {
+    beforeEach(() => {
+      bunchTest.th_set_key(KeyTest);
+    });
+
     test('string output standard', () => {
-      const toStringBunch = bunchMock.toString();
+      const toStringBunch = bunchTest.toString();
 
       expect(toStringBunch).toBe(`Component ${KeyTest} - Type: Bunch - Items: 0`);
     });
 
     test('string output standard with items', () => {
-      bunchMock.mockDefineItems(5);
-      const toStringBunch = bunchMock.toString();
+      bunchTest.th_set_items(generateMockedElements(5));
+      const toStringBunch = bunchTest.toString();
 
       expect(toStringBunch).toBe(`Component ${KeyTest} - Type: Bunch - Items: 5`);
     });
 
     test('string output standard with items and owner', () => {
-      bunchMock.mockDefineItems(5);
-      jest.spyOn(bunchMock, 'setOwner').mockImplementation(function (owner) {
-        this._owner = owner;
-      });
+      bunchTest.th_set_items(generateMockedElements(5));
+      bunchTest.th_set_owner(new DTPlayerStub());
 
-      bunchMock.setOwner(new DTPlayerStub());
-
-      const toStringBunch = bunchMock.toString();
+      const toStringBunch = bunchTest.toString();
       expect(toStringBunch).toBe(`Component ${KeyTest} - Type: Bunch - Owner: ${KeyPlayerTest} - Items: 5`);
     });
   });

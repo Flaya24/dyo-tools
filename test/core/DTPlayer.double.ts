@@ -1,12 +1,46 @@
-import { DTPlayer } from '../../src';
-import { IMetaDataTest, PlayerMetaData } from './DTComponentWithMeta.double';
+import {DTPlayer} from '../../src';
+import {IMetaDataTest} from './DTComponentWithMeta.double';
 
-// Global Variables
+/******************** STUB PROPERTIES CONSTANTS
+ * Fixed properties to use with double classes, avoid auto generated and easy checking on test
+ * *****/
 export const IDTest = 'DTPlayer-id-1234567';
 export const KeyTest = 'DTPlayer-key-1234567';
 export const toStringTest = 'DTPlayer Stub toString';
 
-// Stub for Player (used for other tests)
+/******************** HELPER TEST CLASS
+ * Helper test class, inherits the main component
+ * Providing methods to property access and other facilities, in order to avoid using class methods
+ * *****/
+export class DTPlayerTest extends DTPlayer<IMetaDataTest> {
+  th_get_id(): string {
+    return this._id;
+  }
+
+  th_set_id(id: string): void {
+    this._id = id;
+  }
+
+  th_get_key(): string {
+    return this._key;
+  }
+
+  th_set_key(key: string): void {
+    this._key = key;
+  }
+
+  th_get_componentType(): string {
+    return this._componentType;
+  }
+
+  th_set_meta(meta: IMetaDataTest): void {
+    this._meta = meta;
+  }
+}
+
+/******************** STUB CLASS
+ * Stub class, for using in other component
+ * *****/
 export class DTPlayerStub extends DTPlayer<{}> {
   constructor() {
     super();
@@ -27,23 +61,4 @@ export class DTPlayerStub extends DTPlayer<{}> {
   }
 }
 
-// Mock Constructor and parent methods for DTPlayer
-export class DTPlayerMock extends DTPlayer<IMetaDataTest> {
-  constructor() {
-    super();
-    this._id = IDTest;
-    this._key = KeyTest;
-  }
 
-  getComponentType(): string {
-    return this._componentType;
-  }
-
-  setManyMeta(metaValues: Partial<IMetaDataTest>) {
-    this._meta = PlayerMetaData;
-  }
-
-  getManyMeta(metaKeys: Array<keyof IMetaDataTest> = []): Partial<IMetaDataTest> {
-    return this._meta;
-  }
-}
